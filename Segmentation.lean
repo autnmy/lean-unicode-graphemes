@@ -1,3 +1,5 @@
+import Segmentation.Statements
+
 /-!
 # Segmentation
 
