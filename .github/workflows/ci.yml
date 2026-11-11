@@ -13,6 +13,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The theorem statements are fixed: their SHA-256 must equal the one line
+      # README.md records for them. Exactly one such line is required, so a
+      # missing, duplicated or malformed line fails instead of checking nothing.
+      # This runs before the build so it hashes the bytes git checked out.
+      - name: Check the theorem statements against their recorded SHA-256
+        env:
+          LC_ALL: C
+        run: |
+          pattern='^[0-9a-f]{64}  Segmentation/Statements\.lean$'
+          count=$(grep -cE "$pattern" README.md || true)
+          if [ "$count" -ne 1 ]; then
+            echo "README.md must hold exactly one SHA-256 line for Segmentation/Statements.lean; found $count." >&2
+            exit 1
+          fi
+          grep -E "$pattern" README.md | sha256sum --check --strict
       # Installs the toolchain named in lean-toolchain. Build and test are
       # requested explicitly so the test step never depends on auto-detection.
       - uses: leanprover/lean-action@24581d74d674803a25a81b10b059c5c0cdd344c6 # v1.6.2
