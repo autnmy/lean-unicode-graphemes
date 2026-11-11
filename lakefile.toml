@@ -8,6 +8,13 @@ testDriver = "«segmentation-tests»"
 [[lean_lib]]
 name = "Segmentation"
 
+# Compile-time checks of the theorem statements. The test driver imports them, and Lake
+# resolves an import only to a module that some library of the package owns.
+[[lean_lib]]
+name = "SegmentationChecks"
+roots = []
+globs = ["SegmentationTest.+"]
+
 [[lean_exe]]
 name = "segmentation-tests"
 root = "SegmentationTest"

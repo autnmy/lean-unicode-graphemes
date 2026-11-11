@@ -1,11 +1,14 @@
 import Segmentation
+import SegmentationTest.Statements
 
 /-!
 # Test driver
 
 `lake test` builds and runs this executable. A failed `#guard` stops the build,
 and a failed runtime check makes `main` exit with status 1, so either kind of
-failure turns `lake test` red.
+failure turns `lake test` red. `SegmentationTest.Statements` holds compile-time
+checks of the theorem statements in `Segmentation.Statements`: importing it here
+makes `lake test` elaborate it, so a failed check stops the build too.
 -/
 
 namespace SegmentationTest
