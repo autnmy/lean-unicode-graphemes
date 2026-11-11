@@ -1,0 +1,13 @@
+name = "segmentation"
+version = "0.1.0"
+defaultTargets = ["Segmentation"]
+# Lake reads this value as a Lean name, so a target name with a hyphen
+# has to be written in «» or the lookup fails.
+testDriver = "«segmentation-tests»"
+
+[[lean_lib]]
+name = "Segmentation"
+
+[[lean_exe]]
+name = "segmentation-tests"
+root = "SegmentationTest"
