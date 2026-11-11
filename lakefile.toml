@@ -13,7 +13,7 @@ name = "Segmentation"
 [[lean_lib]]
 name = "SegmentationChecks"
 roots = []
-globs = ["SegmentationTest.+", "tests.+"]
+globs = ["SegmentationTest.+"]
 
 [[lean_exe]]
 name = "segmentation-tests"
