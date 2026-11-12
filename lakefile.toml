@@ -8,6 +8,11 @@ testDriver = "«segmentation-tests»"
 [[lean_lib]]
 name = "Segmentation"
 
+# Parses the UCD files into the property tables. Kept out of `Segmentation` so
+# users of the library do not build the parser; the test driver imports it.
+[[lean_lib]]
+name = "TableGen"
+
 # Compile-time checks of the theorem statements. The test driver imports them, and Lake
 # resolves an import only to a module that some library of the package owns.
 [[lean_lib]]
@@ -18,3 +23,9 @@ globs = ["SegmentationTest.+"]
 [[lean_exe]]
 name = "segmentation-tests"
 root = "SegmentationTest"
+
+# Writes the generated property tables under Segmentation/Tables/ from the UCD
+# files: `lake exe gen-tables`, run from the package root.
+[[lean_exe]]
+name = "gen-tables"
+root = "GenTables"
