@@ -15,6 +15,8 @@ theorem «assert_axioms fails on a theorem that rests on an axiom outside propex
     let pre := (← Term.getDeclName?).getD .anonymous
     let badAx := pre ++ `GateAcceptance.foreignAxiom
     let usesBad := pre ++ `GateAcceptance.usesForeignAxiom
+    -- Restored at the end, so the axiom of `False` is not exported to modules that import this.
+    let envBefore ← getEnv
     addDecl (.axiomDecl { name := badAx, levelParams := [], type := mkConst ``False, isUnsafe := false })
     addDecl (.thmDecl { name := usesBad, levelParams := [], type := mkConst ``False,
                         value := mkConst badAx })
@@ -24,6 +26,7 @@ theorem «assert_axioms fails on a theorem that rests on an axiom outside propex
         pure false
       catch _ => pure true
     modifyThe Core.State fun s => { s with messages := saved }
+    setEnv envBefore
     unless rejected do
       throwError "#assert_axioms accepted a theorem that depends on {badAx}"
     liftCommandElabM (elabCommand (← `(command| #assert_axioms Segmentation.isBoundary_zero)))

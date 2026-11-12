@@ -10,7 +10,7 @@ each identifier part that equals a forbidden word.
 What counts as prose: `--` comments, `/- … -/` comments (they nest, and doc comments are
 included), character literals, the text of string literals (raw ones such as `r#"…"#` too), and
 «…» names. The `{…}` parts of an interpolated string, such as `s!"…"`, `m!"…"` or the string
-after `throwError`, hold Lean terms, so they are scanned as code.
+after `throwError` or `dbg_trace`, hold Lean terms, so they are scanned as code.
 -/
 
 namespace Gate
@@ -72,13 +72,15 @@ private def endsWithKeyword (before : List Char) (word : String) : Bool :=
 
 /-- Whether a `"` that follows `before` opens a string whose `{…}` parts are Lean terms. That
 holds after a `!` macro such as `s!` or `m!`, after `]` as in `trace[cls] "…"`, and after
-`throwError` or `throwErrorAt ref`, which take such a string without a `!`. Taking `]` too can
-only scan more text as code, so it can only report more. -/
+`throwError`, `dbg_trace` or `throwErrorAt ref`, which take such a string without a `!`. Taking
+`]` too can only scan more text as code, so it can only report more. -/
 private def opensInterpolatedString (before : List Char) : Bool :=
   let before := before.dropWhile Char.isWhitespace
   match before with
   | '!' :: _ | ']' :: _ => true
-  | _ => endsWithKeyword before "throwError" || endsWithKeyword (dropTerm before) "throwErrorAt"
+  | _ =>
+    endsWithKeyword before "throwError" || endsWithKeyword before "dbg_trace" ||
+      endsWithKeyword (dropTerm before) "throwErrorAt"
 
 /-- The number of `#` signs when a `"` that follows `before` opens a raw string (`r"`, `r#"`,
 …), or `none` when it opens an ordinary string. -/

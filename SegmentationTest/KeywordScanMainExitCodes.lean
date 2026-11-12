@@ -30,7 +30,18 @@ theorem «keyword-scan main exits 1 on a file using a forbidden word, 0 on a cle
     IO.FS.writeFile clean "-- no sorry here\ntheorem c : 1 = 1 := by decide\n"
     let cleanCode ← main [clean.toString]
     let emptyCode ← main []
+    -- A clean file must not reset a failure found in another, in either order, and a path that
+    -- cannot be read must fail alone and beside a clean file.
+    let forbidden := dir / "sorry.lean"
+    let missing := dir / "missing.lean"
+    let mixed := [[clean, forbidden], [forbidden, clean], [missing], [clean, missing],
+      [missing, clean]]
+    let mut mixedFailures : List String := []
+    for paths in mixed do
+      let code ← main (paths.map (·.toString))
+      unless code == 1 do mixedFailures := mixedFailures ++ [s!"{paths}: exit {code}"]
     IO.FS.removeDirAll dir
+    unless mixedFailures.isEmpty do throwError "multi-path runs not rejected: {mixedFailures}"
     unless failures.isEmpty do throwError "forbidden words not rejected: {failures}"
     unless cleanCode == 0 do throwError "clean file exited {cleanCode}"
     unless emptyCode == 1 do throwError "no paths exited {emptyCode}"
