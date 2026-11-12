@@ -8,7 +8,8 @@ should treat as one unit. It follows Unicode 18.0.0 and
 uses Lean core only, with no Mathlib, Batteries or other Lake dependencies.
 
 **Status: in progress.** The project scaffold, the theorem statements and the
-Unicode property tables exist so far. There is no segmentation API yet, and nothing in the library is stable.
+Unicode property tables exist so far. There is no segmentation API yet, and
+nothing in the library is stable.
 
 ## Building and testing
 
