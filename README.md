@@ -13,9 +13,10 @@ Unicode property tables and the segmenter exist so far.
 grapheme clusters, and `Segmentation.boundaries : String → List Nat` returns
 the cut positions, counted in code points. `lake test` checks `graphemes`
 against all 853 test lines of the Unicode test file `GraphemeBreakTest.txt`,
-and `boundaries` against selected lines of it; the proofs that
-they satisfy the theorem statements are not written yet. Nothing in the library
-is stable.
+and `boundaries` against selected lines of it. H1a and H1b are proved in
+`Segmentation/Partition.lean`: the clusters join back to the input, and no
+cluster is empty. The proofs of H2 and H2' are not written yet. Nothing in the
+library is stable.
 
 ## Building and testing
 
