@@ -1,5 +1,9 @@
 import Segmentation
 import SegmentationTest.Statements
+import SegmentationTest.Range
+import SegmentationTest.RangeLookupBoundaries
+import SegmentationTest.«RangeLookupBoundaries.2»
+import SegmentationTest.RangeLookupEmptyAndSingle
 
 /-!
 # Test driver
