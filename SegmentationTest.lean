@@ -34,6 +34,18 @@ import SegmentationTest.GraphemesGb9cStarIsIncbExtend
 import SegmentationTest.GraphemesGb9cClearedByOtherCodePoint
 import SegmentationTest.GraphemesGb11DisarmedBySecondZwj
 import SegmentationTest.GraphemesGb11NeedsPictographBeforeZwj
+import SegmentationTest.GraphemesJoinTheorem
+import SegmentationTest.GraphemesNeEmptyTheorem
+import SegmentationTest.GraphemesJoinStatement
+import SegmentationTest.GraphemesJoinInstance
+import SegmentationTest.GraphemesNeEmptyStatement
+import SegmentationTest.GraphemesNeEmptyInstance
+import SegmentationTest.GraphemesJoinAxioms
+import SegmentationTest.GraphemesNeEmptyAxioms
+import SegmentationTest.GraphemesJoinPinnedType
+import SegmentationTest.GraphemesNeEmptyPinnedType
+import SegmentationTest.GraphemesJoinHostileInput
+import SegmentationTest.GraphemesNeEmptyHostileInput
 
 /-!
 # Test driver
