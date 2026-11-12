@@ -20,8 +20,8 @@ name = "SegmentationChecks"
 roots = []
 globs = ["SegmentationTest.+"]
 
-# The checks CI runs on the proofs and the source: the `#assert_axioms` command. Kept out of
-# `Segmentation` so users of the library do not build it.
+# The checks CI runs on the proofs and the source: the `#assert_axioms` command and the
+# forbidden-word scanner. Kept out of `Segmentation` so users of the library do not build it.
 [[lean_lib]]
 name = "Gate"
 roots = []
@@ -36,3 +36,9 @@ root = "SegmentationTest"
 [[lean_exe]]
 name = "gen-tables"
 root = "GenTables"
+
+# Fails on any forbidden word (`Gate.forbiddenWords`) used as code in the Lean files it is
+# given: `lake exe keyword-scan <paths>`. CI passes it every tracked `.lean` file.
+[[lean_exe]]
+name = "keyword-scan"
+root = "KeywordScan"
