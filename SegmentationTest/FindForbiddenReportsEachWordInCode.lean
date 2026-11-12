@@ -4,7 +4,7 @@ import Gate.KeywordScan
 -- "... and on any of `sorry`, `admit`, `axiom`, `native_decide`, `implemented_by`, `extern` or
 -- `unsafe` in project code."
 open Lean in
-theorem «findForbidden reports each of the seven words used as code with its line» : True := by
+theorem «findForbidden reports all seven words in one source, in line order» : True := by
   run_tac do
     let source := "theorem a : False := by sorry\n" ++
       "theorem b : False := by admit\n" ++
