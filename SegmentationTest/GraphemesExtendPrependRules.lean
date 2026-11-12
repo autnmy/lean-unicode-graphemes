@@ -15,3 +15,6 @@ open SegmentationTest.GraphemeBreakTestLine
 -- Line 842: ÷ 0061 ÷ 0600 × 0062 ÷  (÷ [999.0], × [9.2])
 #guard clusters [0x0061, 0x0600, 0x0062] == [[0x0061], [0x0600, 0x0062]]
 #guard cuts [0x0061, 0x0600, 0x0062] == [0, 1, 3]
+
+-- Line 361: ÷ 06DD × 1F1E6 ÷  (× [9.2]); a Prepend joins even a regional indicator.
+#guard cuts [0x06DD, 0x1F1E6] == [0, 2]
