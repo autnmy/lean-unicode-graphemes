@@ -44,32 +44,32 @@ def isError {α : Type} : Except String α → Bool
 #guard single (TableGen.parseGcb "# @missing: 0000..10FFFF; Other\n\n0300..036F    ; Extend # Mn [112] x\n") ==
   some (0x300, 0x36F, GCB.Extend)
 
--- Every InCB value a line can carry; lines of other properties are skipped.
+-- Every InCB value a line can carry. A text with only other properties' lines
+-- parses to nothing, which is an error; ParseIncbOtherProperties.lean checks
+-- that such lines are skipped beside an InCB line.
 #guard single (TableGen.parseIncb "0041 ; InCB; Consonant # x") == some (0x41, 0x41, InCB.Consonant)
 #guard single (TableGen.parseIncb "0041 ; InCB; Extend # x") == some (0x41, 0x41, InCB.Extend)
 #guard single (TableGen.parseIncb "0041 ; InCB; Linker # x") == some (0x41, 0x41, InCB.Linker)
 #guard isError (TableGen.parseIncb "0041 ; Alphabetic # x")
-#guard single (TableGen.parseIncb "0041 ; Alphabetic # x\n094D ; InCB; Linker # x\n") ==
-  some (0x94D, 0x94D, InCB.Linker)
 #guard isError (TableGen.parseIncb "094D ; InCB # value missing")
 
 -- emoji-data.txt writes no space before the comment.
 #guard single (TableGen.parseExtPict "00A9          ; Extended_Pictographic# E0.6   [1] (©️)       copyright") ==
   some (0xA9, 0xA9, true)
 
--- Malformed input is an error, never a default.
-#guard isError (TableGen.parseGcb "1F1E6 ; Regional_Indicatr # x")
+-- Malformed input is an error, never a default. ParseGcbUnknownName.lean checks
+-- a misspelled value name.
 #guard isError (TableGen.parseGcb "110000 ; Control # x")
 #guard isError (TableGen.parseGcb "0045..0041 ; Control # x")
 #guard isError (TableGen.parseGcb "zz ; ;")
 #guard isError (TableGen.parseGcb "")
 #guard isError (TableGen.parseGcb "# only a comment\n")
 
--- Overlapping entries with different values.
+-- Overlapping entries with different values. NormalizeConflictingOverlap.lean
+-- checks that `normalize` rejects the same entries.
 def overlapping : List (Range GCB) :=
   [{ lo := 0x41, hi := 0x45, value := .Control }, { lo := 0x43, hi := 0x43, value := .Extend }]
 
-#guard isError (TableGen.normalize overlapping)
 #guard isError (TableGen.paint GCB.Other overlapping)
 
 -- `normalize` sorts and joins touching ranges of one value, and keeps others apart.

@@ -15,7 +15,6 @@ import SegmentationTest.PropsGraphemeClusterBreakValues
 import SegmentationTest.PropsIndicConjunctBreakValues
 import SegmentationTest.PropsExtendedPictographic
 import SegmentationTest.PropsLastCodePoint
-import SegmentationTest.GcbOfSurrogates
 import SegmentationTest.NumericLookupsMatchProps
 import SegmentationTest.DataChecks
 

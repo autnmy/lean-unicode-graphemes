@@ -28,23 +28,15 @@ jobs:
             exit 1
           fi
           grep -E "$pattern" README.md | sha256sum --check --strict
-      # The Unicode data files are pinned: each must match its digest in
-      # SHA256SUMS. Exactly five well-formed lines are required, so a dropped or
-      # extra entry fails instead of checking fewer files. This runs before the
-      # build so it hashes the bytes git checked out.
+      # The Unicode data files are pinned: each file SHA256SUMS lists must match
+      # its digest. Which files the list must name is checked by `lake test`
+      # (TableGen.checkDigestList), so the list is stated in one place. This runs
+      # before the build so it hashes the bytes git checked out.
       - name: Check the Unicode data files against SHA256SUMS
         working-directory: data/ucd/18.0.0
         env:
           LC_ALL: C
-        run: |
-          pattern='^[0-9a-f]{64}  [A-Za-z0-9_./-]+$'
-          lines=$(wc -l < SHA256SUMS)
-          count=$(grep -cE "$pattern" SHA256SUMS || true)
-          if [ "$lines" -ne 5 ] || [ "$count" -ne 5 ]; then
-            echo "SHA256SUMS must hold exactly five well-formed lines; found $count of $lines." >&2
-            exit 1
-          fi
-          sha256sum --check --strict SHA256SUMS
+        run: sha256sum --check --strict SHA256SUMS
       # Installs the toolchain named in lean-toolchain. Build and test are
       # requested explicitly so the test step never depends on auto-detection.
       - uses: leanprover/lean-action@24581d74d674803a25a81b10b059c5c0cdd344c6 # v1.6.2
