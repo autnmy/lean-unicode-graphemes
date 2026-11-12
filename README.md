@@ -15,7 +15,10 @@ the cut positions, counted in code points. `lake test` checks `graphemes`
 against all 853 test lines of the Unicode test file `GraphemeBreakTest.txt`,
 and `boundaries` against selected lines of it. H1a and H1b are proved in
 `Segmentation/Partition.lean`: the clusters join back to the input, and no
-cluster is empty. The proofs of H2 and H2' are not written yet. Nothing in the
+cluster is empty. `Segmentation/TableLookup.lean` proves that the property
+lookups `props` reads give, for every code point, the same value as a plain
+scan of the generated tables, after the kernel checks that each table is sorted
+with no overlapping ranges. The proofs of H2 and H2' are not written yet. Nothing in the
 library is stable.
 
 ## Building and testing
