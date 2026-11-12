@@ -18,7 +18,7 @@ and `boundaries` against selected lines of it. H1a and H1b are proved in
 cluster is empty. `Segmentation/TableLookup.lean` proves that the property
 lookups `props` reads give, for every code point, the same value as a plain
 scan of the generated tables, after the kernel checks that each table is sorted
-with no overlapping ranges. H2 and H2' are proved in `Segmentation/Rules.lean` and `Segmentation/Cuts.lean`. Nothing in the
+with no overlapping ranges. H2 is proved in `Segmentation/Rules.lean` and H2' in `Segmentation/Cuts.lean`. Nothing in the
 library is stable.
 
 ## Building and testing
