@@ -1,4 +1,3 @@
-import Lean
 import Segmentation
 
 /-!
@@ -41,27 +40,5 @@ theorem «graphemes_ne_empty rules out an empty cluster for the empty string and
     (∀ g ∈ Segmentation.graphemes "", g ≠ "") ∧ (∀ g ∈ Segmentation.graphemes "a\r", g ≠ "") :=
   ⟨Segmentation.graphemes_ne_empty "", Segmentation.graphemes_ne_empty "a\r"⟩
 
--- `#print axioms` only prints, so these read the same axiom list and fail on anything beyond
--- `propext`, `Classical.choice` and `Quot.sound`. A proof by `sorry` depends on `sorryAx`,
--- which is not in the allowed list.
-open Lean in
-theorem «graphemes_join uses no sorry and no axiom beyond propext, Classical.choice and Quot.sound» :
-    True := by
-  run_tac do
-    let used ← collectAxioms ``Segmentation.graphemes_join
-    let allowed := [``propext, ``Classical.choice, ``Quot.sound]
-    for ax in used do
-      unless allowed.contains ax do
-        throwError m!"Segmentation.graphemes_join depends on the disallowed axiom {ax}"
-  trivial
-
-open Lean in
-theorem «graphemes_ne_empty uses no sorry and no axiom beyond propext, Classical.choice and Quot.sound» :
-    True := by
-  run_tac do
-    let used ← collectAxioms ``Segmentation.graphemes_ne_empty
-    let allowed := [``propext, ``Classical.choice, ``Quot.sound]
-    for ax in used do
-      unless allowed.contains ax do
-        throwError m!"Segmentation.graphemes_ne_empty depends on the disallowed axiom {ax}"
-  trivial
+-- The axiom check for `graphemes_join` and `graphemes_ne_empty` is in
+-- `SegmentationTest.HeadlineAxioms`, with the other headline theorems.
