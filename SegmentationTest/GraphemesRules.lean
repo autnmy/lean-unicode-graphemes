@@ -1,4 +1,4 @@
-import Lean
+import Gate.Axioms
 import Segmentation
 
 /-!
@@ -28,18 +28,6 @@ theorem «mem_cutsOf holds for every props with its stated type» :
           breaksBefore (scanStateOf (props c) ((cs.take j).map props)) (props cs[j]) = true :=
   Segmentation.mem_cutsOf
 
--- `#print axioms` only prints, so this reads the same axiom list and fails on anything beyond
--- `propext`, `Classical.choice` and `Quot.sound`. A proof that hides a `sorry` anywhere in its
--- lemmas depends on `sorryAx`, which is not in the allowed list.
-open Lean in
-theorem «graphemes_rules and boundaries_agree use no sorry and no axiom beyond propext, Classical.choice and Quot.sound» :
-    True := by
-  run_tac do
-    let allowed := [``propext, ``Classical.choice, ``Quot.sound]
-    let names := [``Segmentation.graphemes_rules, ``Segmentation.boundaries_agree]
-    for name in names do
-      let used ← collectAxioms name
-      for ax in used do
-        unless allowed.contains ax do
-          throwError m!"{name} depends on the disallowed axiom {ax}"
-  trivial
+-- Fails on any axiom beyond `propext`, `Classical.choice` and `Quot.sound`. A proof that hides
+-- a `sorry` anywhere in its lemmas depends on `sorryAx`, which is not in the allowed list.
+#assert_axioms Segmentation.graphemes_rules Segmentation.boundaries_agree

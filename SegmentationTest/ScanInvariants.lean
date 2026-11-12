@@ -1,4 +1,4 @@
-import Lean
+import Gate.Axioms
 import Segmentation
 
 /-!
@@ -54,24 +54,13 @@ theorem «scan invariants: the decision and end lemmas have their stated types»
       IsBoundary props cs cs.length) :=
   ⟨breaksBefore_iff_isBoundary, isBoundary_zero, isBoundary_length⟩
 
--- `#print axioms` only prints, so a lemma that rests on `sorry` would still pass. A proof by
--- `sorry` depends on `sorryAx`, and one by `native_decide` on `Lean.ofReduceBool`, so throwing
--- on any axiom outside the three standard ones makes `lake test` fail and name the lemma.
-open Lean in
-theorem «the scan invariant lemmas use no sorry and no axiom beyond propext, Classical.choice and Quot.sound» :
-    True := by
-  run_tac do
-    let allowed := [``propext, ``Classical.choice, ``Quot.sound]
-    let names := [``Segmentation.scanStateOf_prev, ``Segmentation.scanStateOf_linkerTail,
-      ``Segmentation.scanStateOf_pictTail, ``Segmentation.scanStateOf_zwjAfterPict,
-      ``Segmentation.scanStateOf_riOdd, ``Segmentation.breaksBefore_iff_isBoundary,
-      ``Segmentation.isBoundary_zero, ``Segmentation.isBoundary_length]
-    for name in names do
-      let used ← collectAxioms name
-      for ax in used do
-        unless allowed.contains ax do
-          throwError m!"{name} depends on the disallowed axiom {ax}"
-  trivial
+-- A proof by `sorry` depends on `sorryAx`, and one by `native_decide` on an axiom that tactic
+-- adds, so failing on any axiom outside the three standard ones makes `lake test` fail and name
+-- the lemma.
+#assert_axioms Segmentation.scanStateOf_prev Segmentation.scanStateOf_linkerTail
+  Segmentation.scanStateOf_pictTail Segmentation.scanStateOf_zwjAfterPict
+  Segmentation.scanStateOf_riOdd Segmentation.breaksBefore_iff_isBoundary
+  Segmentation.isBoundary_zero Segmentation.isBoundary_length
 
 /-! ## Hand-built property values -/
 

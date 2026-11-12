@@ -41,6 +41,17 @@ import SegmentationTest.RangeScanAndSorted
 import SegmentationTest.TableLookupMatchesScan
 import SegmentationTest.ScanInvariants
 import SegmentationTest.GraphemesRules
+import SegmentationTest.AxiomChecker
+import SegmentationTest.AxiomCheckerDisallowed
+import SegmentationTest.AllowedAxiomsList
+import SegmentationTest.DisallowedAxiomsSorryAx
+import SegmentationTest.DisallowedAxiomsReduceBoolAndUser
+import SegmentationTest.DisallowedAxiomsAllowedOnly
+import SegmentationTest.DisallowedAxiomsReportsForbidden
+import SegmentationTest.AxiomGateDisallowedMixed
+import SegmentationTest.AssertAxiomsHeadline
+import SegmentationTest.AssertAxiomsRejectsForeignAxiom
+import SegmentationTest.AssertAxiomsPrintsHeadlineAxioms
 
 /-!
 # Test driver
