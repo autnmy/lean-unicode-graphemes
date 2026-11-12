@@ -1,4 +1,7 @@
 import Lean
+-- The script elaborates throwaway files that import `Gate.Axioms`; importing it here makes Lake
+-- build the current gate before this check runs.
+import Gate.Axioms
 
 -- The issue asks for a step that "fails on any axiom outside `propext`, `Classical.choice` and
 -- `Quot.sound`". A gate that only passes on a clean tree proves nothing, so the self-test script
