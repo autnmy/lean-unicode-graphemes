@@ -39,6 +39,22 @@ import SegmentationTest.GraphemeBreakTestFileTests
 import SegmentationTest.GraphemesPartition
 import SegmentationTest.RangeScanAndSorted
 import SegmentationTest.TableLookupMatchesScan
+import SegmentationTest.ScanInvariants
+import SegmentationTest.ScanInvariantsScanStateOfDef
+import SegmentationTest.ScanInvariantsFlagTypes
+import SegmentationTest.«ScanInvariantsFlagTypes.2»
+import SegmentationTest.ScanInvariantsGB11Breaks
+import SegmentationTest.ScanInvariantsLinkerBroken
+import SegmentationTest.ScanInvariantsLinkerTail
+import SegmentationTest.ScanInvariantsRiOddThree
+import SegmentationTest.«ScanInvariantsRiOddThree.2»
+import SegmentationTest.ScanInvariantsRiOddFour
+import SegmentationTest.«ScanInvariantsRiOddFour.2»
+import SegmentationTest.ScanInvariantsZwjAfterPict
+import SegmentationTest.ScanInvariantsZwjTwice
+import SegmentationTest.ScanInvariants.LinkerTailExtendRun
+import SegmentationTest.ScanInvariants.RiOddRestartsAfterZwj
+import SegmentationTest.ScanInvariants.ZwjAfterPictExtendRun
 
 /-!
 # Test driver
