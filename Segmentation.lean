@@ -2,6 +2,7 @@ import Segmentation.Statements
 import Segmentation.Version
 import Segmentation.Tables
 import Segmentation.Graphemes
+import Segmentation.Partition
 
 /-!
 # Segmentation
