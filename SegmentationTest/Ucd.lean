@@ -65,6 +65,11 @@ def isError {α : Type} : Except String α → Bool
 #guard isError (TableGen.parseGcb "")
 #guard isError (TableGen.parseGcb "# only a comment\n")
 
+-- An unknown value beside a valid row still fails the whole parse, so the
+-- rejection does not depend on the parse ending up empty.
+#guard isError (TableGen.parseGcb "0041 ; Control # x\n1F1E6 ; Regional_Indicatr # x\n")
+#guard isError (TableGen.parseIncb "0915 ; InCB; Consonant # x\n094D ; InCB; Linkr # x\n")
+
 -- Overlapping entries with different values. NormalizeConflictingOverlap.lean
 -- checks that `normalize` rejects the same entries.
 def overlapping : List (Range GCB) :=

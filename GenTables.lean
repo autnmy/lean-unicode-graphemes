@@ -4,9 +4,11 @@ import TableGen
 # `lake exe gen-tables`
 
 Reads the UCD files under `data/ucd/<version>/` and writes the generated table
-modules under `Segmentation/Tables/`. Run it from the package root. Any file
-that cannot be read or parsed stops it with exit status 1 before it writes
-anything, so a failed run never leaves a partial or default-filled table.
+modules under `Segmentation/Tables/`. Run it from the package root. Any input
+file that cannot be read or parsed stops it with exit status 1 before it writes
+anything, so bad input never leaves a default-filled table. The modules are
+written one at a time, so a failed write can leave some updated and others not;
+the drift check in `lake test` and CI then reports the mismatch.
 -/
 
 open TableGen in
