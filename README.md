@@ -7,8 +7,9 @@ should treat as one unit. It follows Unicode 18.0.0 and
 [UAX #29 revision 49](https://www.unicode.org/reports/tr29/tr29-49.html), and
 uses Lean core only, with no Mathlib, Batteries or other Lake dependencies.
 
-**Status: in progress.** The project scaffold and the theorem statements exist
-so far. There is no segmentation API yet, and nothing in the library is stable.
+**Status: in progress.** The project scaffold, the theorem statements and the
+Unicode property tables exist so far. There is no segmentation API yet, and
+nothing in the library is stable.
 
 ## Building and testing
 
@@ -18,6 +19,31 @@ The toolchain is pinned in `lean-toolchain` (`leanprover/lean4:v4.35.0`).
 lake build   # build the Segmentation library
 lake test    # build and run the test suite
 ```
+
+## Unicode data and generated tables
+
+The Unicode 18.0.0 data files the library reads are committed under
+`data/ucd/18.0.0/`, with their SHA-256 digests in `data/ucd/18.0.0/SHA256SUMS`.
+`lake test` and CI both check the files against those digests. To check them
+by hand, from the repository root:
+
+```sh
+(cd data/ucd/18.0.0 && sha256sum --check --strict SHA256SUMS)
+```
+
+The property tables in `Segmentation/Tables/GraphemeClusterBreak.lean`,
+`Segmentation/Tables/ExtendedPictographic.lean` and
+`Segmentation/Tables/IndicConjunctBreak.lean` are generated from those files.
+Do not edit them by hand. To regenerate them, from the repository root:
+
+```sh
+lake exe gen-tables
+```
+
+`lake test` compares the lookup with the data files for every code point, and
+fails if the committed tables differ from what the generator writes. CI also
+re-runs the generator and fails if any file under `Segmentation/Tables/`
+changes.
 
 ## Theorem statements
 

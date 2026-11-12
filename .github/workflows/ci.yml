@@ -28,6 +28,15 @@ jobs:
             exit 1
           fi
           grep -E "$pattern" README.md | sha256sum --check --strict
+      # The Unicode data files are pinned: each file SHA256SUMS lists must match
+      # its digest. Which files the list must name is checked by `lake test`
+      # (TableGen.checkDigestList), so the list is stated in one place. This runs
+      # before the build so it hashes the bytes git checked out.
+      - name: Check the Unicode data files against SHA256SUMS
+        working-directory: data/ucd/18.0.0
+        env:
+          LC_ALL: C
+        run: sha256sum --check --strict SHA256SUMS
       # Installs the toolchain named in lean-toolchain. Build and test are
       # requested explicitly so the test step never depends on auto-detection.
       - uses: leanprover/lean-action@24581d74d674803a25a81b10b059c5c0cdd344c6 # v1.6.2
@@ -35,3 +44,17 @@ jobs:
           auto-config: false
           build: true
           test: true
+      # The committed tables must be exactly what the generator writes from the
+      # data files. `git status` also reports new untracked and deleted files,
+      # which `git diff` alone would miss. A generator that fails stops the step.
+      - name: Check the committed tables match the generator
+        run: |
+          set -e
+          lake exe gen-tables
+          changes=$(git status --porcelain -- Segmentation/Tables)
+          if [ -n "$changes" ]; then
+            echo "The committed tables differ from lake exe gen-tables output:" >&2
+            echo "$changes" >&2
+            git diff -- Segmentation/Tables >&2
+            exit 1
+          fi
