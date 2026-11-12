@@ -34,8 +34,6 @@ import SegmentationTest.GraphemesGb9cStarIsIncbExtend
 import SegmentationTest.GraphemesGb9cClearedByOtherCodePoint
 import SegmentationTest.GraphemesGb11DisarmedBySecondZwj
 import SegmentationTest.GraphemesGb11NeedsPictographBeforeZwj
-import SegmentationTest.GraphemesRiParityResetByZwj
-import SegmentationTest.GraphemesRiPairThenZwjCuts
 
 /-!
 # Test driver
