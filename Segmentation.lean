@@ -5,6 +5,7 @@ import Segmentation.TableLookup
 import Segmentation.RangeLookup
 import Segmentation.Graphemes
 import Segmentation.Partition
+import Segmentation.ScanInvariants
 
 /-!
 # Segmentation
