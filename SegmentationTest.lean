@@ -16,6 +16,18 @@ import SegmentationTest.ParseIncbOtherProperties
 import SegmentationTest.ParseExtPictEmpty
 import SegmentationTest.NormalizeConflictingOverlap
 import SegmentationTest.CheckDigestListMissingEntry
+import SegmentationTest.Tables
+import SegmentationTest.RenderAllRejectsCommentClose
+import SegmentationTest.PropsGcbSpotChecks
+import SegmentationTest.PropsIncbExtPictSpotChecks
+import SegmentationTest.PropsDefaults
+import SegmentationTest.GcbOfByNumber
+import SegmentationTest.PropsGraphemeClusterBreakValues
+import SegmentationTest.PropsIndicConjunctBreakValues
+import SegmentationTest.PropsExtendedPictographic
+import SegmentationTest.PropsLastCodePoint
+import SegmentationTest.GcbOfSurrogates
+import SegmentationTest.NumericLookupsMatchProps
 
 /-!
 # Test driver

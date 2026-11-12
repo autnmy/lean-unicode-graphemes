@@ -23,3 +23,9 @@ globs = ["SegmentationTest.+"]
 [[lean_exe]]
 name = "segmentation-tests"
 root = "SegmentationTest"
+
+# Writes the generated property tables under Segmentation/Tables/ from the UCD
+# files: `lake exe gen-tables`, run from the package root.
+[[lean_exe]]
+name = "gen-tables"
+root = "GenTables"

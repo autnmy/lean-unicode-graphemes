@@ -1,4 +1,5 @@
 import TableGen.Ucd
+import TableGen.Render
 
 /-!
 # Table generator
