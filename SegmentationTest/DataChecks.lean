@@ -1,5 +1,7 @@
 import Segmentation
 import TableGen
+import SegmentationTest.GraphemeBreakTestFile
+import SegmentationTest.GraphemeBreakTestLine
 
 /-!
 # Checks against the UCD files
@@ -173,6 +175,29 @@ def checkLicenceHeaders : IO Unit := do
     if !(← IO.FS.readFile path).startsWith header then
       failWith s!"{path} does not start with the Unicode licence notice"
 
+/-! ## The conformance test file -/
+
+/-- The path of Unicode's grapheme cluster conformance test file. -/
+def graphemeBreakTestPath : System.FilePath := dataDir / "auxiliary/GraphemeBreakTest.txt"
+
+/--
+Runs `segment` on every test line of the GraphemeBreakTest.txt at `path`. Fails unless all 853
+lines were read, and names every line whose clusters differ, with no cap on how many.
+-/
+def checkGraphemeBreakTest (path : System.FilePath) (segment : List Nat → List (List Nat)) :
+    IO Unit := do
+  let text ← IO.FS.readFile path
+  let cases ← IO.ofExcept (GraphemeBreakTestFile.parseTestFile text)
+  IO.ofExcept (GraphemeBreakTestFile.checkCounts cases.length
+    (GraphemeBreakTestFile.statedLineCount text))
+  let differing := GraphemeBreakTestFile.mismatches segment cases
+  if !differing.isEmpty then
+    failWith s!"{differing.length} of {cases.length} lines of {path} differ, at lines {differing}"
+  IO.println s!"  {path}: {cases.length} lines compared, all clusters equal to the file"
+
+/-- A segmenter that never joins code points, so it disagrees with every line that does. -/
+def splitEveryCodePoint (cps : List Nat) : List (List Nat) := cps.map ([·])
+
 /-! ## Checks of the checks -/
 
 /-- Fails unless `check` fails: a broken input must never read as a pass. -/
@@ -194,7 +219,18 @@ def dataChecks : List DataCheck := [
   { name := "reference values read from the UCD files", run := checkReferenceSpots },
   { name := "every code point's properties equal the UCD files", run := checkExhaustive },
   { name := "committed tables equal the generator's output", run := checkCommittedTables },
-  { name := "committed tables start with the Unicode licence notice", run := checkLicenceHeaders }
+  { name := "committed tables start with the Unicode licence notice", run := checkLicenceHeaders },
+  { name := "graphemes match every line of GraphemeBreakTest.txt",
+    run := checkGraphemeBreakTest graphemeBreakTestPath GraphemeBreakTestLine.clusters },
+  { name := "the GraphemeBreakTest.txt check fails when the file is missing",
+    run := expectFailure
+      { name := "missing GraphemeBreakTest.txt",
+        run := checkGraphemeBreakTest (dataDir / "segmentation-test-missing.txt")
+          GraphemeBreakTestLine.clusters } },
+  { name := "the GraphemeBreakTest.txt check fails when clusters differ",
+    run := expectFailure
+      { name := "segmenter that never joins",
+        run := checkGraphemeBreakTest graphemeBreakTestPath splitEveryCodePoint } }
 ]
 
 end SegmentationTest.DataChecks
