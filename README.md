@@ -11,11 +11,12 @@ uses Lean core only, with no Mathlib, Batteries or other Lake dependencies.
 Unicode property tables and the segmenter exist so far.
 `Segmentation.graphemes : String → List String` splits text into extended
 grapheme clusters, and `Segmentation.boundaries : String → List Nat` returns
-the cut positions, counted in code points. They are checked against lines of
-the Unicode test file `GraphemeBreakTest.txt` in `lake test`. H1a and H1b are
-proved in `Segmentation/Partition.lean`: the clusters join back to the input,
-and no cluster is empty. The proofs of H2 and H2' are not written yet. Nothing
-in the library is stable.
+the cut positions, counted in code points. `lake test` checks `graphemes`
+against all 853 test lines of the Unicode test file `GraphemeBreakTest.txt`,
+and `boundaries` against selected lines of it. H1a and H1b are proved in
+`Segmentation/Partition.lean`: the clusters join back to the input, and no
+cluster is empty. The proofs of H2 and H2' are not written yet. Nothing in the
+library is stable.
 
 ## Building and testing
 
