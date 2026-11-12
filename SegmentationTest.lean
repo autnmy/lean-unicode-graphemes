@@ -27,6 +27,12 @@ import SegmentationTest.CutsOfStubOther
 import SegmentationTest.GraphemesCoreStubProps
 import SegmentationTest.GraphemesAgreesWithCore
 import SegmentationTest.BoundariesAgreesWithCore
+import SegmentationTest.GraphemesControlRules
+import SegmentationTest.GraphemesHangulRules
+import SegmentationTest.GraphemesExtendPrependRules
+import SegmentationTest.GraphemesConjunctRule
+import SegmentationTest.GraphemesEmojiZwjRule
+import SegmentationTest.GraphemesRegionalIndicatorRules
 
 /-!
 # Test driver
