@@ -37,6 +37,8 @@ import SegmentationTest.GraphemesGb11NeedsPictographBeforeZwj
 import SegmentationTest.GraphemeBreakTestFile
 import SegmentationTest.GraphemeBreakTestFileTests
 import SegmentationTest.GraphemesPartition
+import SegmentationTest.RangeScanAndSorted
+import SegmentationTest.TableLookupMatchesScan
 
 /-!
 # Test driver
