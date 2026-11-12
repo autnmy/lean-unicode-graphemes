@@ -131,7 +131,7 @@ theorem Range.scanList_eq_value {α : Type} (default : α) (n : Nat) :
     exact Range.scanList_eq_value default n rest i (by simpa using hi) (by simpa using hhold)
       (fun j hj => by simpa using hearlier (j + 1) (by omega))
 
-/-- On a sorted table, `scan` gives `default` when no range holds `n`. -/
+/-- `scan` gives `default` when no range holds `n`; this needs no sortedness. -/
 theorem Range.scan_eq_default {α : Type} (default : α) (table : Array (Range α)) (n : Nat)
     (hnone : ∀ (i : Nat) (hi : i < table.size), ¬ (table[i].lo ≤ n ∧ n ≤ table[i].hi)) :
     Range.scan default table n = default :=
