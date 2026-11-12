@@ -4,6 +4,18 @@ import SegmentationTest.Range
 import SegmentationTest.RangeLookupBoundaries
 import SegmentationTest.«RangeLookupBoundaries.2»
 import SegmentationTest.RangeLookupEmptyAndSingle
+import SegmentationTest.Ucd
+import SegmentationTest.ParseGcbRejectsOutOfRange
+import SegmentationTest.ParseGcbRejectsUnknownName
+import SegmentationTest.ParseIncbRejectsUnknownValue
+import SegmentationTest.CheckDigestListRejectsUnexpectedPath
+import SegmentationTest.CheckDigestListRejectsMissingEntry
+import SegmentationTest.ParseGcbUnknownName
+import SegmentationTest.ParseGcbOutOfRange
+import SegmentationTest.ParseIncbOtherProperties
+import SegmentationTest.ParseExtPictEmpty
+import SegmentationTest.NormalizeConflictingOverlap
+import SegmentationTest.CheckDigestListMissingEntry
 
 /-!
 # Test driver
