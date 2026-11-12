@@ -20,6 +20,13 @@ name = "SegmentationChecks"
 roots = []
 globs = ["SegmentationTest.+"]
 
+# The checks CI runs on the proofs and the source: the `#assert_axioms` command. Kept out of
+# `Segmentation` so users of the library do not build it.
+[[lean_lib]]
+name = "Gate"
+roots = []
+globs = ["Gate.+"]
+
 [[lean_exe]]
 name = "segmentation-tests"
 root = "SegmentationTest"
