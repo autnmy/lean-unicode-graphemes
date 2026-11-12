@@ -37,6 +37,18 @@ import SegmentationTest.GraphemesGb11NeedsPictographBeforeZwj
 import SegmentationTest.GraphemeBreakTestFile
 import SegmentationTest.GraphemeBreakTestFileTests
 import SegmentationTest.GraphemesPartition
+import SegmentationTest.RangeScanAndSorted
+import SegmentationTest.RangeLookupEqScanStatement
+import SegmentationTest.«RangeLookupEqScanStatement.2»
+import SegmentationTest.RangeScanExamples
+import SegmentationTest.RangeScanClosedBounds
+import SegmentationTest.RangeScanListFirstMatch
+import SegmentationTest.RangeScanListFirstMatchOnOverlap
+import SegmentationTest.RangeChainOkRejectsBadLists
+import SegmentationTest.RangeChainOKRejectsSharedEndpoint
+import SegmentationTest.RangeChainOKRejectsInvertedMiddleRange
+import SegmentationTest.RangeChainOKOrderAndTouching
+import SegmentationTest.RangeSortedDecides
 
 /-!
 # Test driver
