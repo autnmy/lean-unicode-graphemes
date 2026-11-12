@@ -50,7 +50,7 @@ Put these modules directly under `Segmentation/`, not under `Segmentation/Tables
 
 ## Why it matters
 
-The `decide` proof turns a comment into a build failure. If the generator later emits an out-of-order or overlapping table, `lake build` fails at `Segmentation/TableLookup.lean` rather than leaving the search silently wrong. `decide` runs in the kernel, so the proof depends only on the standard axioms. `native_decide` would add `Lean.ofReduceBool`, which the library forbids.
+The `decide` proof turns a comment into a build failure. If the generator later emits an out-of-order or overlapping table, `lake build` fails at `Segmentation/TableLookup.lean` rather than leaving the search silently wrong. `decide` runs in the kernel, so the proof depends only on the standard axioms. `native_decide` would add an axiom outside those three (on the pinned toolchain, one of its own named like `t._native.native_decide.ax_1_1`), which the library forbids.
 
 ## Evidence
 
