@@ -1,6 +1,7 @@
 import Segmentation.Statements
 import Segmentation.Version
 import Segmentation.Tables
+import Segmentation.TableLookup
 import Segmentation.RangeLookup
 import Segmentation.Graphemes
 import Segmentation.Partition

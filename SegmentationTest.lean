@@ -49,6 +49,16 @@ import SegmentationTest.RangeChainOKRejectsSharedEndpoint
 import SegmentationTest.RangeChainOKRejectsInvertedMiddleRange
 import SegmentationTest.RangeChainOKOrderAndTouching
 import SegmentationTest.RangeSortedDecides
+import SegmentationTest.RangeLookupEqScanAxioms
+import SegmentationTest.GcbOfEqScanStatement
+import SegmentationTest.ExtPictOfEqScanStatement
+import SegmentationTest.IncbOfEqScanStatement
+import SegmentationTest.PropsEqScanStatement
+import SegmentationTest.CommittedTablesSorted
+import SegmentationTest.TableScanFileValues
+import SegmentationTest.TableLookupsEqScanUnconditional
+import SegmentationTest.GcbRangesSortedAxioms
+import SegmentationTest.PropsEqScanAxioms
 
 /-!
 # Test driver
