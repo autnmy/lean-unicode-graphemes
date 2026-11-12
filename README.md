@@ -1,25 +1,121 @@
 # lean-unicode-segmentation
 Unicode text segmentation (UAX #29) for Lean 4, with machine-checked proofs
 
-The `Segmentation` library will split text into extended grapheme clusters:
-the user-perceived characters that cursor movement, deletion and truncation
-should treat as one unit. It follows Unicode 18.0.0 and
-[UAX #29 revision 49](https://www.unicode.org/reports/tr29/tr29-49.html), and
-uses Lean core only, with no Mathlib, Batteries or other Lake dependencies.
+The `Segmentation` library splits text into extended grapheme clusters: the
+user-perceived characters that cursor movement, deletion and truncation should
+treat as one unit. It follows Unicode 18.0.0 and
+[UAX #29 revision 49](https://www.unicode.org/reports/tr29/tr29-49.html)
+(`Segmentation/Version.lean` holds both versions), and uses Lean core only,
+with no Mathlib, Batteries or other Lake dependencies.
 
-**Status: in progress.** The project scaffold, the theorem statements, the
-Unicode property tables and the segmenter exist so far.
-`Segmentation.graphemes : String → List String` splits text into extended
-grapheme clusters, and `Segmentation.boundaries : String → List Nat` returns
-the cut positions, counted in code points. `lake test` checks `graphemes`
-against all 853 test lines of the Unicode test file `GraphemeBreakTest.txt`,
-and `boundaries` against selected lines of it. H1a and H1b are proved in
-`Segmentation/Partition.lean`: the clusters join back to the input, and no
-cluster is empty. `Segmentation/TableLookup.lean` proves that the property
-lookups `props` reads give, for every code point, the same value as a plain
-scan of the generated tables, after the kernel checks that each table is sorted
-with no overlapping ranges. H2 is proved in `Segmentation/Rules.lean` and H2' in `Segmentation/Cuts.lean`. Nothing in the
-library is stable.
+It offers two functions:
+
+- `Segmentation.graphemes : String → List String` splits text into extended
+  grapheme clusters.
+- `Segmentation.boundaries : String → List Nat` returns the cut positions,
+  counted in code points from the start, both ends included.
+
+## What is proved
+
+`Segmentation/Statements.lean` states the claim. It writes the UAX #29 rules
+GB1 to GB999 as data (`rules`), in the standard's order, where the first rule
+that applies at a position decides it. Each sentence below is one theorem, and
+the theorem's type is the committed statement named in brackets.
+
+- Putting the clusters of any text back together gives that text:
+  `Segmentation.graphemes_join` (`H1a graphemes`).
+- No cluster is the empty string: `Segmentation.graphemes_ne_empty`
+  (`H1b graphemes`).
+- In any non-empty text, `graphemes` cuts at a position, the two ends
+  included, exactly when the first rule of `rules` that applies there says
+  "break", reading the library's own property tables:
+  `Segmentation.graphemes_rules` (`H2 Tables.props graphemes`). The empty text
+  is left out of this statement, because no rule applies to it; the two
+  theorems above cover it.
+- `boundaries` returns exactly the cut positions of `graphemes`:
+  `Segmentation.boundaries_agree` (`H2' graphemes boundaries`).
+
+Each of these four theorems depends on no axiom beyond `propext`,
+`Classical.choice` and `Quot.sound`, the three standard axioms of Lean's logic.
+A proof that used `sorry`, `native_decide` or a new `axiom` would depend on an
+axiom outside that list.
+
+## Checking the claim yourself
+
+CI runs these checks on every push and pull request. To run them locally, from
+the repository root, after `lake test`:
+
+```sh
+lake env lean SegmentationTest/HeadlineAxioms.lean
+```
+
+This prints the `#print axioms` output for the four theorems above, and fails
+if any of them depends on an axiom outside the three standard ones.
+`sh scripts/axiom-gate-self-test.sh` shows that this check can fail: it writes
+throwaway files that use `sorry`, `native_decide` and a user `axiom`, and
+expects the check to reject each one.
+
+```sh
+lake build keyword-scan
+git ls-files -z '*.lean' | xargs -0 lake exe keyword-scan
+```
+
+This fails if any tracked `.lean` file uses `sorry`, `admit`, `axiom`,
+`native_decide`, `implemented_by`, `extern` or `unsafe` as code. The scanner
+skips comments, the plain text of string literals and «…» names, because the
+test files name these words there as prose, for example in a comment such as
+`-- uses no sorry`. The
+`{…}` parts of interpolated strings such as `s!"…"` are Lean terms, so it scans
+them as code.
+
+`lake test` also pins each theorem's type to its committed statement, so a
+theorem renamed, or proved about a weaker statement, fails the tests.
+
+## What is outside the proof
+
+The proofs are about the Lean definitions. These things are not proved, and
+you have to trust them, or check them another way:
+
+- **The Unicode data files and the tables generated from them.** The proofs
+  read the property tables in `Segmentation/Tables/` as given. These are
+  tested, not proved: the data files must match their SHA-256 digests, the
+  committed tables must equal what the generator writes from them, `lake test`
+  compares the table lookup with the data files for every code point, and
+  `graphemes` must agree with all 853 test lines of the Unicode test file
+  `GraphemeBreakTest.txt`.
+- **The Lean kernel, compiler and runtime.** The kernel checks the proofs. The
+  code that runs is compiled from the same definitions by the Lean compiler
+  and runs on the Lean runtime, and neither of those is verified.
+- **The reading of the rule list against the standard.** `rules` in
+  `Segmentation/Statements.lean` is a reading of UAX #29 §3.1.1 into
+  data. Nothing proves that this reading is right; you check it by comparing
+  the two. The Unicode test file is evidence for it, not a proof.
+
+## How the library was built
+
+An autonomous coding pipeline built this library. It worked from issues,
+wrote the code and the proofs, and opened a pull request for each change.
+
+The record of every human touch is this repository's own history on GitHub:
+the issues, the pull requests with their reviews and merges, and the commits.
+Each commit names its author, so this command lists who wrote each change:
+
+```sh
+git log --format='%h %an <%ae> %s'
+```
+
+A commit that the pipeline did not author shows a person's name there. A touch
+that is not a commit, such as writing an issue or merging a pull request, is
+recorded on the issue or pull request itself.
+
+This is the second run of the build. The first run is kept in
+`autnmy/lean-unicode-segmentation` at tag `soprano-test-run-1`.
+
+## Prior work
+
+Earlier Lean work on Unicode segmentation splits text into grapheme clusters,
+but does not prove that the cuts follow the UAX #29 rules. This library's
+difference is the proof: the theorems above tie every cut to the rule list.
 
 ## Building and testing
 
