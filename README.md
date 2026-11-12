@@ -14,8 +14,8 @@ grapheme clusters, and `Segmentation.boundaries : String → List Nat` returns
 the cut positions, counted in code points. They are checked against lines of
 the Unicode test file `GraphemeBreakTest.txt` in `lake test`. H1a and H1b are
 proved in `Segmentation/Partition.lean`: the clusters join back to the input,
-and no cluster is empty. The proofs of H2 and H2' are not written yet. Nothing in the library
-is stable.
+and no cluster is empty. The proofs of H2 and H2' are not written yet. Nothing
+in the library is stable.
 
 ## Building and testing
 
