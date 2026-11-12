@@ -17,6 +17,16 @@ import SegmentationTest.PropsExtendedPictographic
 import SegmentationTest.PropsLastCodePoint
 import SegmentationTest.NumericLookupsMatchProps
 import SegmentationTest.DataChecks
+import SegmentationTest.GraphemesEmptyString
+import SegmentationTest.BoundariesEmptyString
+import SegmentationTest.GraphemesEnds
+import SegmentationTest.BoundariesSingleCodePoint
+import SegmentationTest.GraphemesCutsOfEmptyInput
+import SegmentationTest.ClustersOfStubRegionalIndicators
+import SegmentationTest.CutsOfStubOther
+import SegmentationTest.GraphemesCoreStubProps
+import SegmentationTest.GraphemesAgreesWithCore
+import SegmentationTest.BoundariesAgreesWithCore
 
 /-!
 # Test driver
