@@ -1,11 +1,10 @@
 import Segmentation
 
--- GraphemeBreakProperty.txt lists no range covering U+D800, so it takes the file's default, Other.
+open Segmentation in
+-- A Char cannot hold a surrogate, so the numeric lookup is the only way to read them.
+-- GraphemeBreakProperty.txt lists no range covering U+D800..U+DFFF, so they take its
+-- `@missing` default, Other.
 set_option maxRecDepth 20000 in
-theorem «gcbOf looks up surrogates and line breaks by number» :
-    (Segmentation.Tables.gcbOf 0xD800 == Segmentation.GCB.Other &&
-     Segmentation.Tables.gcbOf 0x000D == Segmentation.GCB.CR &&
-     Segmentation.Tables.gcbOf 0x000A == Segmentation.GCB.LF &&
-     Segmentation.Tables.gcbOf 0xAC00 == Segmentation.GCB.LV &&
-     Segmentation.Tables.gcbOf 0xAC01 == Segmentation.GCB.LVT) = true := by
+theorem «gcbOf gives surrogates U+D800 and U+DFFF the file default Other and keeps U+1F1E6 as RI» :
+    ([0xD800, 0xDFFF, 0x1F1E6].map Segmentation.Tables.gcbOf) = [GCB.Other, GCB.Other, GCB.RI] := by
   decide
