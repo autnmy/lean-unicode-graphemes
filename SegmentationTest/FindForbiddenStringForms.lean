@@ -20,7 +20,8 @@ theorem «findForbidden keeps its place after escaped char literals, raw strings
       ("def e := throwErrorAt stx \"x {(show Nat from by sorry)}\"", [(1, "sorry")]),
       ("def e := throwErrorAt (f x) \"x {(show Nat from by sorry)}\"", [(1, "sorry")]),
       ("def e := trace[cls] \"x {(show Nat from by sorry)}\"", [(1, "sorry")]),
-      ("def e := throwError \"no sorry here\"", [])]
+      ("def e := throwError \"no sorry here\"", []),
+      ("def e : Nat := Id.run do\n  dbg_trace \"{(show Nat from by sorry)}\"\n  return 0", [(2, "sorry")])]
     for (src, expected) in cases do
       let got := Gate.findForbidden src
       unless got == expected do
