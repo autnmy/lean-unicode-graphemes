@@ -13,8 +13,12 @@ GB11 extends, `zwjAfterPict` is GB11's left side and `riOdd` is GB12's or GB13's
 `ScanState.push` adds one code point at the end of the text, so every proof here reads a pattern
 match from its right end. The `Pat.Matches` lemmas first turn each pattern into a plain statement
 about lists, then the `snoc` lemmas say what each left side means for `l ++ [q]` in terms of `l`
-and `q`. Each flag lemma is then an induction that adds one code point at a time. Everything is
-generic over the property values, so it holds for any property lookup.
+and `q`. Each flag lemma is then an induction that adds one code point at a time.
+
+With the flags pinned down, `breaksBefore_iff_isBoundary` shows that `breaksBefore` gives the
+verdict of `IsBoundary` at every position inside a text, and `isBoundary_zero` and
+`isBoundary_length` give the boundaries at its two ends (GB1 and GB2). Everything is generic over
+the property values, so it holds for any property lookup.
 -/
 
 namespace Segmentation
@@ -363,5 +367,174 @@ theorem scanStateOf_riOdd (p : Props) (ps : List Props) :
         (p :: ps) := by
   rw [Left.holds_sot_or_notThen_pairs_one_iff]
   exact (foldl_push_riOdd p (p :: ps)).1
+
+/-! ## The decision at a position inside the text -/
+
+private theorem scanStateOf_snoc (p q : Props) (ps : List Props) :
+    scanStateOf p (ps ++ [q]) = (scanStateOf p ps).push q :=
+  foldl_push_snoc _ _ _
+
+/-- A one-code-point `ending` left side, as in GB3 to GB9b, reads only `prev`. -/
+theorem Left.holds_ending_one_cons_iff {cl : Cls} {p : Props} {ps : List Props} :
+    Left.Holds (.ending (.one cl)) (p :: ps) ↔ cl (scanStateOf p ps).prev = true := by
+  simp only [Left.holds_ending_iff, Pat.matches_one_iff]
+  rcases List.eq_nil_or_concat ps with rfl | ⟨ps', q, rfl⟩
+  · constructor
+    · rintro ⟨a, _, h, x, rfl, hx⟩
+      obtain ⟨-, rfl⟩ := snoc_inj (l := []) h
+      exact hx
+    · intro h
+      exact ⟨[], [p], rfl, p, rfl, h⟩
+  · simp only [List.concat_eq_append, scanStateOf_snoc]
+    constructor
+    · rintro ⟨a, _, h, x, rfl, hx⟩
+      obtain ⟨-, rfl⟩ := snoc_inj (l := p :: ps') h
+      exact hx
+    · intro h
+      exact ⟨p :: ps', [q], rfl, q, rfl, h⟩
+
+private theorem left_any_iff {l : List Props} : Left.Holds .any l ↔ True := Iff.rfl
+
+private theorem right_any_iff {l : List Props} : Right.Holds .any l ↔ True := Iff.rfl
+
+private theorem right_eot_cons_iff {n : Props} {rest : List Props} :
+    Right.Holds .eot (n :: rest) ↔ False := by
+  simp [Right.Holds]
+
+private theorem right_one_cons_iff {cl : Cls} {n : Props} {rest : List Props} :
+    Right.Holds (.one cl) (n :: rest) ↔ cl n = true := by
+  simp [Right.Holds]
+
+/-- GB1's left side, `sot nothing`, holds only before the first code point. -/
+private theorem not_sot_nothing (p : Props) (ps : List Props) :
+    ¬ Left.Holds (.sot nothing) (p :: ps) := by
+  intro h
+  have := Pat.matches_star_iff.mp h p (by simp)
+  simp at this
+
+/-- GB12 and GB13 are both no-break rules with the same right side, so the first-match reading
+only needs to know whether either applies; this merges them as `breakRows` does. -/
+private theorem not_and_not_and_iff {P Q R X : Prop} :
+    (¬ (P ∧ R) ∧ ¬ (Q ∧ R) ∧ X) ↔ (¬ ((P ∨ Q) ∧ R) ∧ X) := by
+  by_cases hp : P <;> by_cases hq : Q <;> simp [hp, hq]
+
+/-- The body of `IsBoundary`, over any list of rules and any meaning of "applies": some rule
+says ÷, applies, and no earlier rule applies. -/
+private def FirstBreak (applies : Rule → Prop) (l : List Rule) : Prop :=
+  ∃ (k : Nat) (r : Rule), l[k]? = some r ∧ applies r ∧ r.verdict = .brk ∧
+    ∀ (j : Nat) (r' : Rule), j < k → l[j]? = some r' → ¬ applies r'
+
+private theorem firstBreak_nil {applies : Rule → Prop} : FirstBreak applies [] ↔ False := by
+  simp [FirstBreak]
+
+private theorem firstBreak_cons {applies : Rule → Prop} {r : Rule} {l : List Rule} :
+    FirstBreak applies (r :: l) ↔
+      (applies r ∧ r.verdict = .brk) ∨ (¬ applies r ∧ FirstBreak applies l) := by
+  constructor
+  · rintro ⟨k, r', hk, ha, hv, hearlier⟩
+    cases k with
+    | zero =>
+      simp only [List.getElem?_cons_zero, Option.some.injEq] at hk
+      subst hk
+      exact .inl ⟨ha, hv⟩
+    | succ k =>
+      refine .inr ⟨hearlier 0 r (by omega) rfl, k, r', hk, ha, hv, ?_⟩
+      intro j r'' hj hr''
+      exact hearlier (j + 1) r'' (by omega) hr''
+  · rintro (⟨ha, hv⟩ | ⟨hna, k, r', hk, ha, hv, hearlier⟩)
+    · exact ⟨0, r, rfl, ha, hv, fun j _ hj _ => absurd hj (Nat.not_lt_zero j)⟩
+    · refine ⟨k + 1, r', hk, ha, hv, ?_⟩
+      intro j r'' hj hr''
+      cases j with
+      | zero =>
+        simp only [List.getElem?_cons_zero, Option.some.injEq] at hr''
+        subst hr''
+        exact hna
+      | succ j => exact hearlier j r'' (by omega) hr''
+
+private theorem firstBreak_cons_brk {applies : Rule → Prop} {r : Rule} {l : List Rule}
+    (h : r.verdict = .brk) : FirstBreak applies (r :: l) ↔ applies r ∨ FirstBreak applies l := by
+  rw [firstBreak_cons, h]
+  by_cases ha : applies r <;> simp [ha]
+
+private theorem firstBreak_cons_noBrk {applies : Rule → Prop} {r : Rule} {l : List Rule}
+    (h : r.verdict = .noBrk) : FirstBreak applies (r :: l) ↔ ¬ applies r ∧ FirstBreak applies l := by
+  rw [firstBreak_cons, h]
+  simp
+
+/-- The decision of `breakRows` after `p :: ps`, before `n`, is the first-match reading of
+`rules` with `p :: ps` before the position and `n :: rest` after it. The rules are unfolded one
+by one, each left and right side is turned into the `ScanState` test of its row, and the two
+first-match chains are then compared on every value of the twelve row tests. -/
+private theorem breaksBefore_iff_firstBreak (p : Props) (ps : List Props) (n : Props)
+    (rest : List Props) :
+    breaksBefore (scanStateOf p ps) n = true ↔
+      FirstBreak (fun r => r.left.Holds (p :: ps) ∧ r.right.Holds (n :: rest)) rules := by
+  unfold rules
+  simp only [firstBreak_cons_brk, firstBreak_cons_noBrk, firstBreak_nil]
+  simp only [not_and_not_and_iff]
+  simp only [Left.holds_ending_one_cons_iff, ← scanStateOf_linkerTail, ← scanStateOf_zwjAfterPict,
+    ← scanStateOf_riOdd, right_one_cons_iff, not_sot_nothing, anyCp, left_any_iff, right_any_iff,
+    right_eot_cons_iff, and_false, and_true, true_and, false_or, or_false, ← Bool.and_eq_true]
+  unfold breaksBefore breakRows
+  simp only [List.find?]
+  generalize (gcbIn [GCB.CR] (scanStateOf p ps).prev && gcbIn [GCB.LF] n) = b0
+  generalize (gcbIn [GCB.Control, GCB.CR, GCB.LF] (scanStateOf p ps).prev) = b1
+  generalize (gcbIn [GCB.Control, GCB.CR, GCB.LF] n) = b2
+  generalize (gcbIn [GCB.L] (scanStateOf p ps).prev && gcbIn [GCB.L, GCB.V, GCB.LV, GCB.LVT] n) = b3
+  generalize (gcbIn [GCB.LV, GCB.V] (scanStateOf p ps).prev && gcbIn [GCB.V, GCB.T] n) = b4
+  generalize (gcbIn [GCB.LVT, GCB.T] (scanStateOf p ps).prev && gcbIn [GCB.T] n) = b5
+  generalize (gcbIn [GCB.Extend, GCB.ZWJ] n) = b6
+  generalize (gcbIn [GCB.SpacingMark] n) = b7
+  generalize (gcbIn [GCB.Prepend] (scanStateOf p ps).prev) = b8
+  generalize ((scanStateOf p ps).linkerTail && incbIs InCB.Consonant n) = b9
+  generalize ((scanStateOf p ps).zwjAfterPict && isExtPict n) = b10
+  generalize ((scanStateOf p ps).riOdd && gcbIn [GCB.RI] n) = b11
+  cases b0 <;> simp <;> cases b1 <;> simp <;> cases b2 <;> simp <;> cases b3 <;> simp <;>
+    cases b4 <;> simp <;> cases b5 <;> simp <;> cases b6 <;> simp <;> cases b7 <;> simp <;>
+    cases b8 <;> simp <;> cases b9 <;> simp <;> cases b10 <;> simp <;> cases b11 <;> simp
+
+/-- At a position inside a non-empty text, after `c` and the first `i` code points of `cs` and
+before `cs[i]`, `breaksBefore` on the scan state says ÷ exactly when UAX #29 puts a boundary
+there. GB1 and GB2 never apply inside the text and GB999 always does; GB3 to GB11 are the rows
+of `breakRows` in order, and GB12 and GB13 together are its last row. -/
+theorem breaksBefore_iff_isBoundary (props : Char → Props) (c : Char) (cs : List Char) (i : Nat)
+    (hi : i < cs.length) :
+    breaksBefore (scanStateOf (props c) ((cs.take i).map props)) (props cs[i]) = true ↔
+      IsBoundary props (c :: cs) (i + 1) := by
+  have hpre : ((c :: cs).take (i + 1)).map props = props c :: (cs.take i).map props := by simp
+  have hpost : ((c :: cs).drop (i + 1)).map props =
+      props cs[i] :: (cs.drop (i + 1)).map props := by
+    rw [List.drop_succ_cons, List.drop_eq_getElem_cons hi, List.map_cons]
+  rw [breaksBefore_iff_firstBreak (rest := (cs.drop (i + 1)).map props)]
+  simp only [IsBoundary, Rule.Applies, hpre, hpost]
+  rfl
+
+/-- The start of a non-empty text is a boundary, by GB1. -/
+theorem isBoundary_zero (props : Char → Props) (cs : List Char) (h : cs ≠ []) :
+    IsBoundary props cs 0 := by
+  obtain ⟨c, cs', rfl⟩ := List.exists_cons_of_ne_nil h
+  refine ⟨0, _, rfl, ⟨Pat.Matches.starNil, props c, cs'.map props, by simp, rfl⟩, rfl, ?_⟩
+  intro j _ hj _
+  exact absurd hj (Nat.not_lt_zero j)
+
+/-- The end of a non-empty text is a boundary, by GB2: GB1, the only rule before it, needs the
+text before the position to be empty. -/
+theorem isBoundary_length (props : Char → Props) (cs : List Char) (h : cs ≠ []) :
+    IsBoundary props cs cs.length := by
+  rcases List.eq_nil_or_concat cs with rfl | ⟨l, x, rfl⟩
+  · exact absurd rfl h
+  simp only [List.concat_eq_append] at h ⊢
+  refine ⟨1, _, rfl, ⟨⟨l.map props, [props x],
+    by simp only [List.take_length, List.map_append, List.map_cons, List.map_nil], .one rfl⟩,
+    by simp [Right.Holds]⟩, rfl, ?_⟩
+  intro j r' hj hr' happ
+  obtain rfl : j = 0 := by omega
+  obtain rfl : r' = _ := (Option.some.inj hr').symm
+  obtain ⟨y, ys, hys⟩ := List.exists_cons_of_ne_nil (by simp : (l ++ [x]).map props ≠ [])
+  have hleft := happ.1
+  simp only [List.take_length] at hleft
+  rw [hys] at hleft
+  exact not_sot_nothing y ys hleft
 
 end Segmentation
