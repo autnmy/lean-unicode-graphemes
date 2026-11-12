@@ -1,4 +1,3 @@
-import Gate.Axioms
 import Segmentation
 
 /-!
@@ -41,6 +40,5 @@ theorem «graphemes_ne_empty rules out an empty cluster for the empty string and
     (∀ g ∈ Segmentation.graphemes "", g ≠ "") ∧ (∀ g ∈ Segmentation.graphemes "a\r", g ≠ "") :=
   ⟨Segmentation.graphemes_ne_empty "", Segmentation.graphemes_ne_empty "a\r"⟩
 
--- Fails on any axiom beyond `propext`, `Classical.choice` and `Quot.sound`. A proof by `sorry`
--- depends on `sorryAx`, which is not in the allowed list.
-#assert_axioms Segmentation.graphemes_join Segmentation.graphemes_ne_empty
+-- The axiom check for `graphemes_join` and `graphemes_ne_empty` is in
+-- `SegmentationTest.HeadlineAxioms`, with the other headline theorems.

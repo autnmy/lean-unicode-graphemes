@@ -44,6 +44,22 @@ jobs:
           auto-config: false
           build: true
           test: true
+      # Shows each headline theorem's `#print axioms` output in this log and fails if any of them
+      # depends on an axiom outside propext, Classical.choice and Quot.sound. The theorem list is
+      # in SegmentationTest/HeadlineAxioms.lean; `#assert_axioms` fails on a name that does not
+      # resolve, so a renamed theorem cannot drop out unnoticed. It reads the build above.
+      - name: Print and check the axioms of the headline theorems
+        env:
+          LC_ALL: C
+        run: |
+          set -eu
+          lake env lean SegmentationTest/HeadlineAxioms.lean
+      # A check that has only ever passed could be checking nothing, so this plants a sorry, a
+      # native_decide and a user axiom in throwaway files and fails unless the check rejects each.
+      - name: Check that the axiom check rejects forbidden axioms
+        env:
+          LC_ALL: C
+        run: sh scripts/axiom-gate-self-test.sh
       # The committed tables must be exactly what the generator writes from the
       # data files. `git status` also reports new untracked and deleted files,
       # which `git diff` alone would miss. A generator that fails stops the step.

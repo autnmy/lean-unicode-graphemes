@@ -1,4 +1,3 @@
-import Gate.Axioms
 import Segmentation
 
 /-!
@@ -28,6 +27,5 @@ theorem «mem_cutsOf holds for every props with its stated type» :
           breaksBefore (scanStateOf (props c) ((cs.take j).map props)) (props cs[j]) = true :=
   Segmentation.mem_cutsOf
 
--- Fails on any axiom beyond `propext`, `Classical.choice` and `Quot.sound`. A proof that hides
--- a `sorry` anywhere in its lemmas depends on `sorryAx`, which is not in the allowed list.
-#assert_axioms Segmentation.graphemes_rules Segmentation.boundaries_agree
+-- The axiom check for `graphemes_rules` and `boundaries_agree` is in
+-- `SegmentationTest.HeadlineAxioms`, with the other headline theorems.

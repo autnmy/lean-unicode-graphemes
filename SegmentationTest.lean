@@ -52,6 +52,8 @@ import SegmentationTest.AxiomGateDisallowedMixed
 import SegmentationTest.AssertAxiomsHeadline
 import SegmentationTest.AssertAxiomsRejectsForeignAxiom
 import SegmentationTest.AssertAxiomsPrintsHeadlineAxioms
+import SegmentationTest.HeadlineAxioms
+import SegmentationTest.AxiomGateSelfTest
 
 /-!
 # Test driver
