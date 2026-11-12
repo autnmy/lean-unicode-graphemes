@@ -1,8 +1,8 @@
 import Lean
 import Gate.Axioms
 
--- Kernel evaluation through the compiler shows up as `Lean.ofReduceBool`, and a user `axiom`
--- shows up under its own name; both are outside the three allowed axioms.
+-- `Lean.ofReduceBool` stands for an axiom from core outside the allowed three, and a user
+-- `axiom` shows up under its own name; the check must report both.
 open Lean in
 theorem «disallowedAxioms reports Lean.ofReduceBool and a user-declared axiom» : True := by
   run_tac do

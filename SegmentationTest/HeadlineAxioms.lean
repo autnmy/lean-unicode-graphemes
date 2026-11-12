@@ -6,7 +6,9 @@ import Segmentation
 
 The four theorems the README cites as the library's claim: the clusters join back to the input
 (`H1a`), no cluster is empty (`H1b`), the segmenter cuts exactly where UAX #29 says (`H2`), and
-`boundaries` gives the same cuts (`H2'`). This is the one list of them.
+`boundaries` gives the same cuts (`H2'`). This is the list the gate checks; the test in
+`SegmentationTest/AssertAxiomsPrintsHeadlineAxioms.lean` names the same four to check the printed
+output.
 
 `lake test` elaborates this file through the test driver's import. CI also runs
 `lake env lean SegmentationTest/HeadlineAxioms.lean`, so the job log shows each theorem's

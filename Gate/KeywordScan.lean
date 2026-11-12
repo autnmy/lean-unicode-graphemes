@@ -8,8 +8,9 @@ in strings and in «…» theorem names. `findForbidden` first blanks out that p
 each identifier part that equals a forbidden word.
 
 What counts as prose: `--` comments, `/- … -/` comments (they nest, and doc comments are
-included), character literals, the text of string literals, and «…» names. The `{…}` parts of
-an interpolated string such as `s!"…"` or `m!"…"` hold Lean terms, so they are scanned as code.
+included), character literals, the text of string literals (raw ones such as `r#"…"#` too), and
+«…» names. The `{…}` parts of an interpolated string, such as `s!"…"`, `m!"…"` or the string
+after `throwError`, hold Lean terms, so they are scanned as code.
 -/
 
 namespace Gate
@@ -26,7 +27,13 @@ private inductive Region where
   | blockComment (depth : Nat)
   /-- Inside a string literal; an interpolated one opens code at each `{`. -/
   | string (interpolated : Bool)
-  /-- Inside a character literal that starts with an escape, such as `'\n'`. -/
+  /-- Inside a raw string literal such as `r"…"` or `r#"…"#`, opened with `hashes` `#` signs.
+  A raw string has no escapes, so a backslash in it is plain text. -/
+  | rawString (hashes : Nat)
+  /-- After a `"` inside a raw string, waiting for `remaining` more of its closing `#` signs. -/
+  | rawStringEnd (hashes remaining : Nat)
+  /-- Inside a character literal that starts with an escape, such as `'\n'`, after the escaped
+  character. -/
   | charLiteral
   | quotedName
 
@@ -40,19 +47,67 @@ private def isWordChar (c : Char) : Bool :=
 private def blank (c : Char) : Char :=
   if c == '\n' then '\n' else ' '
 
+/-- `before` with its last `(…)` group removed; `depth` counts the `)` still to be matched. -/
+private def dropParenGroup : List Char → Nat → List Char
+  | [], _ => []
+  | ')' :: rest, depth => dropParenGroup rest (depth + 1)
+  | '(' :: rest, depth => if depth ≤ 1 then rest else dropParenGroup rest (depth - 1)
+  | _ :: rest, depth => dropParenGroup rest depth
+
+/-- `before` without its last term, when that term is a name or a `(…)` group, and without the
+whitespace in front of that term. -/
+private def dropTerm (before : List Char) : List Char :=
+  let rest := match before with
+    | ')' :: _ => dropParenGroup before 0
+    | _ => before.dropWhile fun c => isWordChar c || c == '.'
+  rest.dropWhile Char.isWhitespace
+
+/-- Whether `before` ends with the keyword `word`, not with a longer name that contains it. -/
+private def endsWithKeyword (before : List Char) (word : String) : Bool :=
+  let reversed := word.toList.reverse
+  before.take reversed.length == reversed &&
+    match before.drop reversed.length with
+    | c :: _ => !isWordChar c && c != '.'
+    | [] => true
+
+/-- Whether a `"` that follows `before` opens a string whose `{…}` parts are Lean terms. That
+holds after a `!` macro such as `s!` or `m!`, after `]` as in `trace[cls] "…"`, and after
+`throwError` or `throwErrorAt ref`, which take such a string without a `!`. Taking `]` too can
+only scan more text as code, so it can only report more. -/
+private def opensInterpolatedString (before : List Char) : Bool :=
+  let before := before.dropWhile Char.isWhitespace
+  match before with
+  | '!' :: _ | ']' :: _ => true
+  | _ => endsWithKeyword before "throwError" || endsWithKeyword (dropTerm before) "throwErrorAt"
+
+/-- The number of `#` signs when a `"` that follows `before` opens a raw string (`r"`, `r#"`,
+…), or `none` when it opens an ordinary string. -/
+private def rawStringHashes (before : List Char) : Option Nat :=
+  let hashes := (before.takeWhile (· == '#')).length
+  match before.drop hashes with
+  | 'r' :: c :: _ => if isWordChar c || c == '.' then none else some hashes
+  | ['r'] => some hashes
+  | _ => none
+
+/-- The region a `"` in code opens. `before` is the code so far, last character first. -/
+private def stringRegion (before : List Char) : Region :=
+  match rawStringHashes before with
+  | some hashes => .rawString hashes
+  | none => .string (opensInterpolatedString before)
+
 /-- `cs` with every prose character replaced by a space, built in reverse onto `out`.
 `braces` has one entry for each open `{…}` part of an interpolated string: the number of `{`
 opened inside that part that are still unclosed. `prev` is the last code character, used to tell
-a character literal from the prime in a name like `h'`, and an interpolated string from a plain
-one (`s!"`). -/
+a character literal from the prime in a name like `h'`. The kind of string a `"` opens is read
+from the code already in `out`. -/
 private def blankProse : List Char → Region → List Nat → Char → List Char → List Char
   | [], _, _, _, out => out.reverse
   | '-' :: '-' :: rest, .code, braces, _, out =>
     blankProse rest .lineComment braces ' ' (' ' :: ' ' :: out)
   | '/' :: '-' :: rest, .code, braces, _, out =>
     blankProse rest (.blockComment 1) braces ' ' (' ' :: ' ' :: out)
-  | '"' :: rest, .code, braces, prev, out =>
-    blankProse rest (.string (prev == '!')) braces ' ' (' ' :: out)
+  | '"' :: rest, .code, braces, _, out =>
+    blankProse rest (stringRegion out) braces ' ' (' ' :: out)
   | '«' :: rest, .code, braces, _, out =>
     blankProse rest .quotedName braces ' ' (' ' :: out)
   | '\'' :: rest, .code, braces, prev, out =>
@@ -61,8 +116,10 @@ private def blankProse : List Char → Region → List Nat → Char → List Cha
     else
       -- The equation lets the termination proof see that `rest` is shorter in the last branch.
       match _h : rest with
-      | '\\' :: afterEscape =>
-        blankProse afterEscape .charLiteral braces ' ' (' ' :: ' ' :: out)
+      -- The escaped character is taken with the backslash, so `'\\'` and `'\''` close on
+      -- their last quote.
+      | '\\' :: c :: afterEscape =>
+        blankProse afterEscape .charLiteral braces ' ' (blank c :: ' ' :: ' ' :: out)
       | c :: '\'' :: afterLiteral =>
         blankProse afterLiteral .code braces ' ' (' ' :: blank c :: ' ' :: out)
       | _ => blankProse rest .code braces '\'' ('\'' :: out)
@@ -97,6 +154,21 @@ private def blankProse : List Char → Region → List Nat → Char → List Cha
     blankProse rest .code (0 :: braces) ' ' (' ' :: out)
   | c :: rest, .string interpolated, braces, prev, out =>
     blankProse rest (.string interpolated) braces prev (blank c :: out)
+  | '"' :: rest, .rawString 0, braces, _, out =>
+    blankProse rest .code braces ' ' (' ' :: out)
+  | '"' :: rest, .rawString hashes, braces, prev, out =>
+    blankProse rest (.rawStringEnd hashes hashes) braces prev (' ' :: out)
+  | c :: rest, .rawString hashes, braces, prev, out =>
+    blankProse rest (.rawString hashes) braces prev (blank c :: out)
+  | '#' :: rest, .rawStringEnd hashes remaining, braces, prev, out =>
+    if remaining ≤ 1 then
+      blankProse rest .code braces ' ' (' ' :: out)
+    else
+      blankProse rest (.rawStringEnd hashes (remaining - 1)) braces prev (' ' :: out)
+  | '"' :: rest, .rawStringEnd hashes _, braces, prev, out =>
+    blankProse rest (.rawStringEnd hashes hashes) braces prev (' ' :: out)
+  | c :: rest, .rawStringEnd hashes _, braces, prev, out =>
+    blankProse rest (.rawString hashes) braces prev (blank c :: out)
   | '\\' :: c :: rest, .charLiteral, braces, prev, out =>
     blankProse rest .charLiteral braces prev (blank c :: ' ' :: out)
   | '\'' :: rest, .charLiteral, braces, _, out =>
