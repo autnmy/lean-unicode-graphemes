@@ -7,9 +7,14 @@ should treat as one unit. It follows Unicode 18.0.0 and
 [UAX #29 revision 49](https://www.unicode.org/reports/tr29/tr29-49.html), and
 uses Lean core only, with no Mathlib, Batteries or other Lake dependencies.
 
-**Status: in progress.** The project scaffold, the theorem statements and the
-Unicode property tables exist so far. There is no segmentation API yet, and
-nothing in the library is stable.
+**Status: in progress.** The project scaffold, the theorem statements, the
+Unicode property tables and the segmenter exist so far.
+`Segmentation.graphemes : String → List String` splits text into extended
+grapheme clusters, and `Segmentation.boundaries : String → List Nat` returns
+the cut positions, counted in code points. They are checked against lines of
+the Unicode test file `GraphemeBreakTest.txt` in `lake test`; the proofs that
+they satisfy the theorem statements are not written yet. Nothing in the library
+is stable.
 
 ## Building and testing
 
