@@ -40,6 +40,7 @@ import SegmentationTest.GraphemesPartition
 import SegmentationTest.RangeScanAndSorted
 import SegmentationTest.TableLookupMatchesScan
 import SegmentationTest.ScanInvariants
+import SegmentationTest.GraphemesRules
 
 /-!
 # Test driver

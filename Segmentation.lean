@@ -6,6 +6,8 @@ import Segmentation.RangeLookup
 import Segmentation.Graphemes
 import Segmentation.Partition
 import Segmentation.ScanInvariants
+import Segmentation.Cuts
+import Segmentation.Rules
 
 /-!
 # Segmentation
