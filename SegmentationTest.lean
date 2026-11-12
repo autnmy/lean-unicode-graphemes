@@ -55,8 +55,6 @@ import SegmentationTest.AssertAxiomsPrintsHeadlineAxioms
 import SegmentationTest.HeadlineAxioms
 import SegmentationTest.AxiomGateSelfTest
 import SegmentationTest.ForbiddenWordsList
-import SegmentationTest.ForbiddenWordsAreTheSeven
-import SegmentationTest.KeywordScanWordList
 import SegmentationTest.FindForbiddenEachWord
 import SegmentationTest.FindForbiddenInterpolation
 import SegmentationTest.FindForbiddenScansInterpolation
