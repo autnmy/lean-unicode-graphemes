@@ -39,4 +39,4 @@ When the gate fails, its message names the axiom. A maintainer who expects `Lean
 
 - The module comment in `Gate/Axioms.lean` (PR #23) says that a proof that evaluates through the compiler depends on an axiom named like `t._native.native_decide.ax_1_1` on this toolchain.
 - `scripts/axiom-gate-self-test.sh` (PR #23) says that `native_decide` adds an axiom of its own whose name contains `native_decide`, "rather than depending on `Lean.ofReduceBool`". It expects the gate's error to match `native_decide`. CI runs this script as the step "Check that the axiom check rejects forbidden axioms", and no check failed on the PR's head commit.
-- `SegmentationTest/AxiomCheckerDisallowed.lean` and `SegmentationTest/DisallowedAxiomsReduceBoolAndUser.lean` describe `Lean.ofReduceBool` as standing for any other axiom outside the allowed three.
+- `SegmentationTest/DisallowedAxioms.lean` describes `Lean.ofReduceBool` as standing for any other axiom outside the allowed three.
