@@ -1,5 +1,5 @@
-lean-unicode-segmentation
-Copyright the lean-unicode-segmentation contributors.
+lean-unicode-graphemes
+Copyright the lean-unicode-graphemes contributors.
 
 Licensed under the Apache License, Version 2.0. See the LICENSE file.
 
@@ -13,7 +13,7 @@ UNICODE LICENSE V3
 
 COPYRIGHT AND PERMISSION NOTICE
 
-Copyright © 1991-2024 Unicode, Inc.
+Copyright © 1991-2026 Unicode, Inc.
 
 NOTICE TO USER: Carefully read the following legal agreement. BY
 DOWNLOADING, INSTALLING, COPYING OR OTHERWISE USING DATA FILES, AND/OR
