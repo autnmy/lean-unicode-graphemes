@@ -22,7 +22,7 @@ applies_when:
 
 `parseEntries` in `TableGen/Ucd.lean` returns an error when a file yields no entries at all. That is useful: an empty or cut-off file must not become a table of defaults.
 
-It also weakens tests. `SegmentationTest/ParseGcbUnknownName.lean` feeds `parseGcb` a single line with the misspelled name `Regional_Indicatr` and expects an error. If the parser silently skipped that line, the result would be empty, the empty-result rule would fire, and the test would still pass. Code review on PR #12 pointed this out.
+It also weakens tests. A theorem in `SegmentationTest/Ucd.lean` feeds `parseGcb` a single line with the misspelled name `Regional_Indicatr` and expects an error. If the parser silently skipped that line, the result would be empty, the empty-result rule would fire, and the test would still pass. Code review on PR #12 pointed this out.
 
 ## Solution
 
