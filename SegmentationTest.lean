@@ -49,13 +49,10 @@ import SegmentationTest.AssertAxiomsPrintsHeadlineAxioms
 import SegmentationTest.HeadlineAxioms
 import SegmentationTest.AxiomGateSelfTest
 import SegmentationTest.ForbiddenWordsList
-import SegmentationTest.FindForbiddenEachWord
-import SegmentationTest.FindForbiddenReportsEachWordInCode
+import SegmentationTest.FindForbiddenWords
 import SegmentationTest.FindForbiddenStringForms
 import SegmentationTest.FindForbiddenScansInterpolation
 import SegmentationTest.FindForbiddenProse
-import SegmentationTest.KeywordScanAttributes
-import SegmentationTest.KeywordScanAttributeList
 
 /-!
 # Test driver
