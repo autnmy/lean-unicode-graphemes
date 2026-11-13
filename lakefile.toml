@@ -1,5 +1,8 @@
-name = "segmentation"
+name = "lean-unicode-graphemes"
 version = "0.1.0"
+description = "Unicode extended grapheme cluster segmentation (UAX #29) for Lean 4, with machine-checked proofs"
+keywords = ["unicode", "grapheme", "segmentation", "uax29", "text"]
+license = "Apache-2.0"
 defaultTargets = ["Segmentation"]
 # Lake reads this value as a Lean name, so a target name with a hyphen
 # has to be written in «» or the lookup fails.
