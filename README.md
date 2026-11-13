@@ -1,4 +1,4 @@
-# lean-unicode-segmentation
+# lean-unicode-graphemes
 Unicode text segmentation (UAX #29) for Lean 4, with machine-checked proofs
 
 The `Segmentation` library splits text into extended grapheme clusters: the
@@ -108,8 +108,8 @@ A commit that the pipeline did not author shows a person's name there. A touch
 that is not a commit, such as writing an issue or merging a pull request, is
 recorded on the issue or pull request itself.
 
-This is the second run of the build. The first run is kept in
-`autnmy/lean-unicode-segmentation` at tag `soprano-test-run-1`.
+This is the second run of the build. The first run was made in an earlier,
+private repository and is not published.
 
 ## Prior work
 
