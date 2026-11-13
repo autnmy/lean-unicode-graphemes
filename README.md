@@ -123,6 +123,10 @@ A commit that the pipeline did not author shows a person's name there. A touch
 that is not a commit, such as writing an issue or merging a pull request, is
 recorded on the issue or pull request itself.
 
+This history was rewritten once, on 2026-11-13, to change the email on the commit that
+added the Unicode data files by hand to `tmlayton@users.noreply.github.com`; no file
+changed, but every commit after that one has a new ID.
+
 This is the second run of the build. The first run was made in an earlier,
 private repository and is not published.
 
