@@ -73,17 +73,19 @@ jobs:
           lake build keyword-scan
           lake env lean SegmentationTest/KeywordScanMainExitCodes.lean
           git ls-files -z '*.lean' | xargs -0 lake exe keyword-scan
-      # The committed tables must be exactly what the generator writes from the
-      # data files. `git status` also reports new untracked and deleted files,
-      # which `git diff` alone would miss. A generator that fails stops the step.
+      # The committed tables and GraphemeBreakTest.txt cases must be exactly what
+      # the generator writes from the data files. `git status` also reports new
+      # untracked and deleted files, which `git diff` alone would miss. A
+      # generator that fails stops the step.
       - name: Check the committed tables match the generator
         run: |
           set -e
           lake exe gen-tables
-          changes=$(git status --porcelain -- Segmentation/Tables)
+          generated="Segmentation/Tables SegmentationTest/GraphemeBreakTestData.lean"
+          changes=$(git status --porcelain -- $generated)
           if [ -n "$changes" ]; then
-            echo "The committed tables differ from lake exe gen-tables output:" >&2
+            echo "The committed generated files differ from lake exe gen-tables output:" >&2
             echo "$changes" >&2
-            git diff -- Segmentation/Tables >&2
+            git diff -- $generated >&2
             exit 1
           fi
