@@ -43,4 +43,4 @@ A test that passes for two reasons protects neither. If someone later relaxes th
 
 - PR #12 adds the two mixed-input guards above to `SegmentationTest/Ucd.lean`, with a comment that the rejection must not depend on the parse ending up empty.
 - `TableGen/Ucd.lean` `parseEntries` returns an error when no entries are found.
-- The code review finding on PR #12 about `SegmentationTest/ParseGcbUnknownName.lean` and `SegmentationTest/ParseIncbRejectsUnknownValue.lean` was fixed in this change; the author ran `lake lean` on `SegmentationTest/Ucd.lean` and it elaborated with both guards holding.
+- A code review finding on PR #12 named the single-line rejection tests, now the theorems «parseGcb rejects a misspelled value name instead of falling back to Other» and «parseIncb rejects an unknown InCB value instead of defaulting to None» in `SegmentationTest/Ucd.lean`. The mixed-input guards were added to answer it, and `SegmentationTest/Ucd.lean` elaborated with both guards holding.
