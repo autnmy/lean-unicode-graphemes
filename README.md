@@ -128,9 +128,24 @@ private repository and is not published.
 
 ## Prior work
 
-Earlier Lean work on Unicode segmentation splits text into grapheme clusters,
-but does not prove that the cuts follow the UAX #29 rules. This library's
-difference is the proof: the theorems above tie every cut to the rule list.
+Three Lean projects on Unicode came before this one:
+
+- [UnicodeBasic](https://github.com/fgdorais/lean4-unicode-basic), by
+  François G. Dorais, gives Lean the Unicode character properties. It is
+  listed on the Lean package index. Its README lists no text segmentation.
+- [UnicodeExtra](https://github.com/fgdorais/lean4-unicode-extra), also by
+  François G. Dorais, lists "text segmentation into grapheme clusters" in its
+  README as a candidate, not as done.
+- [unicode-lean](https://github.com/jpyxal-straylight/unicode-lean) implements
+  UAX #29 text segmentation against the Unicode 17.0.0 data. Its theorem that
+  grapheme segmentation matches the published Unicode test lines is closed
+  with `native_decide`.
+
+This library differs in what this repository shows: it follows UAX #29
+revision 49 with the Unicode 18.0.0 data, it proves the four theorems under
+"What is proved", and none of its proofs uses `native_decide`, which the axiom
+check in CI rejects. This section says nothing more about what the other
+projects prove than what is written above.
 
 ## Building and testing
 
