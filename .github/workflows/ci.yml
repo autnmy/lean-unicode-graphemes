@@ -54,6 +54,15 @@ jobs:
         run: |
           set -eu
           lake env lean SegmentationTest/HeadlineAxioms.lean
+      # Proves by `decide +kernel` that `graphemes` matches all 853 lines of GraphemeBreakTest.txt,
+      # and fails if that proof depends on an axiom outside the three standard ones. The test
+      # driver does not import this module, so this step is the only place CI checks the proof,
+      # and the time limit bounds the whole check: a proof that needs 10 minutes or more fails.
+      - name: Check the GraphemeBreakTest.txt theorem within 10 minutes
+        timeout-minutes: 10
+        env:
+          LC_ALL: C
+        run: lake build SegmentationTest.GraphemeBreakTestTheorem
       # A check that has only ever passed could be checking nothing, so this plants a sorry, a
       # native_decide and a user axiom in throwaway files and fails unless the check rejects each.
       - name: Check that the axiom check rejects forbidden axioms
