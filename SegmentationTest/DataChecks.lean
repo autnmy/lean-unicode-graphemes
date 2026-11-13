@@ -168,17 +168,38 @@ def checkCommittedTables : IO Unit := do
     if (← IO.FS.readFile path) != contents then
       failWith s!"{path} differs from `lake exe gen-tables` output; rerun the generator"
 
-/-- Each committed table module starts with the licence header built from `LICENSE.txt`. -/
+/-- The path of Unicode's grapheme cluster conformance test file. -/
+def graphemeBreakTestPath : System.FilePath := dataDir / "auxiliary/GraphemeBreakTest.txt"
+
+/-- The case module `lake exe gen-tables` writes now from GraphemeBreakTest.txt. -/
+def renderCasesFromSource : IO String := do
+  IO.ofExcept (GraphemeBreakTestFile.renderCasesModule
+    (← IO.FS.readFile (dataDir / "LICENSE.txt")) (← IO.FS.readFile graphemeBreakTestPath))
+
+/-- Fails unless `committed` equals, byte for byte, the case module the generator writes now. -/
+def checkCasesModuleText (committed : String) : IO Unit := do
+  if committed != (← renderCasesFromSource) then
+    failWith s!"{GraphemeBreakTestFile.casesModulePath} differs from `lake exe gen-tables` output; rerun the generator"
+
+/-- The committed case module equals what the generator writes now from GraphemeBreakTest.txt,
+so a proof about it is a proof about the file's lines. -/
+def checkCommittedTestData : IO Unit := do
+  checkCasesModuleText (← IO.FS.readFile GraphemeBreakTestFile.casesModulePath)
+
+/-- The committed case module with the case for test-file line 840 removed. -/
+def casesModuleWithoutLine840 : IO String := do
+  let committed ← IO.FS.readFile GraphemeBreakTestFile.casesModulePath
+  return "\n".intercalate ((committed.splitOn "\n").filter (!·.startsWith "  .ofClusters 840 "))
+
+/-- Each generated module starts with the licence header built from `LICENSE.txt`. -/
 def checkLicenceHeaders : IO Unit := do
   let header ← IO.ofExcept (licenceHeader (← IO.FS.readFile (dataDir / "LICENSE.txt")))
-  for (path, _) in ← renderFromSources do
+  let paths := (← renderFromSources).map (·.1) ++ [GraphemeBreakTestFile.casesModulePath]
+  for path in paths do
     if !(← IO.FS.readFile path).startsWith header then
       failWith s!"{path} does not start with the Unicode licence notice"
 
 /-! ## The conformance test file -/
-
-/-- The path of Unicode's grapheme cluster conformance test file. -/
-def graphemeBreakTestPath : System.FilePath := dataDir / "auxiliary/GraphemeBreakTest.txt"
 
 /--
 Runs `segment` on every test line of the GraphemeBreakTest.txt at `path`. Fails unless all 853
@@ -230,7 +251,13 @@ def dataChecks : List DataCheck := [
   { name := "the GraphemeBreakTest.txt check fails when clusters differ",
     run := expectFailure
       { name := "segmenter that never joins",
-        run := checkGraphemeBreakTest graphemeBreakTestPath splitEveryCodePoint } }
+        run := checkGraphemeBreakTest graphemeBreakTestPath splitEveryCodePoint } },
+  { name := "committed GraphemeBreakTest.txt cases equal the generator's output",
+    run := checkCommittedTestData },
+  { name := "the GraphemeBreakTest.txt case drift check fails when a case is missing",
+    run := expectFailure
+      { name := "case module without line 840",
+        run := do checkCasesModuleText (← casesModuleWithoutLine840) } }
 ]
 
 end SegmentationTest.DataChecks

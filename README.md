@@ -68,6 +68,15 @@ test files name these words there as prose, for example in a comment such as
 `{…}` parts of interpolated strings such as `s!"…"` are Lean terms, so it scans
 them as code.
 
+```sh
+lake build SegmentationTest.GraphemeBreakTestTheorem
+```
+
+This proves that `graphemes` matches all 853 test lines of
+`GraphemeBreakTest.txt` (see the first item under "What is outside the proof"),
+and fails if that proof depends on an axiom outside the three standard ones.
+`lake test` does not build it; CI builds it in a step limited to 10 minutes.
+
 `lake test` also pins each theorem's type to its committed statement, so a
 theorem renamed, or proved about a weaker statement, fails the tests.
 
@@ -82,7 +91,13 @@ you have to trust them, or check them another way:
   committed tables must equal what the generator writes from them, `lake test`
   compares the table lookup with the data files for every code point, and
   `graphemes` must agree with all 853 test lines of the Unicode test file
-  `GraphemeBreakTest.txt`.
+  `GraphemeBreakTest.txt`. That last agreement is also a theorem,
+  `SegmentationTest.GraphemeBreakTestTheorem.graphemes_match_graphemeBreakTest`,
+  which the kernel checks by `decide +kernel`. It reads the test lines from
+  `SegmentationTest/GraphemeBreakTestData.lean`, which `lake exe gen-tables`
+  writes from the file; `lake test` and CI fail when that module differs from
+  what the file gives. So the theorem is only as good as the file, which is
+  trusted like the other data files.
 - **The Lean kernel, compiler and runtime.** The kernel checks the proofs. The
   code that runs is compiled from the same definitions by the Lean compiler
   and runs on the Lean runtime, and neither of those is verified.

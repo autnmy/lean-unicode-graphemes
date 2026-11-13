@@ -110,6 +110,37 @@ theorem «checkCounts rejects 853 parsed lines when the file states no count» :
     (checkCounts 853 none).toBool = false := by
   decide
 
+/-! ## Rendering the case module -/
+
+/-- A two-line test file whose trailer claims the full 853 lines. -/
+def graphemeBreakTestTwoLinesClaiming853 : String :=
+  "÷ 0020 ÷ 0020 ÷\t# x\n÷ 0061 × 0308 ÷\t# y\n#\n# Lines: 853\n#\n# EOF\n"
+
+-- A truncated file must never become the data a proof reads; the error names both counts.
+#guard renderCasesModule "licence" graphemeBreakTestTwoLinesClaiming853 matches
+  .error "parsed 2 test lines, but the file states 853"
+
+-- Without its "# Lines:" trailer the file has nothing to check the parsed count against.
+#guard renderCasesModule "licence" "÷ 0020 ÷ 0020 ÷\t# x\n# EOF\n" matches
+  .error "the file states no line count: its \"# Lines:\" trailer is missing"
+
+-- A truncated file whose trailer was edited to agree must never render into the data the
+-- theorem reads.
+theorem «renderCasesModule refuses a test file whose trailer agrees with a count other than 853» :
+    (match renderCasesModule
+        "UNICODE LICENSE V3\n\nCopyright © 1991-2025 Unicode, Inc.\n"
+        "÷ 0020 ÷ 0020 ÷\t# x\n#\n# Lines: 1\n#\n# EOF\n" with
+      | .error _ => true
+      | .ok _ => false) = true := by
+  decide +kernel
+
+-- Each case is written as its line and the expected clusters the file's markers give.
+#guard renderCase (.ofClusters 840 [[0x61, 0x308], [0x62]]) ==
+  "  .ofClusters 840 [[0x0061, 0x0308], [0x0062]]"
+
+-- `ofClusters` gives the code points as the clusters joined, as the parser reads them.
+#guard (GraphemeBreakCase.ofClusters 840 [[0x61, 0x308], [0x62]]).codePoints == [0x61, 0x308, 0x62]
+
 /-! ## Comparing clusters -/
 
 -- A segmenter that splits every code point apart gets both joined lines wrong, so both line
