@@ -5,7 +5,9 @@ import SegmentationTest.GraphemeBreakTestTheorem
 
 Checks of the generated cases, of the decided check `linesMatch`, and of the link from the
 `List Char` core to `graphemes`. Several of these evaluate all 853 cases in the kernel, so, like
-`SegmentationTest.GraphemeBreakTestTheorem`, the test driver does not import this file.
+`SegmentationTest.GraphemeBreakTestTheorem`, the test driver does not import this file; CI
+builds both in its time-limited GraphemeBreakTest.txt step. Check it locally with
+`lake build SegmentationTest.GraphemeBreakTestTheoremTests`.
 -/
 
 /-! ## The statement -/
