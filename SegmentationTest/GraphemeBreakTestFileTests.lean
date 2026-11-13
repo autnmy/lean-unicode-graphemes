@@ -124,6 +124,16 @@ def graphemeBreakTestTwoLinesClaiming853 : String :=
 #guard renderCasesModule "licence" "÷ 0020 ÷ 0020 ÷\t# x\n# EOF\n" matches
   .error "the file states no line count: its \"# Lines:\" trailer is missing"
 
+-- A truncated file whose trailer was edited to agree must never render into the data the
+-- theorem reads.
+theorem «renderCasesModule refuses a test file whose trailer agrees with a count other than 853» :
+    (match renderCasesModule
+        "UNICODE LICENSE V3\n\nCopyright © 1991-2025 Unicode, Inc.\n"
+        "÷ 0020 ÷ 0020 ÷\t# x\n#\n# Lines: 1\n#\n# EOF\n" with
+      | .error _ => true
+      | .ok _ => false) = true := by
+  decide +kernel
+
 -- Each case is written as its line and the expected clusters the file's markers give.
 #guard renderCase (.ofClusters 840 [[0x61, 0x308], [0x62]]) ==
   "  .ofClusters 840 [[0x0061, 0x0308], [0x0062]]"
