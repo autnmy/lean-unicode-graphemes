@@ -45,37 +45,73 @@ def isError {α : Type} : Except String α → Bool
   some (0x300, 0x36F, GCB.Extend)
 
 -- Every InCB value a line can carry. A text with only other properties' lines
--- parses to nothing, which is an error; ParseIncbOtherProperties.lean checks
--- that such lines are skipped beside an InCB line.
+-- parses to nothing, which is an error.
 #guard single (TableGen.parseIncb "0041 ; InCB; Consonant # x") == some (0x41, 0x41, InCB.Consonant)
 #guard single (TableGen.parseIncb "0041 ; InCB; Extend # x") == some (0x41, 0x41, InCB.Extend)
 #guard single (TableGen.parseIncb "0041 ; InCB; Linker # x") == some (0x41, 0x41, InCB.Linker)
 #guard isError (TableGen.parseIncb "0041 ; Alphabetic # x")
 #guard isError (TableGen.parseIncb "094D ; InCB # value missing")
 
+-- DerivedCoreProperties.txt mixes many properties. A parser that read the wrong field would take
+-- another property's lines as InCB, or lose the three-field InCB line.
+-- `decide` decodes the string literal while elaborating, one nested step per
+-- character, which needs more than the default recursion depth.
+set_option maxRecDepth 20000 in
+theorem «parseIncb reads only InCB lines and takes the value from the third field» :
+    (match TableGen.parseIncb
+        "0915          ; Alphabetic # Lo       DEVANAGARI LETTER KA\n094D          ; InCB; Linker # Mn       DEVANAGARI SIGN VIRAMA\n" with
+     | .ok [r] => r.lo == 0x094D && r.hi == 0x094D && r.value == Segmentation.InCB.Linker
+     | _ => false) = true := by decide
+
+-- Only Consonant, Extend and Linker are InCB values the type can hold.
+-- Any other value on an InCB line must stop the parse.
+theorem «parseIncb rejects an unknown InCB value instead of defaulting to None» :
+    (TableGen.parseIncb "094D ; InCB; Linkr # misspelled\n" matches .error _) = true := by
+  decide
+
 -- emoji-data.txt writes no space before the comment.
 #guard single (TableGen.parseExtPict "00A9          ; Extended_Pictographic# E0.6   [1] (©️)       copyright") ==
   some (0xA9, 0xA9, true)
 
--- Malformed input is an error, never a default. ParseGcbUnknownName.lean checks
--- a misspelled value name.
+-- An empty or truncated file would make every code point read `false` on both the generator and
+-- the reference side, so an empty parse result must be an error.
+theorem «parseExtPict fails on a file with no Extended_Pictographic entries» :
+    (match TableGen.parseExtPict "# emoji-data.txt\n\n0023          ; Emoji                # E0.0   [1] (#\uFE0F)       hash sign\n" with
+     | .error _ => true
+     | .ok _ => false) = true := by decide
+
+-- Malformed input is an error, never a default.
 #guard isError (TableGen.parseGcb "110000 ; Control # x")
 #guard isError (TableGen.parseGcb "0045..0041 ; Control # x")
 #guard isError (TableGen.parseGcb "zz ; ;")
 #guard isError (TableGen.parseGcb "")
 #guard isError (TableGen.parseGcb "# only a comment\n")
 
+-- The generator and the reference share this parser, so a name it does not know must be an
+-- error: read as the default `Other`, both sides would agree and the exhaustive check would pass.
+theorem «parseGcb rejects a misspelled value name instead of falling back to Other» :
+    (match TableGen.parseGcb "1F1E6..1F1FF  ; Regional_Indicatr # So  [26] REGIONAL INDICATOR SYMBOL LETTER A..Z\n" with
+     | .error _ => true
+     | .ok _ => false) = true := by decide
+
 -- An unknown value beside a valid row still fails the whole parse, so the
 -- rejection does not depend on the parse ending up empty.
 #guard isError (TableGen.parseGcb "0041 ; Control # x\n1F1E6 ; Regional_Indicatr # x\n")
 #guard isError (TableGen.parseIncb "0915 ; InCB; Consonant # x\n094D ; InCB; Linkr # x\n")
 
--- Overlapping entries with different values. NormalizeConflictingOverlap.lean
--- checks that `normalize` rejects the same entries.
+-- Overlapping entries with different values: U+0043 is claimed by both. Keeping
+-- either one silently would write a table that no longer says what the file says.
 def overlapping : List (Range GCB) :=
   [{ lo := 0x41, hi := 0x45, value := .Control }, { lo := 0x43, hi := 0x43, value := .Extend }]
 
 #guard isError (TableGen.paint GCB.Other overlapping)
+
+theorem «normalize rejects overlapping entries with different values instead of keeping the last» :
+    (match TableGen.normalize
+        [({ lo := 0x41, hi := 0x45, value := Segmentation.GCB.Control } : Segmentation.Tables.Range Segmentation.GCB),
+         { lo := 0x43, hi := 0x43, value := Segmentation.GCB.Extend }] with
+     | .error _ => true
+     | .ok _ => false) = true := by decide
 
 -- `normalize` sorts and joins touching ranges of one value, and keeps others apart.
 def mergeResult : Option (List (Nat × Nat × GCB)) :=

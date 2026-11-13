@@ -3,11 +3,6 @@ import SegmentationTest.Statements
 import SegmentationTest.«RangeLookupBoundaries.2»
 import SegmentationTest.RangeLookupEmptyAndSingle
 import SegmentationTest.Ucd
-import SegmentationTest.ParseIncbRejectsUnknownValue
-import SegmentationTest.ParseGcbUnknownName
-import SegmentationTest.ParseIncbOtherProperties
-import SegmentationTest.ParseExtPictEmpty
-import SegmentationTest.NormalizeConflictingOverlap
 import SegmentationTest.Tables
 import SegmentationTest.RenderAllRejectsCommentClose
 import SegmentationTest.GcbOfByNumber

@@ -45,4 +45,4 @@ An exhaustive check looks like proof, so reviewers rarely look past it. But it o
 - PR #12 adds the parsers, `normalize` and `paint` in `TableGen/Ucd.lean`. Its module comment says that a default would give the same wrong answer on both sides.
 - `SegmentationTest/DataChecks.lean` builds the reference with `paint` in `loadReference`, and `checkReferenceSpots` checks it against fixed values.
 - `SegmentationTest/Ucd.lean` has one `#guard` for each Grapheme_Cluster_Break and InCB name, each against a constructor written in the test.
-- `SegmentationTest/ParseGcbUnknownName.lean` and `SegmentationTest/ParseExtPictEmpty.lean` check that an unknown name and an empty file are errors.
+- Theorems in `SegmentationTest/Ucd.lean` check that an unknown name and an empty file are errors.
