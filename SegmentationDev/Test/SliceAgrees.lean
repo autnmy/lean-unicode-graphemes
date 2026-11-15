@@ -18,8 +18,9 @@ import SegmentationDev.Test.SliceFastNoReference
 `s.toSlice` for every `String s`. The modules imported here check the rest by running it:
 
 * the type of `sliceGraphemes_agree`, both halves spelled out, and of `asciiProps_eq_props`;
-* compiled `#guard` checks against `graphemes` and mapped `boundaries` on the edge inputs of the
-  ASCII path, with expected byte cuts computed only from the reference;
+* compiled `#guard` checks against the reference `clustersOf` and mapped `cutsOf` on the edge
+  inputs of the ASCII path, which the `@[csimp]` rewrite of `graphemes` and `boundaries` leaves
+  on the `List Char` code, with expected byte cuts computed only from the reference;
 * a sub-slice from the middle of a larger string, which `sliceGraphemes_agree_clustersOf` proves
   for any slice and these checks run: its clusters are slices of the sub-slice, its cuts are
   measured from the sub-slice start, and a CR at its end is not joined with the LF just past it;

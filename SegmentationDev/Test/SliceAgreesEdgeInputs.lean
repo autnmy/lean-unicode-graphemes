@@ -4,20 +4,22 @@ import Segmentation
 # The slice scanner agrees with the reference on the ASCII path's edge inputs
 
 Every check here runs compiled code, so it checks the scanner as it executes, not only its proof.
-Expected values come only from `graphemes`, `boundaries` and `String.toList`, never from the
-scanner. Code points above U+FFFF are written as `Nat` lists, since a `\u` escape takes exactly
-four hex digits.
+Expected values come only from `clustersOf`, `cutsOf` and `String.toList`, never from the
+scanner. They do not come from `graphemes` or `boundaries`: the `@[csimp]` lemmas make compiled
+calls to those run the scanner, so the checks would compare the scanner with itself. Code points
+above U+FFFF are written as `Nat` lists, since a `\u` escape takes exactly four hex digits.
 -/
 
-/-- Whether the scanner agrees with the reference on `s`: its clusters, copied, are `graphemes` of
-the text of `s`, and its cuts, as byte offsets from the start of `s`, are `boundaries` mapped to
-the UTF-8 size of the first n code points. -/
+/-- Whether the scanner agrees with the reference on `s`: its clusters, copied, are the clusters
+`clustersOf` finds in the text of `s`, and its cuts, as byte offsets from the start of `s`, are
+the code-point cuts of `cutsOf` mapped to the UTF-8 size of the first n code points. -/
 def sliceAgreesWithReference (s : String.Slice) : Bool :=
-  let text := s.copy
-  (Segmentation.sliceGraphemes s).map String.Slice.copy == Segmentation.graphemes text &&
+  let chars := s.copy.toList
+  (Segmentation.sliceGraphemes s).map String.Slice.copy ==
+      (Segmentation.clustersOf Segmentation.Tables.props chars).map String.ofList &&
     (Segmentation.sliceBoundaries s).map (fun p => p.offset.byteIdx) ==
-      (Segmentation.boundaries text).map
-        (fun n => (String.ofList (text.toList.take n)).utf8ByteSize)
+      (Segmentation.cutsOf Segmentation.Tables.props chars).map
+        (fun n => (String.ofList (chars.take n)).utf8ByteSize)
 
 /-- The text with the code points `cps`. -/
 def sliceTestText (cps : List Nat) : String := String.ofList (cps.map Char.ofNat)
