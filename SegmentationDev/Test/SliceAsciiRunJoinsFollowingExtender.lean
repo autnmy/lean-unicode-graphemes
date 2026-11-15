@@ -5,7 +5,8 @@ import Segmentation
 -- following non-ASCII code point can join it"
 -- A fast path that cuts after every ASCII code point except CR before LF splits "a" from U+0301
 -- (Extend), U+200D (ZWJ) and U+0903 (SpacingMark). Each input must give exactly the reference's
--- clusters and byte cuts, and each must be a single cluster.
+-- clusters and byte cuts, and its last cluster must be the extender joined to the ASCII code point
+-- just before it.
 open Lean Elab Command in
 theorem «ASCII code point followed by a non-ASCII extender is not cut before the extender» :
     True := by
