@@ -1,8 +1,10 @@
 name: Benchmark
 
 # Measures this library against UnicodeExtra (bench/). It runs on pushes to main, on manual
-# dispatch, and on pull requests that change the benchmark or this workflow, so a broken
-# benchmark is seen before it lands. It is a workflow of its own, so it never delays the checks
+# dispatch, and on pull requests that change the benchmark, this workflow, the library, its
+# lakefile or its toolchain, so a broken benchmark is seen before it lands. The benchmark builds the library by
+# path on its own toolchain (bench/lean-toolchain), so a library change can break it even when
+# the library's own checks pass. It is a workflow of its own, so it never delays the checks
 # in ci.yml. Pull requests use `pull_request`, never `pull_request_target`, so a fork's code runs
 # with the read-only token below and no secrets.
 on:
@@ -12,6 +14,10 @@ on:
     paths:
       - 'bench/**'
       - '.github/workflows/bench.yml'
+      - 'Segmentation/**'
+      - 'Segmentation.lean'
+      - 'lean-toolchain'
+      - 'lakefile.toml'
   workflow_dispatch:
 
 # The job compiles and runs code fetched from another repository, so its token can only read.

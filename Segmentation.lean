@@ -3,6 +3,7 @@ import Segmentation.Version
 import Segmentation.Tables
 import Segmentation.TableLookup
 import Segmentation.RangeLookup
+import Segmentation.PropsTable
 import Segmentation.Graphemes
 import Segmentation.Partition
 import Segmentation.ScanInvariants
