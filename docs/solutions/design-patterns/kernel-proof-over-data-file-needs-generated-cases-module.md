@@ -41,9 +41,9 @@ The theorem is only as good as the claim that its data is the file. If any of th
 
 ## Evidence
 
-PR #30:
+PR #30 (the files it names under `SegmentationTest/` are now under `SegmentationDev/Test/`):
 - `SegmentationDev/Test/GraphemeBreakTestFile.lean` adds `ofClusters`, `casesModulePath` and `renderCasesModule`, which calls `checkCounts` before rendering. Its section comment explains that the kernel cannot read a file and that only parsed cases are written.
 - `SegmentationDev/Test/DataChecks.lean` adds `checkCommittedTestData` and the expect-failure check built on `casesModuleWithoutLine840`.
-- `.github/workflows/ci.yml` adds `SegmentationDev/Test/GraphemeBreakTestData.lean` to the generator drift step.
+- `.github/workflows/ci.yml` adds `SegmentationTest/GraphemeBreakTestData.lean` to the generator drift step.
 - `SegmentationDev/Test/GraphemeBreakTestTheorem.lean` defines `linesMatch` with the count, `coreClusters`, the lemma `clusters_eq_coreClusters`, and the theorem `graphemes_match_graphemeBreakTest`. It also proves `linesMatch coreClusters [] = false`.
 - `SegmentationDev/Test/GraphemeBreakTestTheoremTests.lean` shows the decided check is false on a one-case list even when that case matches.

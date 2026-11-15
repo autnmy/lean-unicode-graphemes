@@ -43,4 +43,4 @@ Trying `decide` on `IsBoundary` fails with a missing-instance error. That error 
 
 ## Evidence
 
-PR #21 adds `SegmentationDev/Test/ScanInvariants.lean`. Its module doc comment says that `IsBoundary` holds functions, has no `Decidable` instance, and that boundary checks go through `breaksBefore_iff_isBoundary`. The CR LF, GB11, GB12, GB13 and GB999 cases in that file all use this shape. `breaksBefore_iff_isBoundary`, `isBoundary_zero` and `isBoundary_length` are defined in `Segmentation/ScanInvariants.lean`. `lake test` passes on this change.
+PR #21 adds `SegmentationTest/ScanInvariants.lean` (now `SegmentationDev/Test/ScanInvariants.lean`). Its module doc comment says that `IsBoundary` holds functions, has no `Decidable` instance, and that boundary checks go through `breaksBefore_iff_isBoundary`. The CR LF, GB11, GB12, GB13 and GB999 cases in that file all use this shape. `breaksBefore_iff_isBoundary`, `isBoundary_zero` and `isBoundary_length` are defined in `Segmentation/ScanInvariants.lean`. `lake test` passes on this change.

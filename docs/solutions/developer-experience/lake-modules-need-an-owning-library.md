@@ -47,4 +47,4 @@ Both failures are quiet or far from the cause. A module that is never imported i
 
 - PR #11 adds `import Segmentation.Statements` to `Segmentation.lean`.
 - PR #11 adds the `SegmentationChecks` library to `lakefile.toml`, with the comment that the test driver imports the checks and Lake resolves an import only to a module some library of the package owns.
-- PR #11 adds `import SegmentationDev.Test.Statements` to `SegmentationDev/Test.lean`, whose module comment says importing it makes `lake test` elaborate the checks.
+- PR #11 adds `import SegmentationTest.Statements` to `SegmentationTest.lean` (now `SegmentationDev/Test.lean`), whose module comment says importing it makes `lake test` elaborate the checks.

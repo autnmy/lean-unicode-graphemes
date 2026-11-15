@@ -45,7 +45,7 @@ With one table, a change to the gate's contract needs one edit per behaviour, an
 
 ## Evidence
 
-- PR #29 deletes nineteen files and merges their inputs into the four tables above. `SegmentationDev/Test.lean` imports the four merged files in place of the nineteen deleted ones. The driver still imports other test modules, such as AxiomChecker, AllowedAxiomsList and FindForbiddenStringForms.
+- PR #29 deletes nineteen files and merges their inputs into the four tables above. `SegmentationTest.lean` (now `SegmentationDev/Test.lean`) imports the four merged files in place of the nineteen deleted ones. The driver still imports other test modules, such as AxiomChecker, AllowedAxiomsList and FindForbiddenStringForms.
 - In PR #29, the deleted `SegmentationTest/KeywordScanCodeAfterComment.lean` and `SegmentationTest/KeywordScanInterpolatedSorry.lean` checked `found.contains (1, "sorry")`. Their inputs are now rows compared with `==` in `SegmentationDev/Test/FindForbiddenProse.lean` and `SegmentationDev/Test/FindForbiddenScansInterpolation.lean`.
 - In PR #29, the deleted `SegmentationTest/AxiomCheckerDisallowed.lean` and `SegmentationTest/AxiomGateDisallowedMixed.lean` checked `bad.length == 2 && bad.contains ...`. Their shared five-axiom array is now one row in `SegmentationDev/Test/DisallowedAxioms.lean`, expecting exactly the list containing `sorryAx` and `Lean.ofReduceBool`.
 - The header comment in `SegmentationDev/Test/DisallowedAxioms.lean` says the result keeps the order of the input, so each expected list is exact.

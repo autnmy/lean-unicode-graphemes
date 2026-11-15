@@ -46,6 +46,6 @@ A saved axiom of `False` in a test module can prove anything in any module that 
 
 ## Evidence
 
-- PR #23 adds `SegmentationDev/Test/AssertAxiomsRejectsForeignAxiom.lean`. It saves `envBefore ← getEnv` before the two `addDecl` calls and calls `setEnv envBefore` after the rejection check. Its comment says the restore stops the axiom of `False` from being exported to importing modules.
-- `SegmentationDev/Test.lean` in PR #23 imports this test module, so `lake test` builds it alongside the other tests.
+- PR #23 adds `SegmentationTest/AssertAxiomsRejectsForeignAxiom.lean` (now `SegmentationDev/Test/AssertAxiomsRejectsForeignAxiom.lean`). It saves `envBefore ← getEnv` before the two `addDecl` calls and calls `setEnv envBefore` after the rejection check. Its comment says the restore stops the axiom of `False` from being exported to importing modules.
+- `SegmentationTest.lean` (now `SegmentationDev/Test.lean`) in PR #23 imports this test module, so `lake test` builds it alongside the other tests.
 - Verification step to run: `lake build SegmentationDev.Test.AssertAxiomsRejectsForeignAxiom`. Then elaborate a file that imports it and lists constants whose names end in `.GateAcceptance.foreignAxiom`. The list must be empty.

@@ -49,5 +49,5 @@ If you try a string literal, the build fails, or you end up skipping the astral 
 
 ## Evidence
 
-- PR #14 adds `SegmentationDev/Test/GraphemeBreakTestLine.lean`. Its module docstring says the `\u` escape takes exactly four hex digits, so code points above U+FFFF cannot be written in a string literal. It defines the `text`, `clusters` and `cuts` helpers.
-- `SegmentationDev/Test/GraphemesRegionalIndicatorRules.lean` and `SegmentationDev/Test/GraphemesEmojiZwjRule.lean` in PR #14 write their GraphemeBreakTest.txt lines (for example lines 321 and 846) as `Nat` lists through those helpers.
+- PR #14 adds `SegmentationTest/GraphemeBreakTestLine.lean` (now `SegmentationDev/Test/GraphemeBreakTestLine.lean`). Its module docstring says the `\u` escape takes exactly four hex digits, so code points above U+FFFF cannot be written in a string literal. It defines the `text`, `clusters` and `cuts` helpers.
+- `SegmentationTest/GraphemesRegionalIndicatorRules.lean` and `SegmentationTest/GraphemesEmojiZwjRule.lean` in PR #14 (now under `SegmentationDev/Test/`) write their GraphemeBreakTest.txt lines (for example lines 321 and 846) as `Nat` lists through those helpers.

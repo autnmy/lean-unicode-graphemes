@@ -37,5 +37,5 @@ A reviewer who sees only a green `lake build` has no evidence that any guard pas
 ## Evidence
 
 - The PR #14 body records the deviation. `lake build` is green, but the guards run under `lake test` because the default `lake build` target builds only the library. The same body reports `lake test` exiting 0 with "10 checks passed".
-- PR #14 adds seventeen `import SegmentationDev.Test.Graphemes…` and `import SegmentationDev.Test.BoundariesAgreesWithCore` lines to `SegmentationDev/Test.lean` so that `lake test` runs the new guards.
+- PR #14 adds seventeen `import SegmentationTest.Graphemes…` and `import SegmentationTest.BoundariesAgreesWithCore` lines to `SegmentationTest.lean` (now `SegmentationDev/Test.lean`) so that `lake test` runs the new guards.
 - The `README.md` status text in PR #14 says the functions are checked against `GraphemeBreakTest.txt` lines in `lake test`.
