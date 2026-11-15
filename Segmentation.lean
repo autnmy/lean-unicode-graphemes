@@ -9,6 +9,7 @@ import Segmentation.Partition
 import Segmentation.ScanInvariants
 import Segmentation.Cuts
 import Segmentation.Rules
+import Segmentation.Slice
 
 /-!
 # Segmentation
