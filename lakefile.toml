@@ -8,6 +8,11 @@ defaultTargets = ["Segmentation"]
 # has to be written in «» or the lookup fails.
 testDriver = "«segmentation-tests»"
 
+# Every lib and exe of the package, tests and generated tables included. A
+# misspelled name must be an error, not a fresh implicit variable.
+[leanOptions]
+autoImplicit = false
+
 [[lean_lib]]
 name = "Segmentation"
 

@@ -28,13 +28,16 @@ inductive Pat where
   | seq   (p q : Pat)
 
 inductive Pat.Matches : Pat → List Props → Prop
-  | one      : c x = true → Pat.Matches (.one c) [x]
-  | starNil  : Pat.Matches (.star c) []
-  | starCons : c x = true → Pat.Matches (.star c) xs → Pat.Matches (.star c) (x :: xs)
-  | pairsNil : Pat.Matches (.pairs c) []
-  | pairsCons : c x = true → c y = true → Pat.Matches (.pairs c) xs →
+  | one {c : Cls} {x : Props} : c x = true → Pat.Matches (.one c) [x]
+  | starNil {c : Cls} : Pat.Matches (.star c) []
+  | starCons {c : Cls} {x : Props} {xs : List Props} :
+      c x = true → Pat.Matches (.star c) xs → Pat.Matches (.star c) (x :: xs)
+  | pairsNil {c : Cls} : Pat.Matches (.pairs c) []
+  | pairsCons {c : Cls} {x y : Props} {xs : List Props} :
+      c x = true → c y = true → Pat.Matches (.pairs c) xs →
       Pat.Matches (.pairs c) (x :: y :: xs)
-  | seq      : Pat.Matches p xs → Pat.Matches q ys → Pat.Matches (.seq p q) (xs ++ ys)
+  | seq {p : Pat} {xs : List Props} {q : Pat} {ys : List Props} :
+      Pat.Matches p xs → Pat.Matches q ys → Pat.Matches (.seq p q) (xs ++ ys)
 
 /-- The left side of a rule, read against the text before the position. -/
 inductive Left where
