@@ -10,10 +10,10 @@ set_option maxRecDepth 20000 in
 theorem «clustersOf does not apply GB11 after a second ZWJ» :
     Segmentation.clustersOf
       (fun c =>
-        if c = 'P' then { gcb := .Other, extPict := true, incb := .None }
-        else if c = 'E' then { gcb := .Extend, extPict := false, incb := .Extend }
-        else if c = 'Z' then { gcb := .ZWJ, extPict := false, incb := .Extend }
-        else { gcb := .Other, extPict := false, incb := .None })
+        if c = 'P' then { gcb := .other, extPict := true, incb := .none }
+        else if c = 'E' then { gcb := .extend, extPict := false, incb := .extend }
+        else if c = 'Z' then { gcb := .zwj, extPict := false, incb := .extend }
+        else { gcb := .other, extPict := false, incb := .none })
       ['P', 'E', 'Z', 'Z', 'P'] =
     [['P', 'E', 'Z', 'Z'], ['P']] := by
   decide

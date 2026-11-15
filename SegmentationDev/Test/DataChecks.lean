@@ -80,9 +80,9 @@ are what the exhaustive check tests.
 def loadReference : IO Reference := do
   let s ← loadSources
   return {
-    gcb := ← IO.ofExcept (parseGcb s.gcb >>= paint .Other),
+    gcb := ← IO.ofExcept (parseGcb s.gcb >>= paint .other),
     extPict := ← IO.ofExcept (parseExtPict s.extPict >>= paint false),
-    incb := ← IO.ofExcept (parseIncb s.incb >>= paint .None) }
+    incb := ← IO.ofExcept (parseIncb s.incb >>= paint .none) }
 
 /-- The properties `ref` gives code point `n`, or `none` past its end. -/
 def Reference.props? (ref : Reference) (n : Nat) : Option Props := do
@@ -147,11 +147,11 @@ by the generator and the reference cannot pass unnoticed.
 def checkReferenceSpots : IO Unit := do
   let ref ← loadReference
   let expected : List (String × Bool) := [
-    ("U+1F1E6 is Regional_Indicator", ref.gcb[0x1F1E6]? == some .RI),
-    ("U+0300 is Extend", ref.gcb[0x0300]? == some .Extend),
-    ("U+0903 is SpacingMark", ref.gcb[0x0903]? == some .SpacingMark),
-    ("U+094D is InCB=Linker", ref.incb[0x094D]? == some .Linker),
-    ("U+0915 is InCB=Consonant", ref.incb[0x0915]? == some .Consonant),
+    ("U+1F1E6 is Regional_Indicator", ref.gcb[0x1F1E6]? == some .regionalIndicator),
+    ("U+0300 is Extend", ref.gcb[0x0300]? == some .extend),
+    ("U+0903 is SpacingMark", ref.gcb[0x0903]? == some .spacingMark),
+    ("U+094D is InCB=Linker", ref.incb[0x094D]? == some .linker),
+    ("U+0915 is InCB=Consonant", ref.incb[0x0915]? == some .consonant),
     ("U+00A9 is Extended_Pictographic", ref.extPict[0x00A9]? == some true)
   ]
   for (name, holds) in expected do

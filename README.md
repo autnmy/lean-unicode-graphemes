@@ -227,7 +227,7 @@ the code. CI fails when the file's SHA-256 differs from the line below, so any
 change to the statements also has to change this line, in plain view.
 
 ```text
-7eb848e7d29e6da9ff24e620651c77e31b806b51f3c3450f4789cc417733de62  Segmentation/Statements.lean
+1abaa4922992cecd9670d55b919e59094f3892790c76e1df3541bc826f011147  Segmentation/Statements.lean
 ```
 
 To check it locally, from the repository root:

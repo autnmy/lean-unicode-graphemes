@@ -29,8 +29,8 @@ set_option maxRecDepth 20000 in
 /-- `incbRanges` is sorted by `lo` with no overlapping ranges. -/
 theorem incbRanges_sorted : Range.Sorted incbRanges := by decide
 
-/-- `gcbOf` gives the value of the first range of `gcbRanges` that holds `n`, or `Other`. -/
-theorem gcbOf_eq_scan (n : Nat) : gcbOf n = Range.scan .Other gcbRanges n :=
+/-- `gcbOf` gives the value of the first range of `gcbRanges` that holds `n`, or `.other`. -/
+theorem gcbOf_eq_scan (n : Nat) : gcbOf n = Range.scan .other gcbRanges n :=
   Range.lookup_eq_scan gcbRanges_sorted n
 
 /-- `extPictOf` gives the value of the first range of `extPictRanges` that holds `n`, or
@@ -38,16 +38,16 @@ theorem gcbOf_eq_scan (n : Nat) : gcbOf n = Range.scan .Other gcbRanges n :=
 theorem extPictOf_eq_scan (n : Nat) : extPictOf n = Range.scan false extPictRanges n :=
   Range.lookup_eq_scan extPictRanges_sorted n
 
-/-- `incbOf` gives the value of the first range of `incbRanges` that holds `n`, or `None`. -/
-theorem incbOf_eq_scan (n : Nat) : incbOf n = Range.scan .None incbRanges n :=
+/-- `incbOf` gives the value of the first range of `incbRanges` that holds `n`, or `.none`. -/
+theorem incbOf_eq_scan (n : Nat) : incbOf n = Range.scan .none incbRanges n :=
   Range.lookup_eq_scan incbRanges_sorted n
 
 /-- `props` reads each property of `c` as the linear scan of its table would. -/
 theorem props_eq_scan (c : Char) :
     props c =
-      { gcb := Range.scan .Other gcbRanges c.toNat,
+      { gcb := Range.scan .other gcbRanges c.toNat,
         extPict := Range.scan false extPictRanges c.toNat,
-        incb := Range.scan .None incbRanges c.toNat } := by
+        incb := Range.scan .none incbRanges c.toNat } := by
   simp only [props, gcbOf_eq_scan, extPictOf_eq_scan, incbOf_eq_scan]
 
 end Segmentation.Tables

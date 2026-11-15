@@ -39,10 +39,10 @@ structure ScanState where
 run clears that run's flag, so a ZWJ or a mark between regional indicators restarts the count. -/
 def ScanState.push (s : ScanState) (p : Props) : ScanState where
   prev := p
-  linkerTail := incbIs .Linker p || (s.linkerTail && incbIs .Extend p)
-  pictTail := isExtPict p || (s.pictTail && gcbIn [.Extend] p)
-  zwjAfterPict := s.pictTail && gcbIn [.ZWJ] p
-  riOdd := gcbIn [.RI] p && !s.riOdd
+  linkerTail := incbIs .linker p || (s.linkerTail && incbIs .extend p)
+  pictTail := isExtPict p || (s.pictTail && gcbIn [.extend] p)
+  zwjAfterPict := s.pictTail && gcbIn [.zwj] p
+  riOdd := gcbIn [.regionalIndicator] p && !s.riOdd
 
 /-- The state after the first code point of the text. Before it no run has started, so every
 flag starts false; `prev` is replaced by `push`. -/
@@ -60,18 +60,18 @@ open GCB in
 /-- The rules GB3 to GB13 of `Segmentation.rules`, in the same order. GB12 and GB13 share a row:
 together they say an odd run of regional indicators before the position joins the next one. -/
 def breakRows : List BreakRow := [
-  ⟨"GB3",  fun s n => gcbIn [CR] s.prev && gcbIn [LF] n,                     false⟩,
-  ⟨"GB4",  fun s _ => gcbIn [Control, CR, LF] s.prev,                         true⟩,
-  ⟨"GB5",  fun _ n => gcbIn [Control, CR, LF] n,                              true⟩,
-  ⟨"GB6",  fun s n => gcbIn [L] s.prev && gcbIn [L, V, LV, LVT] n,            false⟩,
-  ⟨"GB7",  fun s n => gcbIn [LV, V] s.prev && gcbIn [V, T] n,                 false⟩,
-  ⟨"GB8",  fun s n => gcbIn [LVT, T] s.prev && gcbIn [T] n,                   false⟩,
-  ⟨"GB9",  fun _ n => gcbIn [Extend, ZWJ] n,                                  false⟩,
-  ⟨"GB9a", fun _ n => gcbIn [SpacingMark] n,                                  false⟩,
-  ⟨"GB9b", fun s _ => gcbIn [Prepend] s.prev,                                 false⟩,
-  ⟨"GB9c", fun s n => s.linkerTail && incbIs .Consonant n,                    false⟩,
+  ⟨"GB3",  fun s n => gcbIn [cr] s.prev && gcbIn [lf] n,                     false⟩,
+  ⟨"GB4",  fun s _ => gcbIn [control, cr, lf] s.prev,                         true⟩,
+  ⟨"GB5",  fun _ n => gcbIn [control, cr, lf] n,                              true⟩,
+  ⟨"GB6",  fun s n => gcbIn [l] s.prev && gcbIn [l, v, lv, lvt] n,            false⟩,
+  ⟨"GB7",  fun s n => gcbIn [lv, v] s.prev && gcbIn [v, t] n,                 false⟩,
+  ⟨"GB8",  fun s n => gcbIn [lvt, t] s.prev && gcbIn [t] n,                   false⟩,
+  ⟨"GB9",  fun _ n => gcbIn [extend, zwj] n,                                  false⟩,
+  ⟨"GB9a", fun _ n => gcbIn [spacingMark] n,                                  false⟩,
+  ⟨"GB9b", fun s _ => gcbIn [prepend] s.prev,                                 false⟩,
+  ⟨"GB9c", fun s n => s.linkerTail && incbIs .consonant n,                    false⟩,
   ⟨"GB11", fun s n => s.zwjAfterPict && isExtPict n,                          false⟩,
-  ⟨"GB12, GB13", fun s n => s.riOdd && gcbIn [RI] n,                          false⟩ ]
+  ⟨"GB12, GB13", fun s n => s.riOdd && gcbIn [regionalIndicator] n,           false⟩ ]
 
 /-- Whether there is a boundary between the text summarised by `s` and a next code point with
 properties `next`: the verdict of the first row that applies, else GB999's break. -/

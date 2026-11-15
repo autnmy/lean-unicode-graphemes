@@ -18,13 +18,13 @@ through them, so the two always agree.
 namespace Segmentation.Tables
 
 /-- The `Grapheme_Cluster_Break` value of code point `n`. -/
-def gcbOf (n : Nat) : GCB := Range.lookup .Other gcbRanges n
+def gcbOf (n : Nat) : GCB := Range.lookup .other gcbRanges n
 
 /-- Whether code point `n` is `Extended_Pictographic`. -/
 def extPictOf (n : Nat) : Bool := Range.lookup false extPictRanges n
 
 /-- The `Indic_Conjunct_Break` value of code point `n`. -/
-def incbOf (n : Nat) : InCB := Range.lookup .None incbRanges n
+def incbOf (n : Nat) : InCB := Range.lookup .none incbRanges n
 
 /-- The three properties of `c` the grapheme cluster rules read. -/
 def props (c : Char) : Props :=

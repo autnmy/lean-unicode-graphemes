@@ -32,43 +32,43 @@ open Segmentation in
 -- a consonant before the linker, as revision 47 did, would make this unprovable.
 theorem «GB9c holds after a lone linker with no consonant before it, as revision 49 states» :
     ∃ r, rules[11]? = some r ∧ r.name = "GB9c" ∧
-      r.left.Holds [{ gcb := GCB.Extend, extPict := false, incb := InCB.Linker }] ∧
-      r.right.Holds [{ gcb := GCB.Other, extPict := false, incb := InCB.Consonant }] := by
+      r.left.Holds [{ gcb := GCB.extend, extPict := false, incb := InCB.linker }] ∧
+      r.right.Holds [{ gcb := GCB.other, extPict := false, incb := InCB.consonant }] := by
   refine ⟨_, rfl, rfl, ?_, ?_⟩
-  · exact (⟨[], [{ gcb := GCB.Extend, extPict := false, incb := InCB.Linker }] ++ [], rfl,
+  · exact (⟨[], [{ gcb := GCB.extend, extPict := false, incb := InCB.linker }] ++ [], rfl,
       Pat.Matches.seq (Pat.Matches.one rfl) Pat.Matches.starNil⟩ :
-      ∃ a b, [({ gcb := GCB.Extend, extPict := false, incb := InCB.Linker } : Props)] = a ++ b ∧
-        Pat.Matches (.seq (.one (incbIs .Linker)) (.star (incbIs .Extend))) b)
-  · exact (⟨{ gcb := GCB.Other, extPict := false, incb := InCB.Consonant }, [], rfl, rfl⟩ :
-      ∃ x rest, [({ gcb := GCB.Other, extPict := false, incb := InCB.Consonant } : Props)] =
-        x :: rest ∧ incbIs .Consonant x = true)
+      ∃ a b, [({ gcb := GCB.extend, extPict := false, incb := InCB.linker } : Props)] = a ++ b ∧
+        Pat.Matches (.seq (.one (incbIs .linker)) (.star (incbIs .extend))) b)
+  · exact (⟨{ gcb := GCB.other, extPict := false, incb := InCB.consonant }, [], rfl, rfl⟩ :
+      ∃ x rest, [({ gcb := GCB.other, extPict := false, incb := InCB.consonant } : Props)] =
+        x :: rest ∧ incbIs .consonant x = true)
 
 -- JoinRestoresInput and ClustersNonEmpty mention only `graphemes`, so they must not also demand
 -- the property lookup or the boundary function; a stray parameter would make these ascriptions
 -- fail.
 theorem «JoinRestoresInput depends on the segmenter alone» : True := by
-  have _h1a : (String → List String) → Prop := Segmentation.JoinRestoresInput
+  have _joinRestoresInput : (String → List String) → Prop := Segmentation.JoinRestoresInput
   trivial
 
 theorem «ClustersNonEmpty is stated over the segmenter alone» : True := by
-  have _h1b : (String → List String) → Prop := Segmentation.ClustersNonEmpty
+  have _clustersNonEmpty : (String → List String) → Prop := Segmentation.ClustersNonEmpty
   trivial
 
 -- Later proofs apply `CutsMatchRules props graphemes` and
 -- `BoundariesMatchCuts graphemes boundaries`. If the section variables were declared in another
 -- order, these ascriptions would not type-check.
 theorem «CutsMatchRules takes the property lookup first and the segmenter second» : True := by
-  have _h2 : (Char → Segmentation.Props) → (String → List String) → Prop :=
+  have _cutsMatchRules : (Char → Segmentation.Props) → (String → List String) → Prop :=
     Segmentation.CutsMatchRules
   trivial
 
 theorem «BoundariesMatchCuts takes the segmenter first and the boundary function second» :
     True := by
-  have _h2' : (String → List String) → (String → List Nat) → Prop :=
+  have _boundariesMatchCuts : (String → List String) → (String → List Nat) → Prop :=
     Segmentation.BoundariesMatchCuts
   trivial
 
--- "H1a, partition: the clusters put back together are the input."
+-- "The clusters put back together are the input."
 -- A segmenter that returns the whole text as one cluster joins back to the input exactly.
 theorem «JoinRestoresInput holds for a segmenter whose clusters join back to the input» :
     Segmentation.JoinRestoresInput (fun s => [s]) := by
@@ -87,21 +87,21 @@ theorem «JoinRestoresInput rejects a segmenter that drops the text» :
     | exact absurd hjoin (by decide)
     | simp [String.join] at hjoin
 
--- "H1b, partition: none of the clusters is empty."
+-- "None of the clusters is empty."
 theorem «ClustersNonEmpty rejects a segmenter that returns an empty cluster» :
     ¬ Segmentation.ClustersNonEmpty (fun _ => [""]) := by
   intro h
   exact h "" "" (by simp) rfl
 
--- "H2, the rules: at every position of a non-empty text, ends included, a cut falls exactly
--- where UAX #29 puts a boundary. The ends make GB1 and GB2 live in the proof."
+-- "At every position of a non-empty text, ends included, a cut falls exactly where UAX #29 puts
+-- a boundary. The ends make GB1 and GB2 live in the proof."
 -- For the text "a", GB2 puts a boundary at position 1 (the end). A segmenter returning no
 -- clusters has cut points [0] only, so CutsMatchRules must not hold for it.
 theorem «CutsMatchRules rejects a segmenter that leaves out the end-of-text cut» :
-    ¬ Segmentation.CutsMatchRules (fun _ => ⟨.Other, false, .None⟩) (fun _ => []) := by
+    ¬ Segmentation.CutsMatchRules (fun _ => ⟨.other, false, .none⟩) (fun _ => []) := by
   intro h
   have ht : "a".toList = ['a'] := by first | rfl | decide | simp
-  have hb : Segmentation.IsBoundary (fun _ => ⟨.Other, false, .None⟩) ['a'] 1 := by
+  have hb : Segmentation.IsBoundary (fun _ => ⟨.other, false, .none⟩) ['a'] 1 := by
     refine ⟨1, ⟨"GB2", .ending (.one Segmentation.anyCp), .eot, .brk⟩, rfl, ?_, rfl, ?_⟩
     · simp only [Segmentation.Rule.Applies, Segmentation.Left.Holds, Segmentation.Right.Holds]
       exact ⟨⟨[], _, rfl, .one rfl⟩, rfl⟩
@@ -123,7 +123,7 @@ theorem «CutsMatchRules rejects a segmenter that leaves out the end-of-text cut
     | exact absurd hmem (by decide)
     | simp [Segmentation.cutPoints] at hmem
 
--- "H2', the two functions agree." `cutPoints []` is `[0]`, so a segmenter that returns no
+-- "The two functions agree." `cutPoints []` is `[0]`, so a segmenter that returns no
 -- clusters agrees with a boundary function that returns `[0]`. Passing them in the other
 -- order does not type-check, which pins `BoundariesMatchCuts graphemes boundaries`.
 theorem «BoundariesMatchCuts holds when boundaries is the cut points of graphemes on empty output» :

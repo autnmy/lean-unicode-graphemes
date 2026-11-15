@@ -14,8 +14,8 @@ theorem «boundaries of the empty string is the single cut 0» :
 -- `cutPoints []` is `[0]`, so for BoundariesMatchCuts the boundary list of the empty text must be
 -- `[0]`, not `[]`, and the empty text has no clusters.
 theorem «cutsOf on empty input is [0], matching cutPoints of no clusters» :
-    Segmentation.cutsOf (fun _ => { gcb := .Other, extPict := false, incb := .None }) [] = [0] ∧
-      Segmentation.clustersOf (fun _ => { gcb := .Other, extPict := false, incb := .None }) [] = [] := by
+    Segmentation.cutsOf (fun _ => { gcb := .other, extPict := false, incb := .none }) [] = [0] ∧
+      Segmentation.clustersOf (fun _ => { gcb := .other, extPict := false, incb := .none }) [] = [] := by
   decide
 
 -- GB1 and GB2 put a cut at both ends of the text, so one code point is one cluster.

@@ -10,10 +10,10 @@ set_option maxRecDepth 20000 in
 theorem «clustersOf lets GB4 and GB5 win over GB9 and GB9b (first matching rule wins)» :
     Segmentation.clustersOf
       (fun c =>
-        if c = 'C' then { gcb := .Control, extPict := false, incb := .None }
-        else if c = 'E' then { gcb := .Extend, extPict := false, incb := .Extend }
-        else if c = 'p' then { gcb := .Prepend, extPict := false, incb := .None }
-        else { gcb := .Other, extPict := false, incb := .None })
+        if c = 'C' then { gcb := .control, extPict := false, incb := .none }
+        else if c = 'E' then { gcb := .extend, extPict := false, incb := .extend }
+        else if c = 'p' then { gcb := .prepend, extPict := false, incb := .none }
+        else { gcb := .other, extPict := false, incb := .none })
       ['C', 'E', 'p', 'C'] =
     [['C'], ['E'], ['p'], ['C']] := by
   decide

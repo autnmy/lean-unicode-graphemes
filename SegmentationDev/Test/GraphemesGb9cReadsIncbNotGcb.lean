@@ -7,9 +7,9 @@ set_option maxRecDepth 20000 in
 theorem «clustersOf applies GB9c to a linker whose GCB is not Extend (GraphemeBreakTest line 659)» :
     Segmentation.clustersOf
       (fun c =>
-        if c = 'J' then { gcb := .Other, extPict := false, incb := .Linker }
-        else if c = 'K' then { gcb := .Other, extPict := false, incb := .Consonant }
-        else { gcb := .Other, extPict := false, incb := .None })
+        if c = 'J' then { gcb := .other, extPict := false, incb := .linker }
+        else if c = 'K' then { gcb := .other, extPict := false, incb := .consonant }
+        else { gcb := .other, extPict := false, incb := .none })
       ['J', 'K'] =
     [['J', 'K']] := by
   decide

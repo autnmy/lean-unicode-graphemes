@@ -29,19 +29,21 @@ theorem «scan invariants: every flag lemma has its stated type» :
       (scanStateOf p ps).prev = (p :: ps).getLast (List.cons_ne_nil p ps)) ∧
     (∀ (p : Props) (ps : List Props),
       (scanStateOf p ps).linkerTail = true ↔
-        Left.Holds (.ending (.seq (.one (incbIs .Linker)) (.star (incbIs .Extend)))) (p :: ps)) ∧
+        Left.Holds (.ending (.seq (.one (incbIs .linker)) (.star (incbIs .extend)))) (p :: ps)) ∧
     (∀ (p : Props) (ps : List Props),
       (scanStateOf p ps).pictTail = true ↔
-        Left.Holds (.ending (.seq (.one isExtPict) (.star (gcbIn [.Extend])))) (p :: ps)) ∧
+        Left.Holds (.ending (.seq (.one isExtPict) (.star (gcbIn [.extend])))) (p :: ps)) ∧
     (∀ (p : Props) (ps : List Props),
       (scanStateOf p ps).zwjAfterPict = true ↔
         Left.Holds (.ending (.seq (.one isExtPict)
-          (.seq (.star (gcbIn [.Extend])) (.one (gcbIn [.ZWJ]))))) (p :: ps)) ∧
+          (.seq (.star (gcbIn [.extend])) (.one (gcbIn [.zwj]))))) (p :: ps)) ∧
     (∀ (p : Props) (ps : List Props),
       (scanStateOf p ps).riOdd = true ↔
-        Left.Holds (.sot (.seq (.pairs (gcbIn [.RI])) (.one (gcbIn [.RI])))) (p :: ps) ∨
-        Left.Holds (.notThen (gcbIn [.RI])
-          (.seq (.pairs (gcbIn [.RI])) (.one (gcbIn [.RI])))) (p :: ps)) :=
+        Left.Holds (.sot (.seq (.pairs (gcbIn [.regionalIndicator]))
+          (.one (gcbIn [.regionalIndicator])))) (p :: ps) ∨
+        Left.Holds (.notThen (gcbIn [.regionalIndicator])
+          (.seq (.pairs (gcbIn [.regionalIndicator])) (.one (gcbIn [.regionalIndicator]))))
+          (p :: ps)) :=
   ⟨scanStateOf_prev, scanStateOf_linkerTail, scanStateOf_pictTail,
     scanStateOf_zwjAfterPict, scanStateOf_riOdd⟩
 
@@ -64,15 +66,15 @@ theorem «scan invariants: the decision and end lemmas have their stated types»
 
 /-! ## Hand-built property values -/
 
-def riProps : Props := { gcb := .RI, extPict := false, incb := .None }
-def otherProps : Props := { gcb := .Other, extPict := false, incb := .None }
-def zwjProps : Props := { gcb := .ZWJ, extPict := false, incb := .None }
-def pictProps : Props := { gcb := .Other, extPict := true, incb := .None }
-def extendProps : Props := { gcb := .Extend, extPict := false, incb := .None }
-def linkerProps : Props := { gcb := .Extend, extPict := false, incb := .Linker }
-def incbExtendProps : Props := { gcb := .Extend, extPict := false, incb := .Extend }
-def crProps : Props := { gcb := .CR, extPict := false, incb := .None }
-def lfProps : Props := { gcb := .LF, extPict := false, incb := .None }
+def riProps : Props := { gcb := .regionalIndicator, extPict := false, incb := .none }
+def otherProps : Props := { gcb := .other, extPict := false, incb := .none }
+def zwjProps : Props := { gcb := .zwj, extPict := false, incb := .none }
+def pictProps : Props := { gcb := .other, extPict := true, incb := .none }
+def extendProps : Props := { gcb := .extend, extPict := false, incb := .none }
+def linkerProps : Props := { gcb := .extend, extPict := false, incb := .linker }
+def incbExtendProps : Props := { gcb := .extend, extPict := false, incb := .extend }
+def crProps : Props := { gcb := .cr, extPict := false, incb := .none }
+def lfProps : Props := { gcb := .lf, extPict := false, incb := .none }
 
 /-- 'z' is a ZWJ and every other character an Extended_Pictographic code point. -/
 def zwjPictLookup (c : Char) : Props := if c = 'z' then zwjProps else pictProps

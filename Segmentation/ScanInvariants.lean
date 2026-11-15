@@ -300,7 +300,7 @@ theorem scanStateOf_prev (p : Props) (ps : List Props) :
 
 private theorem foldl_push_linkerTail (p : Props) (l : List Props) :
     (l.foldl ScanState.push (blankState p)).linkerTail = true ↔
-      Left.Holds (.ending (.seq (.one (incbIs .Linker)) (.star (incbIs .Extend)))) l := by
+      Left.Holds (.ending (.seq (.one (incbIs .linker)) (.star (incbIs .extend)))) l := by
   induction l using snoc_induction with
   | nil => simp [blankState, Left.holds_ending_one_star_nil]
   | snoc l q ih =>
@@ -310,12 +310,12 @@ private theorem foldl_push_linkerTail (p : Props) (l : List Props) :
 /-- `linkerTail` is the left side of GB9c: InCB `Linker` then InCB `Extend*` at the end. -/
 theorem scanStateOf_linkerTail (p : Props) (ps : List Props) :
     (scanStateOf p ps).linkerTail = true ↔
-      Left.Holds (.ending (.seq (.one (incbIs .Linker)) (.star (incbIs .Extend)))) (p :: ps) :=
+      Left.Holds (.ending (.seq (.one (incbIs .linker)) (.star (incbIs .extend)))) (p :: ps) :=
   foldl_push_linkerTail p (p :: ps)
 
 private theorem foldl_push_pictTail (p : Props) (l : List Props) :
     (l.foldl ScanState.push (blankState p)).pictTail = true ↔
-      Left.Holds (.ending (.seq (.one isExtPict) (.star (gcbIn [.Extend])))) l := by
+      Left.Holds (.ending (.seq (.one isExtPict) (.star (gcbIn [.extend])))) l := by
   induction l using snoc_induction with
   | nil => simp [blankState, Left.holds_ending_one_star_nil]
   | snoc l q ih =>
@@ -326,13 +326,13 @@ private theorem foldl_push_pictTail (p : Props) (l : List Props) :
 `Extend*`, the part of GB11's left side before the ZWJ. -/
 theorem scanStateOf_pictTail (p : Props) (ps : List Props) :
     (scanStateOf p ps).pictTail = true ↔
-      Left.Holds (.ending (.seq (.one isExtPict) (.star (gcbIn [.Extend])))) (p :: ps) :=
+      Left.Holds (.ending (.seq (.one isExtPict) (.star (gcbIn [.extend])))) (p :: ps) :=
   foldl_push_pictTail p (p :: ps)
 
 private theorem foldl_push_zwjAfterPict (p : Props) (l : List Props) :
     (l.foldl ScanState.push (blankState p)).zwjAfterPict = true ↔
       Left.Holds (.ending (.seq (.one isExtPict)
-        (.seq (.star (gcbIn [.Extend])) (.one (gcbIn [.ZWJ]))))) l := by
+        (.seq (.star (gcbIn [.extend])) (.one (gcbIn [.zwj]))))) l := by
   induction l using snoc_induction with
   | nil => simp [blankState, Left.holds_ending_one_star_one_nil]
   | snoc l q _ =>
@@ -344,27 +344,31 @@ the end. -/
 theorem scanStateOf_zwjAfterPict (p : Props) (ps : List Props) :
     (scanStateOf p ps).zwjAfterPict = true ↔
       Left.Holds (.ending (.seq (.one isExtPict)
-        (.seq (.star (gcbIn [.Extend])) (.one (gcbIn [.ZWJ]))))) (p :: ps) :=
+        (.seq (.star (gcbIn [.extend])) (.one (gcbIn [.zwj]))))) (p :: ps) :=
   foldl_push_zwjAfterPict p (p :: ps)
 
 /-- `riOdd` tracks both parities at once, because `push` reads the previous parity to flip it. -/
 private theorem foldl_push_riOdd (p : Props) (l : List Props) :
-    ((l.foldl ScanState.push (blankState p)).riOdd = true ↔ RunParity (gcbIn [.RI]) true l) ∧
+    ((l.foldl ScanState.push (blankState p)).riOdd = true ↔
+        RunParity (gcbIn [.regionalIndicator]) true l) ∧
       ((l.foldl ScanState.push (blankState p)).riOdd = false ↔
-        RunParity (gcbIn [.RI]) false l) := by
+        RunParity (gcbIn [.regionalIndicator]) false l) := by
   induction l using snoc_induction with
   | nil => simp [blankState, RunParity.nil]
   | snoc l q ih =>
     rw [foldl_push_snoc, RunParity.snoc, RunParity.snoc]
     simp only [Bool.not_true, Bool.not_false, ← ih.1, ← ih.2, ScanState.push]
-    cases gcbIn [.RI] q <;> cases (l.foldl ScanState.push (blankState p)).riOdd <;> simp
+    cases gcbIn [.regionalIndicator] q <;> cases (l.foldl ScanState.push (blankState p)).riOdd <;>
+      simp
 
 /-- `riOdd` is the left side of GB12 or of GB13: the run of GCB `RI` at the end has odd length,
 and either it is the whole text or a code point outside `RI` comes before it. -/
 theorem scanStateOf_riOdd (p : Props) (ps : List Props) :
     (scanStateOf p ps).riOdd = true ↔
-      Left.Holds (.sot (.seq (.pairs (gcbIn [.RI])) (.one (gcbIn [.RI])))) (p :: ps) ∨
-      Left.Holds (.notThen (gcbIn [.RI]) (.seq (.pairs (gcbIn [.RI])) (.one (gcbIn [.RI]))))
+      Left.Holds (.sot (.seq (.pairs (gcbIn [.regionalIndicator]))
+        (.one (gcbIn [.regionalIndicator])))) (p :: ps) ∨
+      Left.Holds (.notThen (gcbIn [.regionalIndicator])
+        (.seq (.pairs (gcbIn [.regionalIndicator])) (.one (gcbIn [.regionalIndicator]))))
         (p :: ps) := by
   rw [Left.holds_sot_or_notThen_pairs_one_iff]
   exact (foldl_push_riOdd p (p :: ps)).1
@@ -482,19 +486,19 @@ private theorem breaksBefore_iff_firstBreak (p : Props) (ps : List Props) (n : P
     right_eot_cons_iff, and_false, and_true, true_and, false_or, or_false, ← Bool.and_eq_true]
   unfold breaksBefore breakRows
   simp only [List.find?]
-  generalize (gcbIn [GCB.CR] (scanStateOf p ps).prev && gcbIn [GCB.LF] n) = b0
-  generalize (gcbIn [GCB.Control, GCB.CR, GCB.LF] (scanStateOf p ps).prev) = b1
-  generalize (gcbIn [GCB.Control, GCB.CR, GCB.LF] n) = b2
+  generalize (gcbIn [GCB.cr] (scanStateOf p ps).prev && gcbIn [GCB.lf] n) = b0
+  generalize (gcbIn [GCB.control, GCB.cr, GCB.lf] (scanStateOf p ps).prev) = b1
+  generalize (gcbIn [GCB.control, GCB.cr, GCB.lf] n) = b2
   generalize
-    (gcbIn [GCB.L] (scanStateOf p ps).prev && gcbIn [GCB.L, GCB.V, GCB.LV, GCB.LVT] n) = b3
-  generalize (gcbIn [GCB.LV, GCB.V] (scanStateOf p ps).prev && gcbIn [GCB.V, GCB.T] n) = b4
-  generalize (gcbIn [GCB.LVT, GCB.T] (scanStateOf p ps).prev && gcbIn [GCB.T] n) = b5
-  generalize (gcbIn [GCB.Extend, GCB.ZWJ] n) = b6
-  generalize (gcbIn [GCB.SpacingMark] n) = b7
-  generalize (gcbIn [GCB.Prepend] (scanStateOf p ps).prev) = b8
-  generalize ((scanStateOf p ps).linkerTail && incbIs InCB.Consonant n) = b9
+    (gcbIn [GCB.l] (scanStateOf p ps).prev && gcbIn [GCB.l, GCB.v, GCB.lv, GCB.lvt] n) = b3
+  generalize (gcbIn [GCB.lv, GCB.v] (scanStateOf p ps).prev && gcbIn [GCB.v, GCB.t] n) = b4
+  generalize (gcbIn [GCB.lvt, GCB.t] (scanStateOf p ps).prev && gcbIn [GCB.t] n) = b5
+  generalize (gcbIn [GCB.extend, GCB.zwj] n) = b6
+  generalize (gcbIn [GCB.spacingMark] n) = b7
+  generalize (gcbIn [GCB.prepend] (scanStateOf p ps).prev) = b8
+  generalize ((scanStateOf p ps).linkerTail && incbIs InCB.consonant n) = b9
   generalize ((scanStateOf p ps).zwjAfterPict && isExtPict n) = b10
-  generalize ((scanStateOf p ps).riOdd && gcbIn [GCB.RI] n) = b11
+  generalize ((scanStateOf p ps).riOdd && gcbIn [GCB.regionalIndicator] n) = b11
   cases b0 <;> simp only [Bool.false_eq_true, Bool.not_eq_true, not_false_eq_true,
     not_true_eq_false, true_and, false_and] <;>
   cases b1 <;> simp only [Bool.false_eq_true, false_or, true_or] <;>
