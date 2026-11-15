@@ -458,7 +458,8 @@ private theorem firstBreak_cons_brk {applies : Rule → Prop} {r : Rule} {l : Li
   by_cases ha : applies r <;> simp [ha]
 
 private theorem firstBreak_cons_noBrk {applies : Rule → Prop} {r : Rule} {l : List Rule}
-    (h : r.verdict = .noBrk) : FirstBreak applies (r :: l) ↔ ¬ applies r ∧ FirstBreak applies l := by
+    (h : r.verdict = .noBrk) :
+    FirstBreak applies (r :: l) ↔ ¬ applies r ∧ FirstBreak applies l := by
   rw [firstBreak_cons, h]
   simp
 
@@ -481,7 +482,8 @@ private theorem breaksBefore_iff_firstBreak (p : Props) (ps : List Props) (n : P
   generalize (gcbIn [GCB.CR] (scanStateOf p ps).prev && gcbIn [GCB.LF] n) = b0
   generalize (gcbIn [GCB.Control, GCB.CR, GCB.LF] (scanStateOf p ps).prev) = b1
   generalize (gcbIn [GCB.Control, GCB.CR, GCB.LF] n) = b2
-  generalize (gcbIn [GCB.L] (scanStateOf p ps).prev && gcbIn [GCB.L, GCB.V, GCB.LV, GCB.LVT] n) = b3
+  generalize
+    (gcbIn [GCB.L] (scanStateOf p ps).prev && gcbIn [GCB.L, GCB.V, GCB.LV, GCB.LVT] n) = b3
   generalize (gcbIn [GCB.LV, GCB.V] (scanStateOf p ps).prev && gcbIn [GCB.V, GCB.T] n) = b4
   generalize (gcbIn [GCB.LVT, GCB.T] (scanStateOf p ps).prev && gcbIn [GCB.T] n) = b5
   generalize (gcbIn [GCB.Extend, GCB.ZWJ] n) = b6
@@ -490,9 +492,19 @@ private theorem breaksBefore_iff_firstBreak (p : Props) (ps : List Props) (n : P
   generalize ((scanStateOf p ps).linkerTail && incbIs InCB.Consonant n) = b9
   generalize ((scanStateOf p ps).zwjAfterPict && isExtPict n) = b10
   generalize ((scanStateOf p ps).riOdd && gcbIn [GCB.RI] n) = b11
-  cases b0 <;> simp <;> cases b1 <;> simp <;> cases b2 <;> simp <;> cases b3 <;> simp <;>
-    cases b4 <;> simp <;> cases b5 <;> simp <;> cases b6 <;> simp <;> cases b7 <;> simp <;>
-    cases b8 <;> simp <;> cases b9 <;> simp <;> cases b10 <;> simp <;> cases b11 <;> simp
+  cases b0 <;> simp only [Bool.false_eq_true, Bool.not_eq_true, not_false_eq_true,
+    not_true_eq_false, true_and, false_and] <;>
+  cases b1 <;> simp only [Bool.false_eq_true, false_or, true_or] <;>
+  cases b2 <;> simp only [Bool.false_eq_true, false_or, true_or] <;>
+  cases b3 <;> simp only [Bool.false_eq_true, Bool.true_eq_false, true_and, false_and] <;>
+  cases b4 <;> simp only [Bool.false_eq_true, Bool.true_eq_false, true_and, false_and] <;>
+  cases b5 <;> simp only [Bool.false_eq_true, Bool.true_eq_false, true_and, false_and] <;>
+  cases b6 <;> simp only [Bool.false_eq_true, Bool.true_eq_false, true_and, false_and] <;>
+  cases b7 <;> simp only [Bool.false_eq_true, Bool.true_eq_false, true_and, false_and] <;>
+  cases b8 <;> simp only [Bool.false_eq_true, Bool.true_eq_false, true_and, false_and] <;>
+  cases b9 <;> simp only [Bool.false_eq_true, Bool.true_eq_false, true_and, false_and] <;>
+  cases b10 <;> simp only [Bool.false_eq_true, Bool.true_eq_false, true_and, false_and] <;>
+  cases b11 <;> simp only [Bool.false_eq_true, Bool.true_eq_false]
 
 /-- At a position inside a non-empty text, after `c` and the first `i` code points of `cs` and
 before `cs[i]`, `breaksBefore` on the scan state says ÷ exactly when UAX #29 puts a boundary
