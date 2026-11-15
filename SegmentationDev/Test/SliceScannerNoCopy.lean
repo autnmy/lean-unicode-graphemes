@@ -7,7 +7,7 @@ import Segmentation
 -- `Segmentation` (theorems are not followed, so proofs may still talk about `toList`), and fails
 -- if any of them calls a function that turns the input into a `List Char` or a new `String`.
 open Lean in
-theorem «slice_scanner_reaches_no_toList_ofList_or_copy» : True := by
+theorem slice_scanner_reaches_no_toList_ofList_or_copy : True := by
   run_tac do
     let env ← getEnv
     let forbidden : List Name :=

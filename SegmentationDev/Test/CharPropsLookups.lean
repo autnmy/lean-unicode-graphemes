@@ -7,7 +7,7 @@ import Segmentation
 -- `asciiProps` and the combined `propsLookup`, and never the three separate lookups behind
 -- `Tables.props`; `asciiProps`, and every library definition it reaches, must read no table.
 open Lean in
-theorem «charProps_reads_asciiProps_or_one_combined_lookup_and_asciiProps_reads_no_table» :
+theorem charProps_reads_asciiProps_or_one_combined_lookup_and_asciiProps_reads_no_table :
     True := by
   run_tac do
     let env ← getEnv

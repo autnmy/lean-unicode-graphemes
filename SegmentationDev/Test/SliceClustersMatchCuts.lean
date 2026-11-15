@@ -1,4 +1,3 @@
-import Lean
 import Segmentation
 
 -- "Add `Segmentation/Slice.lean`, imported from `Segmentation.lean`, with
@@ -8,25 +7,14 @@ import Segmentation
 -- The running byte sizes of the clusters must be exactly the cuts, starting at 0 and ending at the
 -- slice's byte size, so the two outputs describe one scan. The empty slice has no clusters and the
 -- single cut 0.
-open Lean Elab Command in
-theorem «slice_clusters_lie_end_to_end_between_consecutive_cuts_and_empty_has_one_cut» :
-    True := by
-  run_tac do
-    let saved := (← getThe Core.State).messages
-    liftCommandElabM (elabCommand (← `(command|
-      #guard
-        let consistent := fun (s : String) =>
-          ((Segmentation.sliceGraphemes s.toSlice).map
-              (fun g => g.copy.utf8ByteSize)).scanl (· + ·) 0 ==
-            (Segmentation.sliceBoundaries s.toSlice).map (fun p => p.offset.byteIdx) &&
-          (Segmentation.sliceBoundaries s.toSlice).getLast?.map (fun p => p.offset.byteIdx) ==
-            some s.utf8ByteSize
-        (Segmentation.sliceGraphemes "".toSlice).isEmpty &&
-          (Segmentation.sliceBoundaries "".toSlice).map (fun p => p.offset.byteIdx) == [0] &&
-          [String.ofList ([0x1F600, 0x61, 0x0301, 0x0D, 0x0A, 0x1F1E6, 0x1F1E7, 0x20AC].map
-              Char.ofNat), "abc", "\r\n"].all consistent)))
-    let failed := (← getThe Core.State).messages.hasErrors
-    modifyThe Core.State fun s => { s with messages := saved }
-    if failed then
-      throwError "the slice clusters do not lie between the slice cuts"
-  trivial
+#guard
+  let consistent := fun (s : String) =>
+    ((Segmentation.sliceGraphemes s.toSlice).map
+        (fun g => g.copy.utf8ByteSize)).scanl (· + ·) 0 ==
+      (Segmentation.sliceBoundaries s.toSlice).map (fun p => p.offset.byteIdx) &&
+    (Segmentation.sliceBoundaries s.toSlice).getLast?.map (fun p => p.offset.byteIdx) ==
+      some s.utf8ByteSize
+  (Segmentation.sliceGraphemes "".toSlice).isEmpty &&
+    (Segmentation.sliceBoundaries "".toSlice).map (fun p => p.offset.byteIdx) == [0] &&
+    [String.ofList ([0x1F600, 0x61, 0x0301, 0x0D, 0x0A, 0x1F1E6, 0x1F1E7, 0x20AC].map
+        Char.ofNat), "abc", "\r\n"].all consistent

@@ -7,7 +7,7 @@ import SegmentationDev.Gate.Axioms
 -- The gate command must leave no error for the theorem. The CI gate file names it once in its
 -- list; the printed-output test names it twice, in the quoted command and in its `for` list.
 open Lean Elab Command in
-theorem «sliceGraphemes_agree_passes_gate_and_is_in_both_headline_lists» : True := by
+theorem sliceGraphemes_agree_passes_gate_and_is_in_both_headline_lists : True := by
   run_tac do
     let saved := (← getThe Core.State).messages
     liftCommandElabM (elabCommand (← `(command|

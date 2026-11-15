@@ -6,7 +6,7 @@ import Segmentation
 -- "The byte position of code-point cut n is the UTF-8 size of the first n code points of `s`."
 -- The ascription fails to elaborate if the theorem takes a hypothesis, drops either half, or maps
 -- the cuts some other way.
-theorem «sliceGraphemes_agree_type_states_both_halves_for_every_string» : True := by
+theorem sliceGraphemes_agree_type_states_both_halves_for_every_string : True := by
   have _x : ∀ s : String,
       (Segmentation.sliceGraphemes s.toSlice).map String.Slice.copy = Segmentation.graphemes s ∧
       (Segmentation.sliceBoundaries s.toSlice).map (fun p => p.offset.byteIdx) =

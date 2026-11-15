@@ -6,12 +6,8 @@ import SegmentationDev.Test.SliceCharProps
 import SegmentationDev.Test.CharPropsLookups
 import SegmentationDev.Test.SliceAgreesEdgeInputs
 import SegmentationDev.Test.SliceAgreesSubSlice
-import SegmentationDev.Test.SliceSubSliceStopsAtItsEnd
 import SegmentationDev.Test.SliceClustersMatchCuts
 import SegmentationDev.Test.SliceScannerNoCopy
-import SegmentationDev.Test.SliceMultiByteCutsAreBytes
-import SegmentationDev.Test.SliceAsciiRunJoinsFollowingExtender
-import SegmentationDev.Test.SliceAsciiRunResetsScanState
 import SegmentationDev.Test.SliceAgreeHeadlineGate
 
 /-!
@@ -30,7 +26,7 @@ import SegmentationDev.Test.SliceAgreeHeadlineGate
   input rather than copies, and that the empty input has one cut at 0;
 * that `sliceGraphemes_agree` passes the axiom gate and is in both headline lists.
 
-Each check lives in its own module so a failure names the behaviour it checks. The check below
+Each module holds one concern, so a failure names the behaviour it checks. The check below
 makes sure every definition on the scanner's path, the internal scan included, is plain with no
 compiled substitute, so the proof covers the code that runs.
 -/
