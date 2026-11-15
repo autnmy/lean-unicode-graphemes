@@ -60,6 +60,10 @@ jobs:
       # Builds each library, then a module that imports both, then the benchmark. A library
       # failure writes results.md saying the two cannot build together; a failure in the
       # benchmark's own code is reported as a harness failure and writes nothing.
+      # A stand-in `lake` fails each build target in turn: only a library target may write the
+      # "cannot build together" results file, and every failure must fail the script.
+      - name: Check that the build script tells library failures from harness failures
+        run: sh build-self-test.sh
       - name: Build both libraries and the benchmark
         run: sh build.sh results.md
       # The input, comparison and report tests. They run before anything is timed.
