@@ -199,10 +199,14 @@ because UnicodeExtra at that commit needs it.
 
 **Where it runs.** The workflow `.github/workflows/bench.yml` runs on every
 push to `main`, on manual dispatch, and on pull requests that change
-`bench/**` or `.github/workflows/bench.yml`, on a GitHub `ubuntu-latest`
-runner. On a pull request it is an optional check in a workflow of its own,
-so a broken benchmark shows up before it lands without delaying the
-library's checks. Pull requests that touch neither path do not run it.
+`bench/**`, `.github/workflows/bench.yml`, `Segmentation/**`,
+`Segmentation.lean` or `lean-toolchain`, on a GitHub `ubuntu-latest`
+runner. The library paths are there because the benchmark builds the library
+on its own toolchain, so every library change is also built on
+`bench/lean-toolchain`. On a pull request it is an optional check in a
+workflow of its own, so a broken benchmark shows up before it lands without
+delaying the library's checks. Pull requests that touch none of these paths
+do not run it.
 The results file records the runner's CPU model, core count and `uname -a`.
 In `bench/`, the job runs:
 
