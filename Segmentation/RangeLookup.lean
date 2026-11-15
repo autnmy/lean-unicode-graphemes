@@ -111,7 +111,7 @@ theorem Range.scanList_eq_default {α : Type} (default : α) (n : Nat) :
     simp only [Range.scanList, hhead, ite_false]
     exact Range.scanList_eq_default default n rest
       (fun i hi => by
-        have hlater := hnone (i + 1) (by simp; omega)
+        have hlater := hnone (i + 1) (by simp only [List.length_cons, Nat.add_lt_add_iff_right]; omega)
         simp only [List.getElem_cons_succ] at hlater
         exact hlater)
 

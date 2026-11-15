@@ -69,7 +69,7 @@ private theorem matches_pairs_of_all {c : Cls} :
   | x :: y :: rest, hall, hlen =>
     .pairsCons (hall x (by simp)) (hall y (by simp))
       (matches_pairs_of_all rest (fun z hz => hall z (by simp [hz]))
-        (by simp at hlen; omega))
+        (by simp only [List.length_cons] at hlen; omega))
 
 theorem Pat.matches_pairs_iff {c : Cls} {l : List Props} :
     (Pat.pairs c).Matches l ↔ (∀ x ∈ l, c x = true) ∧ l.length % 2 = 0 := by
@@ -81,7 +81,7 @@ theorem Pat.matches_pairs_iff {c : Cls} {l : List Props} :
     | pairsCons hx hy _ ih =>
       cases hp
       obtain ⟨hall, hlen⟩ := ih rfl
-      refine ⟨?_, by simp; omega⟩
+      refine ⟨?_, by simp only [List.length_cons]; omega⟩
       intro z hz
       simp only [List.mem_cons] at hz
       rcases hz with rfl | rfl | hz
@@ -193,7 +193,10 @@ def RunParity (c : Cls) (odd : Bool) (l : List Props) : Prop :=
 
 private theorem parity_snoc (b : List Props) (q : Props) (odd : Bool) :
     ((b ++ [q]).length % 2 == 1) = odd ↔ (b.length % 2 == 1) = !odd := by
-  cases odd <;> simp <;> omega
+  cases odd <;>
+    simp only [List.length_append, List.length_cons, List.length_nil, Nat.zero_add, beq_iff_eq,
+      beq_eq_false_iff_ne, ne_eq, Nat.mod_two_not_eq_one, Bool.not_false, Bool.not_true] <;>
+    omega
 
 /-- Adding `q` at the end flips the parity of the run when `q` is in `c`, and starts an empty
 (even) run when it is not. -/
@@ -245,7 +248,9 @@ theorem Pat.matches_pairs_one_iff {c : Cls} {l : List Props} :
   simp only [Pat.matches_seq_iff, Pat.matches_pairs_iff, Pat.matches_one_iff]
   constructor
   · rintro ⟨xs, _, rfl, ⟨hall, hlen⟩, x, rfl, hx⟩
-    refine ⟨?_, by simp; omega⟩
+    refine ⟨?_, by
+      simp only [List.length_append, List.length_cons, List.length_nil, Nat.zero_add, beq_iff_eq]
+      omega⟩
     intro z hz
     simp only [List.mem_append, List.mem_singleton] at hz
     rcases hz with hz | rfl
@@ -255,7 +260,10 @@ theorem Pat.matches_pairs_one_iff {c : Cls} {l : List Props} :
     rcases List.eq_nil_or_concat l with rfl | ⟨xs, x, rfl⟩
     · simp at hlen
     · simp only [List.concat_eq_append] at hall hlen ⊢
-      exact ⟨xs, [x], rfl, ⟨fun z hz => hall z (by simp [hz]), by simp at hlen; omega⟩,
+      exact ⟨xs, [x], rfl, ⟨fun z hz => hall z (by simp [hz]), by
+          simp only [List.length_append, List.length_cons, List.length_nil, Nat.zero_add,
+            beq_iff_eq] at hlen
+          omega⟩,
         x, rfl, hall x (by simp)⟩
 
 /-- The left sides of GB12 and GB13 together say the run of `c` at the end has odd length. -/

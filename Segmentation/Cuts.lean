@@ -41,11 +41,15 @@ private theorem cutInside_cons (props : Char → Props) (p : Props) (ps : List P
     cases j with
     | zero => exact Or.inl ⟨rfl, by simpa using hb⟩
     | succ j =>
-      refine Or.inr ⟨j, by simpa using hj, by simp; omega, ?_⟩
+      refine Or.inr ⟨j, by simpa using hj,
+        by simp only [List.length_append, List.length_cons, List.length_nil, Nat.zero_add]; omega,
+        ?_⟩
       simpa [List.take_succ_cons, List.append_assoc] using hb
   · rintro (⟨rfl, hb⟩ | ⟨j, hj, rfl, hb⟩)
     · exact ⟨0, by simp, by simp, by simpa using hb⟩
-    · refine ⟨j + 1, by simpa using hj, by simp; omega, ?_⟩
+    · refine ⟨j + 1, by simpa using hj,
+        by simp only [List.length_append, List.length_cons, List.length_nil, Nat.zero_add]; omega,
+        ?_⟩
       simpa [List.take_succ_cons, List.append_assoc] using hb
 
 /-- The cut points of what `clustersOf.go` returns, started from `a`. The scan has read `p :: ps`,
@@ -78,7 +82,10 @@ private theorem mem_scanl_go (props : Char → Props) (p : Props) (i : Nat) :
     · rename_i hb
       simp only [List.map_cons, List.scanl_cons, List.mem_cons, List.length_reverse]
       rw [mem_scanl_go props p i rest (ps ++ [props d]) [d] (a + cluster.length)
-        (by simp; omega)]
+        (by
+          simp only [List.length_append, List.length_cons, List.length_nil, Nat.zero_add,
+            Nat.add_right_cancel_iff]
+          omega)]
       simp only [List.length_append, List.length_cons, List.length_nil]
       constructor
       · rintro (h1 | h1 | h1 | h1)
@@ -92,7 +99,8 @@ private theorem mem_scanl_go (props : Char → Props) (p : Props) (i : Nat) :
         · exact Or.inr (Or.inl (by omega))
         · exact Or.inr (Or.inr (Or.inr h1))
     · rename_i hb
-      rw [mem_scanl_go props p i rest (ps ++ [props d]) (d :: cluster) a (by simp; omega)]
+      rw [mem_scanl_go props p i rest (ps ++ [props d]) (d :: cluster) a
+        (by simp only [List.length_append, List.length_cons, List.length_nil, Nat.zero_add]; omega)]
       simp only [List.length_append, List.length_cons, List.length_nil]
       constructor
       · rintro (h1 | h1 | h1)
