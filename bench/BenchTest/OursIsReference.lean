@@ -33,3 +33,6 @@ theorem «the benchmark's reference column never calls Segmentation.graphemes» 
         throwError m!"Bench.oursClusterCount does not count Bench.oursClusters' result"
     | _ => throwError m!"Bench.oursClusterCount is not a plain definition"
   trivial
+
+#guard Bench.oursClusters "a\u0301b" == ["a\u0301", "b"]
+#guard Bench.oursClusterCount "a\u0301b" == 2

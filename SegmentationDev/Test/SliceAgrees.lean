@@ -26,9 +26,11 @@ import SegmentationDev.Test.SliceFastNoReference
   measured from the sub-slice start, and a CR at its end is not joined with the LF just past it;
 * that each cluster's byte bounds are neighbouring cuts, that the clusters are views of the
   input rather than copies, and that the empty input has one cut at 0;
-* that `sliceGraphemes_agree` passes the axiom gate and is in both headline lists;
-* that `graphemesFast` and `boundariesFast` reach neither `graphemes`, `boundaries`, `clustersOf`
-  nor `cutsOf`, so what runs after the csimp rewrite is the scanner.
+* that `sliceGraphemes_agree` and the four statements proved for `graphemesFast` and
+  `boundariesFast` pass the axiom gate and are in both headline lists;
+* that `graphemesFast` and `boundariesFast` are computed from `sliceGraphemes` and reach neither
+  `graphemes`, `boundaries`, `clustersOf` nor `cutsOf`, so what runs after the csimp rewrite is
+  the scanner.
 
 Each module holds one concern, so a failure names the behaviour it checks. The check below
 makes sure every definition on the scanner's path, the internal scan included, is plain with no
