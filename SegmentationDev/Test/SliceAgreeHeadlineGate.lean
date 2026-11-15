@@ -4,8 +4,9 @@ import SegmentationDev.Gate.Axioms
 
 -- "`sliceGraphemes_agree` is in both `SegmentationDev/Test/HeadlineAxioms.lean` and
 -- `SegmentationDev/Test/AssertAxiomsPrintsHeadlineAxioms.lean`, and the axiom gate passes."
--- The gate command must leave no error for the theorem. The CI gate file names it once in its
--- list; the printed-output test names it twice, in the quoted command and in its `for` list.
+-- The gate command must leave no error for the theorem. The CI gate file must name it in its
+-- `#assert_axioms` command; the printed-output test must name it in the quoted command and in its
+-- `for` list. A mention in a docstring or comment does not count.
 open Lean Elab Command in
 theorem sliceGraphemes_agree_passes_gate_and_is_in_both_headline_lists : True := by
   run_tac do
@@ -17,10 +18,18 @@ theorem sliceGraphemes_agree_passes_gate_and_is_in_both_headline_lists : True :=
     if failed then
       throwError "the gate rejects Segmentation.sliceGraphemes_agree"
     let name := "Segmentation.sliceGraphemes_agree"
-    for (path, wanted) in [("SegmentationDev/Test/HeadlineAxioms.lean", 1),
-        ("SegmentationDev/Test/AssertAxiomsPrintsHeadlineAxioms.lean", 2)] do
-      let text ← IO.FS.readFile path
-      let count := (text.splitOn name).length - 1
-      unless count ≥ wanted do
-        throwError "{path} names {name} {count} times, expected at least {wanted}"
+    -- Read only the code that names the theorems, not the docstrings or comments around it: the
+    -- text from `opening` up to the next `closing` must name the theorem.
+    let names : String → String → String → Bool := fun text opening closing =>
+      match text.splitOn opening with
+      | _ :: after :: _ => decide ((((after.splitOn closing).headD "").splitOn name).length > 1)
+      | _ => false
+    let gate ← IO.FS.readFile "SegmentationDev/Test/HeadlineAxioms.lean"
+    unless names gate "\n#assert_axioms " "\n\n" do
+      throwError "the #assert_axioms command in HeadlineAxioms.lean does not name {name}"
+    let printed ← IO.FS.readFile "SegmentationDev/Test/AssertAxiomsPrintsHeadlineAxioms.lean"
+    unless names printed "#assert_axioms " ")))" do
+      throwError "the quoted #assert_axioms in AssertAxiomsPrintsHeadlineAxioms.lean omits {name}"
+    unless names printed "for name in [" "] do" do
+      throwError "the expected-name list in AssertAxiomsPrintsHeadlineAxioms.lean omits {name}"
   trivial

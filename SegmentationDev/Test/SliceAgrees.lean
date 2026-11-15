@@ -19,9 +19,9 @@ import SegmentationDev.Test.SliceAgreeHeadlineGate
 * the type of `sliceGraphemes_agree`, both halves spelled out, and of `asciiProps_eq_props`;
 * compiled `#guard` checks against `graphemes` and mapped `boundaries` on the edge inputs of the
   ASCII path, with expected byte cuts computed only from the reference;
-* a sub-slice from the middle of a larger string, which the theorem does not cover: its clusters
-  are slices of the sub-slice, its cuts are measured from the sub-slice start, and a CR at its end
-  is not joined with the LF just past it;
+* a sub-slice from the middle of a larger string, which `sliceGraphemes_agree_clustersOf` proves
+  for any slice and these checks run: its clusters are slices of the sub-slice, its cuts are
+  measured from the sub-slice start, and a CR at its end is not joined with the LF just past it;
 * that each cluster's byte bounds are neighbouring cuts, that the clusters are views of the
   input rather than copies, and that the empty input has one cut at 0;
 * that `sliceGraphemes_agree` passes the axiom gate and is in both headline lists.

@@ -4,9 +4,11 @@ import SegmentationDev.Test.SliceAgreesEdgeInputs
 /-!
 # The slice scanner on a sub-slice from the middle of a string
 
-`sliceGraphemes_agree` covers only `s.toSlice`, so these compiled checks are the only evidence for
-a slice that starts after byte 0. Expected values come from the reference on the sub-slice's own
-text, plus the literal cuts, so a scan that measures from the parent's start fails.
+The headline theorem `sliceGraphemes_agree` is stated over `s.toSlice`. The lemma under it,
+`sliceGraphemes_agree_clustersOf`, holds on any slice, a slice that starts after byte 0 included:
+the clusters read back as `clustersOf` on the slice's text, and the cuts are byte offsets from the
+slice start. These compiled checks run that case: expected values come from the reference on the
+sub-slice's own text, plus the literal cuts, so a scan that measures from the parent's start fails.
 -/
 
 -- "A sub-slice taken from the middle of a larger string must return slices of that sub-slice and
