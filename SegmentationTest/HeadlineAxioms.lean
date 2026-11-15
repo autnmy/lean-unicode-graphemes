@@ -5,8 +5,9 @@ import Segmentation
 # The axiom gate for the headline theorems
 
 The four theorems the README cites as the library's claim: the clusters join back to the input
-(`H1a`), no cluster is empty (`H1b`), the segmenter cuts exactly where UAX #29 says (`H2`), and
-`boundaries` gives the same cuts (`H2'`). This is the list the gate checks; the test in
+(`JoinRestoresInput`), no cluster is empty (`ClustersNonEmpty`), the segmenter cuts exactly where
+UAX #29 says (`CutsMatchRules`), and `boundaries` gives the same cuts (`BoundariesMatchCuts`).
+This is the list the gate checks; the test in
 `SegmentationTest/AssertAxiomsPrintsHeadlineAxioms.lean` names the same four to check the printed
 output.
 

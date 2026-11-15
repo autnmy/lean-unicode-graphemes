@@ -67,5 +67,5 @@ The subset form also keeps the guard stable. A proof can change shape and use fe
 
 - PR #15 adds `SegmentationTest/GraphemesPartition.lean`. Its two last theorems call `collectAxioms` on `Segmentation.graphemes_join` and `Segmentation.graphemes_ne_empty` inside `run_tac`, and they `throwError` on any axiom outside `propext`, `Classical.choice` and `Quot.sound`. PR #23 later replaced those loops, and the copies in other test files, with the shared `#assert_axioms` command; the type pins stayed.
 - The comment above those checks in the same file says that `#print axioms` only prints, and that a `sorry` proof depends on `sorryAx`, which is not in the allowed list.
-- The same file pins each theorem's type with ascriptions to `Segmentation.H1a Segmentation.graphemes` and `Segmentation.H1b Segmentation.graphemes`.
+- The same file pins each theorem's type with ascriptions to `Segmentation.JoinRestoresInput Segmentation.graphemes` and `Segmentation.ClustersNonEmpty Segmentation.graphemes`.
 - PR #15 changes `SegmentationTest.lean` to import `SegmentationTest.GraphemesPartition`, so `lake test` elaborates the checks.

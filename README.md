@@ -23,17 +23,17 @@ that applies at a position decides it. Each sentence below is one theorem, and
 the theorem's type is the committed statement named in brackets.
 
 - Putting the clusters of any text back together gives that text:
-  `Segmentation.graphemes_join` (`H1a graphemes`).
+  `Segmentation.graphemes_join` (`JoinRestoresInput graphemes`).
 - No cluster is the empty string: `Segmentation.graphemes_ne_empty`
-  (`H1b graphemes`).
+  (`ClustersNonEmpty graphemes`).
 - In any non-empty text, `graphemes` cuts at a position, the two ends
   included, exactly when the first rule of `rules` that applies there says
   "break", reading the library's own property tables:
-  `Segmentation.graphemes_rules` (`H2 Tables.props graphemes`). The empty text
-  is left out of this statement, because no rule applies to it; the two
-  theorems above cover it.
+  `Segmentation.graphemes_rules` (`CutsMatchRules Tables.props graphemes`).
+  The empty text is left out of this statement, because no rule applies to it;
+  the two theorems above cover it.
 - `boundaries` returns exactly the cut positions of `graphemes`:
-  `Segmentation.boundaries_agree` (`H2' graphemes boundaries`).
+  `Segmentation.boundaries_agree` (`BoundariesMatchCuts graphemes boundaries`).
 
 Each of these four theorems depends on no axiom beyond `propext`,
 `Classical.choice` and `Quot.sound`, the three standard axioms of Lean's logic.
@@ -194,7 +194,7 @@ the code. CI fails when the file's SHA-256 differs from the line below, so any
 change to the statements also has to change this line, in plain view.
 
 ```text
-5e784ba330c7a11857b00674311904ffb7c22334e7ed895055b558a1218708bf  Segmentation/Statements.lean
+3f96f609b7ee0045ff18e8722cb77a164842981005cde3511b8d54d7c4ee851c  Segmentation/Statements.lean
 ```
 
 To check it locally, from the repository root:

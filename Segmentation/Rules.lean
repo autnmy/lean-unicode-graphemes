@@ -7,18 +7,19 @@ import Segmentation.Cuts
 /-!
 # The clusters cut exactly where UAX #29 says
 
-`graphemes_rules` proves `H2`: at every position of a non-empty string, `graphemes` cuts exactly
-where the first rule of UAX #29 that applies says ÷. `boundaries_agree` turns the cut points of
-`graphemes` into `cutsOf`, and `mem_cutsOf` lists those as the two ends of the text and each
-position inside it where `breaksBefore` says ÷. The ends are boundaries by `isBoundary_zero` and
-`isBoundary_length`, and `breaksBefore_iff_isBoundary` matches the verdict at each position inside.
+`graphemes_rules` proves `CutsMatchRules`: at every position of a non-empty string, `graphemes`
+cuts exactly where the first rule of UAX #29 that applies says ÷. `boundaries_agree` turns the
+cut points of `graphemes` into `cutsOf`, and `mem_cutsOf` lists those as the two ends of the text
+and each position inside it where `breaksBefore` says ÷. The ends are boundaries by
+`isBoundary_zero` and `isBoundary_length`, and `breaksBefore_iff_isBoundary` matches the verdict
+at each position inside.
 -/
 
 namespace Segmentation
 
-/-- `H2` for `graphemes`: on a non-empty string, a position is a cut point of `graphemes` exactly
-when UAX #29 puts a boundary there. -/
-theorem graphemes_rules : H2 Tables.props graphemes := by
+/-- `CutsMatchRules` for `graphemes`: on a non-empty string, a position is a cut point of
+`graphemes` exactly when UAX #29 puts a boundary there. -/
+theorem graphemes_rules : CutsMatchRules Tables.props graphemes := by
   intro s i hs hi
   rw [← boundaries_agree s]
   show i ∈ cutsOf Tables.props s.toList ↔ IsBoundary Tables.props s.toList i

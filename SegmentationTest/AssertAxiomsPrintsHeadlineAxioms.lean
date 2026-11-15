@@ -4,9 +4,9 @@ import Gate.Axioms
 
 -- "A CI step that prints `#print axioms` for each headline theorem (L6, L8) and fails on any
 -- axiom outside `propext`, `Classical.choice` and `Quot.sound`, ..."
--- L6 is H1 (graphemes_join, graphemes_ne_empty) and L8 is H2/H2' (graphemes_rules,
--- boundaries_agree). The command must pass on all four and leave one `#print axioms` message
--- per theorem, naming it.
+-- L6 is JoinRestoresInput and ClustersNonEmpty (graphemes_join, graphemes_ne_empty) and L8 is
+-- CutsMatchRules and BoundariesMatchCuts (graphemes_rules, boundaries_agree). The command must
+-- pass on all four and leave one `#print axioms` message per theorem, naming it.
 open Lean Elab Command in
 theorem «assert_axioms prints the print axioms output for each of the four headline theorems» :
     True := by

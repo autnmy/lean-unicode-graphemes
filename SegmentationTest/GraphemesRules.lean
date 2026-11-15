@@ -2,21 +2,23 @@ import Segmentation
 
 /-!
 Checks of the cut theorems in `Segmentation.Cuts` and `Segmentation.Rules`: the segmenter cuts
-exactly where UAX #29 says (`H2`), `boundaries` gives the cut points of `graphemes` (`H2'`), and
-the cut positions of the list core are characterised by the one-pass scan state for any
-property lookup (`mem_cutsOf`).
+exactly where UAX #29 says (`CutsMatchRules`), `boundaries` gives the cut points of `graphemes`
+(`BoundariesMatchCuts`), and the cut positions of the list core are characterised by the
+one-pass scan state for any property lookup (`mem_cutsOf`).
 -/
 
--- The ascriptions name the committed `H2` and `H2'` terms, not unfolded copies, so a theorem
--- that is missing, renamed, or proved against a restated or weaker local statement fails here.
+-- The ascriptions name the committed `CutsMatchRules` and `BoundariesMatchCuts` terms, not
+-- unfolded copies, so a theorem that is missing, renamed, or proved against a restated or weaker
+-- local statement fails here.
 open Segmentation in
-theorem «graphemes_rules proves the committed H2 statement at Tables.props and graphemes» :
-    Segmentation.H2 Tables.props Segmentation.graphemes :=
-  (Segmentation.graphemes_rules : Segmentation.H2 Tables.props Segmentation.graphemes)
+theorem «graphemes_rules proves the committed CutsMatchRules at Tables.props and graphemes» :
+    Segmentation.CutsMatchRules Tables.props Segmentation.graphemes :=
+  (Segmentation.graphemes_rules : Segmentation.CutsMatchRules Tables.props Segmentation.graphemes)
 
-theorem «boundaries_agree proves the committed H2' statement at graphemes and boundaries» :
-    Segmentation.H2' Segmentation.graphemes Segmentation.boundaries :=
-  (Segmentation.boundaries_agree : Segmentation.H2' Segmentation.graphemes Segmentation.boundaries)
+theorem «boundaries_agree proves the committed BoundariesMatchCuts at graphemes and boundaries» :
+    Segmentation.BoundariesMatchCuts Segmentation.graphemes Segmentation.boundaries :=
+  (Segmentation.boundaries_agree :
+    Segmentation.BoundariesMatchCuts Segmentation.graphemes Segmentation.boundaries)
 
 -- The type quantifies over every `props`, so a lemma proved only at `Tables.props` fails here.
 open Segmentation in

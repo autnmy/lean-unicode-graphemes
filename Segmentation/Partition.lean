@@ -4,8 +4,8 @@ import Segmentation.Graphemes
 /-!
 # The clusters partition the text
 
-Proofs of `H1a` and `H1b` from `Segmentation.Statements` for `graphemes`: the clusters joined
-back together are the input, and no cluster is empty.
+Proofs of `JoinRestoresInput` and `ClustersNonEmpty` from `Segmentation.Statements` for
+`graphemes`: the clusters joined back together are the input, and no cluster is empty.
 
 Neither fact depends on where the rules put the breaks, so both are proved first for the
 `List Char` core `clustersOf` with any property lookup, then carried to `String` through
@@ -59,15 +59,15 @@ theorem clustersOf_ne_nil (props : Char → Props) (cs : List Char) :
   | nil => simp [clustersOf]
   | cons c rest => exact clustersOf_go_ne_nil props rest _ [c] (by simp)
 
-/-- `H1a` for `graphemes`: the clusters joined back together are the input. -/
-theorem graphemes_join : H1a graphemes := by
+/-- `JoinRestoresInput` for `graphemes`: the clusters joined back together are the input. -/
+theorem graphemes_join : JoinRestoresInput graphemes := by
   intro s
   apply String.ext
   simp [graphemes, String.toList_join, List.flatMap, Function.comp_def, String.toList_ofList,
     clustersOf_flatten]
 
-/-- `H1b` for `graphemes`: no cluster is the empty string. -/
-theorem graphemes_ne_empty : H1b graphemes := by
+/-- `ClustersNonEmpty` for `graphemes`: no cluster is the empty string. -/
+theorem graphemes_ne_empty : ClustersNonEmpty graphemes := by
   intro s g hg
   simp only [graphemes, List.mem_map] at hg
   obtain ⟨l, hl, rfl⟩ := hg
