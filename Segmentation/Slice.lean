@@ -1,6 +1,8 @@
 import Segmentation.Graphemes
 import Segmentation.Partition
 import Segmentation.PropsTable
+import Segmentation.Cuts
+import Segmentation.Rules
 
 /-!
 # Grapheme clusters of a `String.Slice`
@@ -22,6 +24,11 @@ step, so it ends on every input without a step budget.
 `graphemes` and the cuts are the byte offsets of `boundaries`. The proof follows the scan and
 `clustersOf.go` step by step: at every step the position splits the text into the code points
 read so far and the rest, so its byte offset is the UTF-8 size of what was read.
+
+`graphemesFast` and `boundariesFast` give the scanner the types of `graphemes` and `boundaries`.
+They are proved equal to them and registered with `csimp`, so compiled code that calls the
+reference runs the scanner, and the four statements of `Segmentation.Statements` are proved for
+them by rewriting into the reference's proofs.
 -/
 
 namespace Segmentation
@@ -249,5 +256,54 @@ theorem sliceGraphemes_agree (s : String) :
   simp only [List.length_nil, List.nil_append, clustersOf_flatten, String.ofList_nil,
     String.utf8ByteSize_empty] at this
   rw [h₂, boundaries, cutsOf, this]
+
+/-! ### The fast segmenter on `String` -/
+
+/-- The extended grapheme clusters of `s`, read by the slice scanner `sliceGraphemes` and copied
+into strings. Proved equal to `graphemes` by `graphemes_eq_graphemesFast`, which makes compiled
+calls to `graphemes` run this. -/
+def graphemesFast (s : String) : List String :=
+  (sliceGraphemes s.toSlice).map String.Slice.copy
+
+/-- The positions between the clusters of `graphemesFast s`, counted in code points from the
+start, both ends included: the running sums, from 0, of the clusters' lengths. Proved equal to
+`boundaries` by `boundaries_eq_boundariesFast`, which makes compiled calls to `boundaries` run
+this. -/
+def boundariesFast (s : String) : List Nat :=
+  ((graphemesFast s).map String.length).scanl (· + ·) 0
+
+/-- `graphemesFast` is `graphemes`. Registered with `csimp`, so compiled code that calls
+`graphemes` runs the slice scanner; the kernel still reduces `graphemes` itself. -/
+@[csimp]
+theorem graphemes_eq_graphemesFast : @graphemes = @graphemesFast :=
+  funext fun s => ((sliceGraphemes_agree s).1).symm
+
+/-- `BoundariesMatchCuts` for `graphemesFast` and `boundariesFast`: `boundariesFast` lists the cut
+points of `graphemesFast`. -/
+theorem boundariesFast_agree : BoundariesMatchCuts graphemesFast boundariesFast :=
+  fun _ => rfl
+
+/-- `boundariesFast` is `boundaries`. Registered with `csimp`, so compiled code that calls
+`boundaries` runs the slice scanner. -/
+@[csimp]
+theorem boundaries_eq_boundariesFast : @boundaries = @boundariesFast := by
+  funext s
+  rw [boundaries_agree s, boundariesFast_agree s, graphemes_eq_graphemesFast]
+
+/-- `JoinRestoresInput` for `graphemesFast`: the clusters joined back together are the input. -/
+theorem graphemesFast_join : JoinRestoresInput graphemesFast := by
+  rw [← graphemes_eq_graphemesFast]
+  exact graphemes_join
+
+/-- `ClustersNonEmpty` for `graphemesFast`: no cluster is the empty string. -/
+theorem graphemesFast_ne_empty : ClustersNonEmpty graphemesFast := by
+  rw [← graphemes_eq_graphemesFast]
+  exact graphemes_ne_empty
+
+/-- `CutsMatchRules` for `graphemesFast`: on a non-empty string, a position is a cut point of
+`graphemesFast` exactly when UAX #29 puts a boundary there. -/
+theorem graphemesFast_rules : CutsMatchRules Tables.props graphemesFast := by
+  rw [← graphemes_eq_graphemesFast]
+  exact graphemes_rules
 
 end Segmentation

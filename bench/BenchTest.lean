@@ -16,6 +16,7 @@ import BenchTest.CheckAllFirstInputInOrder
 import BenchTest.ExitCodeFor
 import BenchTest.SummarizeStats
 import BenchTest.ReportRendering
+import BenchTest.OursIsReference
 
 /-!
 # Benchmark test driver

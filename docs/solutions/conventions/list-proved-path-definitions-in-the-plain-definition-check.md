@@ -38,5 +38,5 @@ A passing axiom gate reads as "the scanner is proved". If a helper becomes `part
 ## Evidence
 
 - PR #77 adds `slice_scanner_definitions_are_plain_with_no_compiled_substitute` in `SegmentationDev/Test/SliceAgrees.lean`. Its comment says a `partial` definition is opaque, a compiler substitute is recorded as an attribute, neither shows up as an axiom, and the keyword scan does not look for `partial`.
-- The same check lists the six definitions of `Segmentation/Slice.lean`, internal `scanClusters` and `clusterBounds` included.
+- In PR #77 the same check listed the six definitions `Segmentation/Slice.lean` then held, internal `scanClusters` and `clusterBounds` included. When `graphemesFast` and `boundariesFast` were added to that file, with `@[csimp]` lemmas that make compiled calls to `graphemes` and `boundaries` run them, they were added to the list in the same change.
 - Issue #70 explains that a `partial def` has no equation lemmas, so the proof cannot unfold it, and lists the forbidden words the keyword scan rejects, which do not include `partial`.
