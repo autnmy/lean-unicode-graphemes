@@ -27,7 +27,7 @@ Tests often need to say "this small text has no boundary at position 2". `IsBoun
 Decide the scanner's verdict instead, then convert it with `breaksBefore_iff_isBoundary`. Position `i + 1` of `c :: cs` maps to index `i` of `cs`:
 
 ```lean
-theorem «CR then LF has no boundary at position 1» :
+theorem cr_lf_no_boundary_at_one :
     ¬ IsBoundary (fun c => if c = '\r' then crProps else lfProps) ['\r', '\n'] 1 := by
   intro h
   have hb := (breaksBefore_iff_isBoundary (fun c => if c = '\r' then crProps else lfProps)

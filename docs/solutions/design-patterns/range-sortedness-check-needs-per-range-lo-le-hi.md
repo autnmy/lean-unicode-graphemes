@@ -49,5 +49,5 @@ A check that misses the inverted-range case still passes every test built from o
 ## Evidence
 
 - PR #18 adds `Range.chainOK`, `Range.Sorted`, `Range.chainOK_lo_le_hi` and `Range.chainOK_hi_lt_lo` in `Segmentation/RangeLookup.lean`. The docstring of `Range.chainOK` states that a middle range with `lo > hi` could otherwise sit between two ranges that overlap each other.
-- `SegmentationTest/RangeScanAndSorted.lean` (now `SegmentationDev/Test/RangeScanAndSorted.lean`) in PR #18 has the test «chainOK rejects an inverted range even when every neighbour pair is ordered», which decides `Range.chainOK [⟨1, 2, 0⟩, ⟨10, 4, 0⟩, ⟨6, 7, 0⟩] = false`.
+- `SegmentationTest/RangeScanAndSorted.lean` (now `SegmentationDev/Test/RangeScanAndSorted.lean`) in PR #18 has the test now named `chainOK_rejects_inverted_range_with_ordered_neighbours`, which decides `Range.chainOK [⟨1, 2, 0⟩, ⟨10, 4, 0⟩, ⟨6, 7, 0⟩] = false`.
 - The same file's chainOK test rejects the endpoint-sharing list `[⟨1, 5, 1⟩, ⟨5, 8, 2⟩]` and accepts the adjacent list `{lo := 0, hi := 3}, {lo := 4, hi := 6}`.
