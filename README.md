@@ -108,8 +108,10 @@ you have to trust them, or check them another way:
 
 ## How the library was built
 
-An autonomous coding pipeline built this library. It worked from issues,
-wrote the code and the proofs, and opened a pull request for each change.
+An AI system, Descant, built this library. It worked from the issues and
+wrote the code, the proofs, the tests and the documentation. It opened a pull
+request for each change, and its own reviewer reviewed every pull request. To
+read the work, read the repository's merged pull requests and their reviews.
 
 The record of every human touch is this repository's own history on GitHub:
 the issues, the pull requests with their reviews and merges, and the commits.
@@ -183,6 +185,12 @@ lake build   # build the Segmentation library
 lake test    # build and run the test suite
 ```
 
+## Contributing
+
+Issues and pull requests are welcome. The build pipeline works an issue only
+after a maintainer labels it, and automatic pickup is off, so filing an issue
+starts nothing by itself.
+
 ## Unicode data and generated tables
 
 The Unicode 18.0.0 data files the library reads are committed under
@@ -217,7 +225,7 @@ the code. CI fails when the file's SHA-256 differs from the line below, so any
 change to the statements also has to change this line, in plain view.
 
 ```text
-3f96f609b7ee0045ff18e8722cb77a164842981005cde3511b8d54d7c4ee851c  Segmentation/Statements.lean
+7eb848e7d29e6da9ff24e620651c77e31b806b51f3c3450f4789cc417733de62  Segmentation/Statements.lean
 ```
 
 To check it locally, from the repository root:
