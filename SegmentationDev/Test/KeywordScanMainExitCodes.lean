@@ -1,6 +1,8 @@
 import Lean
-import SegmentationDev.KeywordScan
+import SegmentationDev.Gate.KeywordScan
 
+-- `lake exe keyword-scan` runs `SegmentationDev.Gate.scanFiles` as its `main`, so this checks the
+-- program's exit codes through the library module that `lake build SegmentationChecks` can import.
 -- "and on any of `sorry`, `admit`, `axiom`, `native_decide`, `implemented_by`, `extern` or
 -- `unsafe` in project code."
 -- The scanned sources are written to a temporary directory as string data, so no forbidden
@@ -16,7 +18,7 @@ theorem keyword_scan_main_exits_one_on_forbidden_word_zero_on_clean_one_on_no_pa
     for w in words do
       let path := dir / s!"{w}.lean"
       IO.FS.writeFile path s!"theorem t : True := by {w}\n"
-      let code ← main [path.toString]
+      let code ← SegmentationDev.Gate.scanFiles [path.toString]
       unless code == 1 do failures := failures ++ [s!"{w}: exit {code}"]
     let decls := [("axiom", "axiom a : False\n"), ("unsafe", "unsafe def f : Nat := 0\n"),
       ("extern", "@[extern \"c_f\"] def g : Nat := 0\n"),
@@ -24,12 +26,12 @@ theorem keyword_scan_main_exits_one_on_forbidden_word_zero_on_clean_one_on_no_pa
     for (w, src) in decls do
       let path := dir / s!"{w}.lean"
       IO.FS.writeFile path src
-      let code ← main [path.toString]
+      let code ← SegmentationDev.Gate.scanFiles [path.toString]
       unless code == 1 do failures := failures ++ [s!"{w}: exit {code}"]
     let clean := dir / "clean.lean"
     IO.FS.writeFile clean "-- no sorry here\ntheorem c : 1 = 1 := by decide\n"
-    let cleanCode ← main [clean.toString]
-    let emptyCode ← main []
+    let cleanCode ← SegmentationDev.Gate.scanFiles [clean.toString]
+    let emptyCode ← SegmentationDev.Gate.scanFiles []
     -- A clean file must not reset a failure found in another, in either order, and a path that
     -- cannot be read must fail alone and beside a clean file.
     let forbidden := dir / "sorry.lean"
@@ -38,7 +40,7 @@ theorem keyword_scan_main_exits_one_on_forbidden_word_zero_on_clean_one_on_no_pa
       [missing, clean]]
     let mut mixedFailures : List String := []
     for paths in mixed do
-      let code ← main (paths.map (·.toString))
+      let code ← SegmentationDev.Gate.scanFiles (paths.map (·.toString))
       unless code == 1 do mixedFailures := mixedFailures ++ [s!"{paths}: exit {code}"]
     IO.FS.removeDirAll dir
     unless mixedFailures.isEmpty do throwError "multi-path runs not rejected: {mixedFailures}"

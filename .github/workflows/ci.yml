@@ -37,34 +37,60 @@ jobs:
         env:
           LC_ALL: C
         run: sha256sum --check --strict SHA256SUMS
-      # Installs the toolchain named in lean-toolchain. Build and test are
-      # requested explicitly so the test step never depends on auto-detection.
+      # Installs the toolchain named in lean-toolchain. It builds and tests nothing: the steps
+      # below run every build themselves with `--wfail`, so the flag shows on each build's own
+      # command line in this log, and no module is first built without it.
       - uses: leanprover/lean-action@24581d74d674803a25a81b10b059c5c0cdd344c6 # v1.6.2
         with:
           auto-config: false
-          build: true
-          test: true
+          build: false
+          test: false
+      # Every build runs with `--wfail`, so a compiler warning fails CI. The order matters: the
+      # timed GraphemeBreakTest.txt step must compile its two modules itself, before the build of
+      # the development libraries, whose SegmentationChecks library also holds those modules. If
+      # that build ran first, the timed step would reuse its result and never time the proof.
+      # Every later step reads the output of these builds.
+      - name: Build the library with warnings as errors
+        env:
+          LC_ALL: C
+        run: lake build --wfail
+      # Proves by `decide +kernel` that `graphemes` matches all 853 lines of GraphemeBreakTest.txt,
+      # and fails if that proof depends on an axiom outside the three standard ones. The test
+      # driver does not import this module or its tests, so this step is the only place CI checks
+      # them, and the time limit bounds the whole check: a proof that needs 10 minutes or more
+      # fails. Only the Segmentation library is built before this step, so the limit also covers
+      # compiling the modules these two import that are not in it, such as SegmentationDev.TableGen,
+      # SegmentationDev.Test.GraphemeBreakTestFile, SegmentationDev.Test.GraphemeBreakTestData and
+      # SegmentationDev.Gate.Axioms. The tests also run the decided check over all 853 cases, against a segmenter that
+      # never joins, to show it can fail.
+      - name: Check the GraphemeBreakTest.txt theorem within 10 minutes
+        timeout-minutes: 10
+        env:
+          LC_ALL: C
+        run: lake build --wfail SegmentationDev.Test.GraphemeBreakTestTheorem SegmentationDev.Test.GraphemeBreakTestTheoremTests
+      # Plain `lake build` builds only the Segmentation library. This builds the development
+      # libraries and all three executables, so the tests, the generator and the scanner are also
+      # compiled with warnings as errors before any of them runs.
+      - name: Build the development libraries and executables with warnings as errors
+        env:
+          LC_ALL: C
+        run: lake build --wfail SegmentationTableGen SegmentationChecks SegmentationGate segmentation-tests gen-tables keyword-scan
+      # Runs the test driver, built with `--wfail` above.
+      - name: Run the tests
+        env:
+          LC_ALL: C
+        run: lake test
       # Shows each headline theorem's `#print axioms` output in this log and fails if any of them
       # depends on an axiom outside propext, Classical.choice and Quot.sound. The theorem list is
       # in SegmentationDev/Test/HeadlineAxioms.lean; `#assert_axioms` fails on a name that does not
-      # resolve, so a renamed theorem cannot drop out unnoticed. It reads the build above.
+      # resolve, so a renamed theorem cannot drop out unnoticed. It reads the SegmentationGate and
+      # Segmentation builds above.
       - name: Print and check the axioms of the headline theorems
         env:
           LC_ALL: C
         run: |
           set -eu
           lake env lean SegmentationDev/Test/HeadlineAxioms.lean
-      # Proves by `decide +kernel` that `graphemes` matches all 853 lines of GraphemeBreakTest.txt,
-      # and fails if that proof depends on an axiom outside the three standard ones. The test
-      # driver does not import this module or its tests, so this step is the only place CI checks
-      # them, and the time limit bounds the whole check: a proof that needs 10 minutes or more
-      # fails. The tests also run the decided check over all 853 cases, against a segmenter that
-      # never joins, to show it can fail.
-      - name: Check the GraphemeBreakTest.txt theorem within 10 minutes
-        timeout-minutes: 10
-        env:
-          LC_ALL: C
-        run: lake build SegmentationDev.Test.GraphemeBreakTestTheorem SegmentationDev.Test.GraphemeBreakTestTheoremTests
       # A check that has only ever passed could be checking nothing, so this plants a sorry, a
       # native_decide and a user axiom in throwaway files and fails unless the check rejects each.
       - name: Check that the axiom check rejects forbidden axioms
@@ -73,15 +99,15 @@ jobs:
         run: sh scripts/axiom-gate-self-test.sh
       # Project code may not use sorry, admit, axiom, native_decide, implemented_by, extern or
       # unsafe. The scanner skips comments, plain string text and «» names, where the test files
-      # name these words as prose. It first runs its own exit-code test, which cannot sit in
-      # `lake test` because it imports a second `main`. It then gets every tracked .lean file from
+      # name these words as prose. It first runs its own exit-code test, which the test
+      # driver does not import. It then gets every tracked .lean file from
       # git and fails when given none, so it cannot pass by scanning nothing.
       - name: Check project code for forbidden words
         env:
           LC_ALL: C
         run: |
           set -euo pipefail
-          lake build keyword-scan
+          lake build --wfail keyword-scan
           lake env lean SegmentationDev/Test/KeywordScanMainExitCodes.lean
           git ls-files -z '*.lean' | xargs -0 lake exe keyword-scan
       # The committed tables and GraphemeBreakTest.txt cases must be exactly what
