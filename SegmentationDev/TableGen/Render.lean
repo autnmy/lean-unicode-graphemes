@@ -75,19 +75,19 @@ structure TableSpec (α : Type) where
   valueCode : α → String
 
 def gcbCode : GCB → String
-  | .CR => ".CR" | .LF => ".LF" | .Control => ".Control" | .Extend => ".Extend"
-  | .ZWJ => ".ZWJ" | .RI => ".RI" | .Prepend => ".Prepend"
-  | .SpacingMark => ".SpacingMark" | .L => ".L" | .V => ".V" | .T => ".T"
-  | .LV => ".LV" | .LVT => ".LVT" | .Other => ".Other"
+  | .cr => ".cr" | .lf => ".lf" | .control => ".control" | .extend => ".extend"
+  | .zwj => ".zwj" | .regionalIndicator => ".regionalIndicator" | .prepend => ".prepend"
+  | .spacingMark => ".spacingMark" | .l => ".l" | .v => ".v" | .t => ".t"
+  | .lv => ".lv" | .lvt => ".lvt" | .other => ".other"
 
 def incbCode : InCB → String
-  | .Consonant => ".Consonant" | .Extend => ".Extend" | .Linker => ".Linker"
-  | .None => ".None"
+  | .consonant => ".consonant" | .extend => ".extend" | .linker => ".linker"
+  | .none => ".none"
 
 def gcbSpec : TableSpec GCB where
   path := "Segmentation" / "Tables" / "GraphemeClusterBreak.lean"
   source := "auxiliary/GraphemeBreakProperty.txt"
-  description := "`Grapheme_Cluster_Break` ranges. Code points no range holds are `Other`."
+  description := "`Grapheme_Cluster_Break` ranges. Code points no range holds are `.other`."
   arrayName := "gcbRanges"
   valueType := "GCB"
   valueCode := gcbCode
@@ -103,7 +103,7 @@ def extPictSpec : TableSpec Bool where
 def incbSpec : TableSpec InCB where
   path := "Segmentation" / "Tables" / "IndicConjunctBreak.lean"
   source := "DerivedCoreProperties.txt"
-  description := "`Indic_Conjunct_Break` ranges. Code points no range holds are `None`."
+  description := "`Indic_Conjunct_Break` ranges. Code points no range holds are `.none`."
   arrayName := "incbRanges"
   valueType := "InCB"
   valueCode := incbCode

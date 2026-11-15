@@ -17,21 +17,58 @@ so a change to what the library claims cannot pass unnoticed.
 
 namespace Segmentation
 
-/-- Grapheme_Cluster_Break, UAX #29 Table 2 (Unicode 18.0.0). `Other` is every code point not
+/-- Grapheme_Cluster_Break, UAX #29 Table 2 (Unicode 18.0.0). `other` is every code point not
 listed. -/
 inductive GCB where
-  | CR | LF | Control | Extend | ZWJ | RI | Prepend | SpacingMark | L | V | T | LV | LVT | Other
+  /-- `CR`: carriage return, U+000D. -/
+  | cr
+  /-- `LF`: line feed, U+000A. -/
+  | lf
+  /-- `Control` (`CN`): other control and separator code points. -/
+  | control
+  /-- `Extend` (`EX`): combining marks and other code points that extend the one before. -/
+  | extend
+  /-- `ZWJ`: zero width joiner, U+200D. -/
+  | zwj
+  /-- `Regional_Indicator` (`RI`): the regional indicator symbols that pair into flags. -/
+  | regionalIndicator
+  /-- `Prepend` (`PP`): code points that join the one after them. -/
+  | prepend
+  /-- `SpacingMark` (`SM`): spacing combining marks. -/
+  | spacingMark
+  /-- `L`: Hangul leading consonant jamo. -/
+  | l
+  /-- `V`: Hangul vowel jamo. -/
+  | v
+  /-- `T`: Hangul trailing consonant jamo. -/
+  | t
+  /-- `LV`: Hangul syllable made of a leading consonant and a vowel. -/
+  | lv
+  /-- `LVT`: Hangul syllable made of a leading consonant, a vowel and a trailing consonant. -/
+  | lvt
+  /-- `Other` (`XX`): every code point no other value lists. -/
+  | other
   deriving DecidableEq, Repr
 
 /-- Indic_Conjunct_Break, DerivedCoreProperties.txt. -/
 inductive InCB where
-  | Consonant | Extend | Linker | None
+  /-- `Consonant`: a consonant that a conjunct can join to the one before. -/
+  | consonant
+  /-- `Extend`: a code point that may stand between a linker and the consonant after it. -/
+  | extend
+  /-- `Linker`: a virama that joins the consonants around it into a conjunct. -/
+  | linker
+  /-- `None`: every code point no other value lists. -/
+  | none
   deriving DecidableEq, Repr
 
 /-- The three properties the rules read, for one code point. -/
 structure Props where
+  /-- The code point's Grapheme_Cluster_Break value. -/
   gcb : GCB
+  /-- Whether the code point has Extended_Pictographic=Yes. -/
   extPict : Bool
+  /-- The code point's Indic_Conjunct_Break value. -/
   incb : InCB
   deriving DecidableEq, Repr
 
@@ -40,46 +77,73 @@ abbrev Cls := Props → Bool
 
 /-- A pattern over a run of code points, read left to right. -/
 inductive Pat where
-  | one   (c : Cls)          -- one code point in `c`
-  | star  (c : Cls)          -- `c*`
-  | pairs (c : Cls)          -- `(c c)*`
+  /-- One code point in `c`. -/
+  | one   (c : Cls)
+  /-- `c*`: any number of code points in `c`, none included. -/
+  | star  (c : Cls)
+  /-- `(c c)*`: an even number of code points in `c`, none included. -/
+  | pairs (c : Cls)
+  /-- A run matching `p` followed by a run matching `q`. -/
   | seq   (p q : Pat)
 
 /-- `Pat.Matches p run` holds when the whole run of code point properties `run` matches the
 pattern `p`. -/
 inductive Pat.Matches : Pat → List Props → Prop
+  /-- A single code point in `c` matches `one c`. -/
   | one {c : Cls} {x : Props} : c x = true → Pat.Matches (.one c) [x]
+  /-- The empty run matches `star c`. -/
   | starNil {c : Cls} : Pat.Matches (.star c) []
+  /-- A code point in `c` followed by a run matching `star c` matches `star c`. -/
   | starCons {c : Cls} {x : Props} {xs : List Props} :
       c x = true → Pat.Matches (.star c) xs → Pat.Matches (.star c) (x :: xs)
+  /-- The empty run matches `pairs c`. -/
   | pairsNil {c : Cls} : Pat.Matches (.pairs c) []
+  /-- Two code points in `c` followed by a run matching `pairs c` match `pairs c`. -/
   | pairsCons {c : Cls} {x y : Props} {xs : List Props} :
       c x = true → c y = true → Pat.Matches (.pairs c) xs →
       Pat.Matches (.pairs c) (x :: y :: xs)
+  /-- A run matching `p` followed by a run matching `q` matches `seq p q`. -/
   | seq {p : Pat} {xs : List Props} {q : Pat} {ys : List Props} :
       Pat.Matches p xs → Pat.Matches q ys → Pat.Matches (.seq p q) (xs ++ ys)
 
 /-- The left side of a rule, read against the text before the position. -/
 inductive Left where
-  | any                          -- nothing written
-  | sot     (p : Pat)            -- `sot p`: the whole text before matches `p`
-  | ending  (p : Pat)            -- the text before ends with a run matching `p`
-  | notThen (c : Cls) (p : Pat)  -- `[^c] p`: that run is preceded by a code point not in `c`
+  /-- Nothing written: any text before holds. -/
+  | any
+  /-- `sot p`: the whole text before matches `p`. -/
+  | sot     (p : Pat)
+  /-- The text before ends with a run matching `p`. -/
+  | ending  (p : Pat)
+  /-- `[^c] p`: the text before ends with a run matching `p`, preceded by a code point not in
+  `c`. -/
+  | notThen (c : Cls) (p : Pat)
 
 /-- The right side of a rule, read against the text after the position. -/
 inductive Right where
-  | any | eot | one (c : Cls)
+  /-- Nothing written: any text after holds, the empty text included. -/
+  | any
+  /-- `eot`: the text after is empty. -/
+  | eot
+  /-- The text after starts with a code point in `c`. -/
+  | one (c : Cls)
 
 /-- What a rule says about a position: a boundary (÷, `brk`) or no boundary (×, `noBrk`). -/
 inductive Verdict where
-  | brk | noBrk
+  /-- ÷: a boundary. -/
+  | brk
+  /-- ×: no boundary. -/
+  | noBrk
 
 /-- One rule of UAX #29: its name in the standard (such as `GB9c`), the text it needs before
 and after the position, and its verdict. -/
 structure Rule where
+  /-- The rule's name in the standard, such as `GB9c`. -/
   name : String
+  /-- What the text before the position must look like. -/
   left : Left
+  /-- What the text after the position must look like. -/
   right : Right
+  /-- Whether the rule puts a boundary at the position. -/
   verdict : Verdict
 
 /-- A left side holds for `pre`, the properties of the text before the position. -/
@@ -111,27 +175,28 @@ open GCB in
 def rules : List Rule := [
   ⟨"GB1",   .sot nothing,                             .one anyCp,                      .brk⟩,
   ⟨"GB2",   .ending (.one anyCp),                     .eot,                            .brk⟩,
-  ⟨"GB3",   .ending (.one (gcbIn [CR])),              .one (gcbIn [LF]),               .noBrk⟩,
-  ⟨"GB4",   .ending (.one (gcbIn [Control, CR, LF])), .any,                            .brk⟩,
-  ⟨"GB5",   .any,                                     .one (gcbIn [Control, CR, LF]),  .brk⟩,
-  ⟨"GB6",   .ending (.one (gcbIn [L])),               .one (gcbIn [L, V, LV, LVT]),    .noBrk⟩,
-  ⟨"GB7",   .ending (.one (gcbIn [LV, V])),           .one (gcbIn [V, T]),             .noBrk⟩,
-  ⟨"GB8",   .ending (.one (gcbIn [LVT, T])),          .one (gcbIn [T]),                .noBrk⟩,
-  ⟨"GB9",   .any,                                     .one (gcbIn [Extend, ZWJ]),      .noBrk⟩,
-  ⟨"GB9a",  .any,                                     .one (gcbIn [SpacingMark]),      .noBrk⟩,
-  ⟨"GB9b",  .ending (.one (gcbIn [Prepend])),         .any,                            .noBrk⟩,
-  ⟨"GB9c",  .ending (.seq (.one (incbIs .Linker)) (.star (incbIs .Extend))),
-                                                      .one (incbIs .Consonant),        .noBrk⟩,
-  ⟨"GB11",  .ending (.seq (.one isExtPict) (.seq (.star (gcbIn [Extend])) (.one (gcbIn [ZWJ])))),
+  ⟨"GB3",   .ending (.one (gcbIn [cr])),              .one (gcbIn [lf]),               .noBrk⟩,
+  ⟨"GB4",   .ending (.one (gcbIn [control, cr, lf])), .any,                            .brk⟩,
+  ⟨"GB5",   .any,                                     .one (gcbIn [control, cr, lf]),  .brk⟩,
+  ⟨"GB6",   .ending (.one (gcbIn [l])),               .one (gcbIn [l, v, lv, lvt]),    .noBrk⟩,
+  ⟨"GB7",   .ending (.one (gcbIn [lv, v])),           .one (gcbIn [v, t]),             .noBrk⟩,
+  ⟨"GB8",   .ending (.one (gcbIn [lvt, t])),          .one (gcbIn [t]),                .noBrk⟩,
+  ⟨"GB9",   .any,                                     .one (gcbIn [extend, zwj]),      .noBrk⟩,
+  ⟨"GB9a",  .any,                                     .one (gcbIn [spacingMark]),      .noBrk⟩,
+  ⟨"GB9b",  .ending (.one (gcbIn [prepend])),         .any,                            .noBrk⟩,
+  ⟨"GB9c",  .ending (.seq (.one (incbIs .linker)) (.star (incbIs .extend))),
+                                                      .one (incbIs .consonant),        .noBrk⟩,
+  ⟨"GB11",  .ending (.seq (.one isExtPict) (.seq (.star (gcbIn [extend])) (.one (gcbIn [zwj])))),
                                                       .one isExtPict,                  .noBrk⟩,
-  ⟨"GB12",  .sot (.seq (.pairs (gcbIn [RI])) (.one (gcbIn [RI]))),
-                                                      .one (gcbIn [RI]),               .noBrk⟩,
-  ⟨"GB13",  .notThen (gcbIn [RI]) (.seq (.pairs (gcbIn [RI])) (.one (gcbIn [RI]))),
-                                                      .one (gcbIn [RI]),               .noBrk⟩,
+  ⟨"GB12",  .sot (.seq (.pairs (gcbIn [regionalIndicator])) (.one (gcbIn [regionalIndicator]))),
+                                                      .one (gcbIn [regionalIndicator]), .noBrk⟩,
+  ⟨"GB13",  .notThen (gcbIn [regionalIndicator])
+              (.seq (.pairs (gcbIn [regionalIndicator])) (.one (gcbIn [regionalIndicator]))),
+                                                      .one (gcbIn [regionalIndicator]), .noBrk⟩,
   ⟨"GB999", .ending (.one anyCp),                     .one anyCp,                      .brk⟩ ]
 
 -- The statements take the property lookup and the segmenter as parameters, so this file is
--- committed (L3) before either exists. The final theorems apply them to the library's own
+-- committed before either exists. The final theorems apply them to the library's own
 -- `props` (the generated tables), `graphemes` and `boundaries`:
 -- `theorem graphemes_join : JoinRestoresInput graphemes := ...`.
 variable (props : Char → Props) (graphemes : String → List String)
@@ -149,20 +214,20 @@ def IsBoundary (cs : List Char) (i : Nat) : Prop :=
 /-- The positions between the clusters of `gs`, counted in code points from the start. -/
 def cutPoints (gs : List String) : List Nat := (gs.map String.length).scanl (· + ·) 0
 
-/-- H1a, partition: the clusters put back together are the input. -/
+/-- The clusters put back together are the input. -/
 def JoinRestoresInput : Prop := ∀ s : String, String.join (graphemes s) = s
 
-/-- H1b, partition: none of the clusters is empty. -/
+/-- None of the clusters is empty. -/
 def ClustersNonEmpty : Prop := ∀ s : String, ∀ g ∈ graphemes s, g ≠ ""
 
-/-- H2, the rules: at every position of a non-empty text, ends included, a cut falls exactly
-where UAX #29 puts a boundary. The ends make GB1 and GB2 live in the proof. The empty text is
-left out because no rule applies to it, while `cutPoints []` is `[0]`; `JoinRestoresInput` and
-`ClustersNonEmpty` cover it. -/
+/-- At every position of a non-empty text, ends included, a cut falls exactly where UAX #29 puts
+a boundary. The ends make GB1 and GB2 live in the proof. The empty text is left out because no
+rule applies to it, while `cutPoints []` is `[0]`; `JoinRestoresInput` and `ClustersNonEmpty`
+cover it. -/
 def CutsMatchRules : Prop := ∀ (s : String) (i : Nat), s ≠ "" → i ≤ s.length →
   (i ∈ cutPoints (graphemes s) ↔ IsBoundary props s.toList i)
 
-/-- H2', the two functions agree: `boundaries` lists the cut points of `graphemes`. -/
+/-- The two functions agree: `boundaries` lists the cut points of `graphemes`. -/
 def BoundariesMatchCuts : Prop := ∀ s : String, boundaries s = cutPoints (graphemes s)
 
 end Segmentation

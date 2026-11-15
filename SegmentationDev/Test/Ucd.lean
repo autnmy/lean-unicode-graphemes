@@ -26,29 +26,29 @@ def isError {α : Type} : Except String α → Bool
   | .ok _ => false
 
 -- Every Grapheme_Cluster_Break name the file uses, against the constructor it must give.
-#guard single (SegmentationDev.TableGen.parseGcb "0041 ; CR # x") == some (0x41, 0x41, GCB.CR)
-#guard single (SegmentationDev.TableGen.parseGcb "0041 ; LF # x") == some (0x41, 0x41, GCB.LF)
-#guard single (SegmentationDev.TableGen.parseGcb "0041 ; Control # x") == some (0x41, 0x41, GCB.Control)
-#guard single (SegmentationDev.TableGen.parseGcb "0041 ; Extend # x") == some (0x41, 0x41, GCB.Extend)
-#guard single (SegmentationDev.TableGen.parseGcb "0041 ; ZWJ # x") == some (0x41, 0x41, GCB.ZWJ)
-#guard single (SegmentationDev.TableGen.parseGcb "0041 ; Regional_Indicator # x") == some (0x41, 0x41, GCB.RI)
-#guard single (SegmentationDev.TableGen.parseGcb "0041 ; Prepend # x") == some (0x41, 0x41, GCB.Prepend)
-#guard single (SegmentationDev.TableGen.parseGcb "0041 ; SpacingMark # x") == some (0x41, 0x41, GCB.SpacingMark)
-#guard single (SegmentationDev.TableGen.parseGcb "0041 ; L # x") == some (0x41, 0x41, GCB.L)
-#guard single (SegmentationDev.TableGen.parseGcb "0041 ; V # x") == some (0x41, 0x41, GCB.V)
-#guard single (SegmentationDev.TableGen.parseGcb "0041 ; T # x") == some (0x41, 0x41, GCB.T)
-#guard single (SegmentationDev.TableGen.parseGcb "0041 ; LV # x") == some (0x41, 0x41, GCB.LV)
-#guard single (SegmentationDev.TableGen.parseGcb "0041 ; LVT # x") == some (0x41, 0x41, GCB.LVT)
+#guard single (SegmentationDev.TableGen.parseGcb "0041 ; CR # x") == some (0x41, 0x41, GCB.cr)
+#guard single (SegmentationDev.TableGen.parseGcb "0041 ; LF # x") == some (0x41, 0x41, GCB.lf)
+#guard single (SegmentationDev.TableGen.parseGcb "0041 ; Control # x") == some (0x41, 0x41, GCB.control)
+#guard single (SegmentationDev.TableGen.parseGcb "0041 ; Extend # x") == some (0x41, 0x41, GCB.extend)
+#guard single (SegmentationDev.TableGen.parseGcb "0041 ; ZWJ # x") == some (0x41, 0x41, GCB.zwj)
+#guard single (SegmentationDev.TableGen.parseGcb "0041 ; Regional_Indicator # x") == some (0x41, 0x41, GCB.regionalIndicator)
+#guard single (SegmentationDev.TableGen.parseGcb "0041 ; Prepend # x") == some (0x41, 0x41, GCB.prepend)
+#guard single (SegmentationDev.TableGen.parseGcb "0041 ; SpacingMark # x") == some (0x41, 0x41, GCB.spacingMark)
+#guard single (SegmentationDev.TableGen.parseGcb "0041 ; L # x") == some (0x41, 0x41, GCB.l)
+#guard single (SegmentationDev.TableGen.parseGcb "0041 ; V # x") == some (0x41, 0x41, GCB.v)
+#guard single (SegmentationDev.TableGen.parseGcb "0041 ; T # x") == some (0x41, 0x41, GCB.t)
+#guard single (SegmentationDev.TableGen.parseGcb "0041 ; LV # x") == some (0x41, 0x41, GCB.lv)
+#guard single (SegmentationDev.TableGen.parseGcb "0041 ; LVT # x") == some (0x41, 0x41, GCB.lvt)
 
 -- A range, as the file writes it, with comment lines around it.
 #guard single (SegmentationDev.TableGen.parseGcb "# @missing: 0000..10FFFF; Other\n\n0300..036F    ; Extend # Mn [112] x\n") ==
-  some (0x300, 0x36F, GCB.Extend)
+  some (0x300, 0x36F, GCB.extend)
 
 -- Every InCB value a line can carry. A text with only other properties' lines
 -- parses to nothing, which is an error.
-#guard single (SegmentationDev.TableGen.parseIncb "0041 ; InCB; Consonant # x") == some (0x41, 0x41, InCB.Consonant)
-#guard single (SegmentationDev.TableGen.parseIncb "0041 ; InCB; Extend # x") == some (0x41, 0x41, InCB.Extend)
-#guard single (SegmentationDev.TableGen.parseIncb "0041 ; InCB; Linker # x") == some (0x41, 0x41, InCB.Linker)
+#guard single (SegmentationDev.TableGen.parseIncb "0041 ; InCB; Consonant # x") == some (0x41, 0x41, InCB.consonant)
+#guard single (SegmentationDev.TableGen.parseIncb "0041 ; InCB; Extend # x") == some (0x41, 0x41, InCB.extend)
+#guard single (SegmentationDev.TableGen.parseIncb "0041 ; InCB; Linker # x") == some (0x41, 0x41, InCB.linker)
 #guard isError (SegmentationDev.TableGen.parseIncb "0041 ; Alphabetic # x")
 #guard isError (SegmentationDev.TableGen.parseIncb "094D ; InCB # value missing")
 
@@ -60,7 +60,7 @@ set_option maxRecDepth 20000 in
 theorem «parseIncb reads only InCB lines and takes the value from the third field» :
     (match SegmentationDev.TableGen.parseIncb
         "0915          ; Alphabetic # Lo       DEVANAGARI LETTER KA\n094D          ; InCB; Linker # Mn       DEVANAGARI SIGN VIRAMA\n" with
-     | .ok [r] => r.lo == 0x094D && r.hi == 0x094D && r.value == Segmentation.InCB.Linker
+     | .ok [r] => r.lo == 0x094D && r.hi == 0x094D && r.value == Segmentation.InCB.linker
      | _ => false) = true := by decide
 
 -- Only Consonant, Extend and Linker are InCB values the type can hold.
@@ -102,38 +102,38 @@ theorem «parseGcb rejects a misspelled value name instead of falling back to Ot
 -- Overlapping entries with different values: U+0043 is claimed by both. Keeping
 -- either one silently would write a table that no longer says what the file says.
 def overlapping : List (Range GCB) :=
-  [{ lo := 0x41, hi := 0x45, value := .Control }, { lo := 0x43, hi := 0x43, value := .Extend }]
+  [{ lo := 0x41, hi := 0x45, value := .control }, { lo := 0x43, hi := 0x43, value := .extend }]
 
-#guard isError (SegmentationDev.TableGen.paint GCB.Other overlapping)
+#guard isError (SegmentationDev.TableGen.paint GCB.other overlapping)
 
 theorem «normalize rejects overlapping entries with different values instead of keeping the last» :
     (match SegmentationDev.TableGen.normalize
-        [({ lo := 0x41, hi := 0x45, value := Segmentation.GCB.Control } : Segmentation.Tables.Range Segmentation.GCB),
-         { lo := 0x43, hi := 0x43, value := Segmentation.GCB.Extend }] with
+        [({ lo := 0x41, hi := 0x45, value := Segmentation.GCB.control } : Segmentation.Tables.Range Segmentation.GCB),
+         { lo := 0x43, hi := 0x43, value := Segmentation.GCB.extend }] with
      | .error _ => true
      | .ok _ => false) = true := by decide
 
 -- `normalize` sorts and joins touching ranges of one value, and keeps others apart.
 def mergeResult : Option (List (Nat × Nat × GCB)) :=
   match SegmentationDev.TableGen.normalize
-      [({ lo := 0x50, hi := 0x50, value := .Extend } : Range GCB),
-       { lo := 0x43, hi := 0x43, value := .L }, { lo := 0x41, hi := 0x42, value := .L }] with
+      [({ lo := 0x50, hi := 0x50, value := .extend } : Range GCB),
+       { lo := 0x43, hi := 0x43, value := .l }, { lo := 0x41, hi := 0x42, value := .l }] with
   | .ok ranges => some (ranges.map fun r => (r.lo, r.hi, r.value))
   | .error _ => none
 
-#guard mergeResult == some [(0x41, 0x43, GCB.L), (0x50, 0x50, GCB.Extend)]
+#guard mergeResult == some [(0x41, 0x43, GCB.l), (0x50, 0x50, GCB.extend)]
 
 -- `paint` gives every code point a value, the default where no entry lists it.
 def painted : Option (Array GCB) :=
-  match SegmentationDev.TableGen.paint GCB.Other [{ lo := 0x41, hi := 0x42, value := .L }] with
+  match SegmentationDev.TableGen.paint GCB.other [{ lo := 0x41, hi := 0x42, value := .l }] with
   | .ok values => some values
   | .error _ => none
 
 #guard (painted.map (·.size)) == some 0x110000
-#guard (painted.bind (·[0x41]?)) == some GCB.L
-#guard (painted.bind (·[0x42]?)) == some GCB.L
-#guard (painted.bind (·[0x43]?)) == some GCB.Other
-#guard (painted.bind (·[0x10FFFF]?)) == some GCB.Other
+#guard (painted.bind (·[0x41]?)) == some GCB.l
+#guard (painted.bind (·[0x42]?)) == some GCB.l
+#guard (painted.bind (·[0x43]?)) == some GCB.other
+#guard (painted.bind (·[0x10FFFF]?)) == some GCB.other
 
 -- The digest list must name exactly the five expected files.
 def digestLine (path : String) : String :=

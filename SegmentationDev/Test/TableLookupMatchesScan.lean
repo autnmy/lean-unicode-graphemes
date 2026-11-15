@@ -19,17 +19,17 @@ open Segmentation Segmentation.Tables in
 -- The statements carry no hypothesis, so the sortedness of the real tables must be proved, not
 -- left to callers.
 theorem «gcbOf, extPictOf and incbOf equal the scan for every n with no sortedness premise» :
-    (∀ n : Nat, gcbOf n = Range.scan .Other gcbRanges n) ∧
+    (∀ n : Nat, gcbOf n = Range.scan .other gcbRanges n) ∧
     (∀ n : Nat, extPictOf n = Range.scan false extPictRanges n) ∧
-    (∀ n : Nat, incbOf n = Range.scan .None incbRanges n) :=
+    (∀ n : Nat, incbOf n = Range.scan .none incbRanges n) :=
   ⟨gcbOf_eq_scan, extPictOf_eq_scan, incbOf_eq_scan⟩
 
 open Segmentation Segmentation.Tables in
 theorem «props reads every property through the linear scan of its table for every Char» :
     ∀ c : Char, props c =
-      { gcb := Range.scan GCB.Other gcbRanges c.toNat,
+      { gcb := Range.scan GCB.other gcbRanges c.toNat,
         extPict := Range.scan false extPictRanges c.toNat,
-        incb := Range.scan InCB.None incbRanges c.toNat } :=
+        incb := Range.scan InCB.none incbRanges c.toNat } :=
   props_eq_scan
 
 -- The scan is evaluated directly, then carried back to the lookups through the corollaries, so
@@ -37,8 +37,8 @@ theorem «props reads every property through the linear scan of its table for ev
 open Segmentation Segmentation.Tables in
 set_option maxRecDepth 20000 in
 theorem «the linear scan of the committed tables gives the file values for U+094D, U+00A9 and U+10FFFF» :
-    incbOf 0x094D = InCB.Linker ∧ extPictOf 0x00A9 = true ∧ extPictOf 0x0041 = false ∧
-      incbOf 0x10FFFF = InCB.None := by
+    incbOf 0x094D = InCB.linker ∧ extPictOf 0x00A9 = true ∧ extPictOf 0x0041 = false ∧
+      incbOf 0x10FFFF = InCB.none := by
   rw [incbOf_eq_scan, incbOf_eq_scan, extPictOf_eq_scan, extPictOf_eq_scan]
   decide
 

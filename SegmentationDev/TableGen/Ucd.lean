@@ -51,18 +51,18 @@ def digestFiles : List String := [
 
 /-- The UCD spelling of each `Grapheme_Cluster_Break` value the rules use. -/
 def gcbNames : List (String × GCB) := [
-  ("CR", .CR), ("LF", .LF), ("Control", .Control), ("Extend", .Extend),
-  ("ZWJ", .ZWJ), ("Regional_Indicator", .RI), ("Prepend", .Prepend),
-  ("SpacingMark", .SpacingMark), ("L", .L), ("V", .V), ("T", .T),
-  ("LV", .LV), ("LVT", .LVT)
+  ("CR", .cr), ("LF", .lf), ("Control", .control), ("Extend", .extend),
+  ("ZWJ", .zwj), ("Regional_Indicator", .regionalIndicator), ("Prepend", .prepend),
+  ("SpacingMark", .spacingMark), ("L", .l), ("V", .v), ("T", .t),
+  ("LV", .lv), ("LVT", .lvt)
 ]
 
 /--
 The UCD spelling of each `Indic_Conjunct_Break` value a file line can carry.
-`None` is the value of every code point no line lists.
+`.none` is the value of every code point no line lists.
 -/
 def incbNames : List (String × InCB) := [
-  ("Consonant", .Consonant), ("Extend", .Extend), ("Linker", .Linker)
+  ("Consonant", .consonant), ("Extend", .extend), ("Linker", .linker)
 ]
 
 /-! ## Text helpers on `List Char` -/

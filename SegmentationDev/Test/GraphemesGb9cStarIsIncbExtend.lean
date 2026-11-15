@@ -8,10 +8,10 @@ set_option maxRecDepth 20000 in
 theorem «clustersOf does not apply GB9c across a GCB Extend mark that is not InCB Extend» :
     Segmentation.clustersOf
       (fun c =>
-        if c = 'L' then { gcb := .Extend, extPict := false, incb := .Linker }
-        else if c = 'e' then { gcb := .Extend, extPict := false, incb := .None }
-        else if c = 'K' then { gcb := .Other, extPict := false, incb := .Consonant }
-        else { gcb := .Other, extPict := false, incb := .None })
+        if c = 'L' then { gcb := .extend, extPict := false, incb := .linker }
+        else if c = 'e' then { gcb := .extend, extPict := false, incb := .none }
+        else if c = 'K' then { gcb := .other, extPict := false, incb := .consonant }
+        else { gcb := .other, extPict := false, incb := .none })
       ['L', 'e', 'K'] =
     [['L', 'e'], ['K']] := by
   decide

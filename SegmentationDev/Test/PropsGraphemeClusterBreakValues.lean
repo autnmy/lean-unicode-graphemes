@@ -9,6 +9,6 @@ theorem «props gives the Grapheme_Cluster_Break value the UCD file lists for on
     (['\u000D', '\u000A', '\u0000', '\u0300', '\u200D', Char.ofNat 0x1F1E6, '\u0600',
       '\u0903', '\u1100', '\u1160', '\u11A8', '\uAC00', '\uAC01', 'A'].map
         fun c => (Segmentation.Tables.props c).gcb)
-      = [GCB.CR, GCB.LF, GCB.Control, GCB.Extend, GCB.ZWJ, GCB.RI, GCB.Prepend,
-         GCB.SpacingMark, GCB.L, GCB.V, GCB.T, GCB.LV, GCB.LVT, GCB.Other] := by
+      = [GCB.cr, GCB.lf, GCB.control, GCB.extend, GCB.zwj, GCB.regionalIndicator, GCB.prepend,
+         GCB.spacingMark, GCB.l, GCB.v, GCB.t, GCB.lv, GCB.lvt, GCB.other] := by
   decide

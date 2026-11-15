@@ -7,9 +7,9 @@ set_option maxRecDepth 20000 in
 theorem «clustersOf clears the GB9c state at a code point that is neither linker nor InCB Extend (GraphemeBreakTest line 858 order)» :
     Segmentation.clustersOf
       (fun c =>
-        if c = 'L' then { gcb := .Extend, extPict := false, incb := .Linker }
-        else if c = 'K' then { gcb := .Other, extPict := false, incb := .Consonant }
-        else { gcb := .Other, extPict := false, incb := .None })
+        if c = 'L' then { gcb := .extend, extPict := false, incb := .linker }
+        else if c = 'K' then { gcb := .other, extPict := false, incb := .consonant }
+        else { gcb := .other, extPict := false, incb := .none })
       ['K', 'L', 'x', 'K'] =
     [['K', 'L'], ['x'], ['K']] := by
   decide

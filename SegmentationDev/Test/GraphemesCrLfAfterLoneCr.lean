@@ -7,9 +7,9 @@ set_option maxRecDepth 20000 in
 theorem «clustersOf joins CR LF but keeps a lone CR before it apart (GB3 against GB4)» :
     Segmentation.clustersOf
       (fun c =>
-        if c = '\r' then { gcb := .CR, extPict := false, incb := .None }
-        else if c = '\n' then { gcb := .LF, extPict := false, incb := .None }
-        else { gcb := .Other, extPict := false, incb := .None })
+        if c = '\r' then { gcb := .cr, extPict := false, incb := .none }
+        else if c = '\n' then { gcb := .lf, extPict := false, incb := .none }
+        else { gcb := .other, extPict := false, incb := .none })
       ['\r', '\r', '\n'] =
     [['\r'], ['\r', '\n']] := by
   decide
