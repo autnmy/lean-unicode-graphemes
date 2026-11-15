@@ -24,7 +24,7 @@ applies_when:
 
 `lake exe gen-tables` reads the Unicode data files and writes the range tables. `lake test` then reads the same files and checks the table lookup for every code point U+0000..U+10FFFF. Both sides read the files through the same parsers in `SegmentationDev/TableGen/Ucd.lean`.
 
-So the exhaustive check cannot catch one kind of bug. Suppose the parser maps the name `Extend` to `.SpacingMark`, or reads an unknown name as the default `Other`. Then the generator and the reference get the same wrong value, and all 1,114,112 comparisons still pass.
+So the exhaustive check cannot catch one kind of bug. Suppose the parser maps the name `Extend` to `.spacingMark`, or reads an unknown name as the default `.other`. Then the generator and the reference get the same wrong value, and all 1,114,112 comparisons still pass.
 
 ## Solution
 
