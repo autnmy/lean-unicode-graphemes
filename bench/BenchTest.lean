@@ -14,6 +14,8 @@ import BenchTest.FirstDifferenceEqualLists
 import BenchTest.CheckAllNamesLaterInput
 import BenchTest.CheckAllFirstInputInOrder
 import BenchTest.ExitCodeFor
+import BenchTest.SummarizeStats
+import BenchTest.ReportRendering
 
 /-!
 # Benchmark test driver
