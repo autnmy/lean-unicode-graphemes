@@ -68,13 +68,13 @@ theorem graphemes_match_graphemeBreakTest :
 
 -- GraphemeBreakTest.txt line 840: ÷ 0061 × 0308 ÷ 0062 ÷. A segmenter that never joins splits
 -- the letter from its mark, so the comparison must report this line.
-theorem «mismatches reports line 840 for a segmenter that never joins» :
+theorem mismatches_never_joining_segmenter_eq_line_840 :
     mismatches (fun cps => cps.map ([·]))
       [.ofClusters 840 [[0x61, 0x308], [0x62]]] = [840] := by
   decide +kernel
 
 -- With no cases nothing is compared, so the count check alone must make this false.
-theorem «linesMatch rejects an empty case list» :
+theorem linesMatch_nil_eq_false :
     linesMatch coreClusters [] = false := by
   decide +kernel
 
