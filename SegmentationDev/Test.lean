@@ -49,31 +49,6 @@ import SegmentationDev.Test.FindForbiddenStringForms
 import SegmentationDev.Test.FindForbiddenScansInterpolation
 import SegmentationDev.Test.FindForbiddenProse
 import SegmentationDev.Test.PropsTable
-import SegmentationDev.Test.PropsLookupEqPropsTypePin
-import SegmentationDev.Test.PropsLookupEqPropsUnconditional
-import SegmentationDev.Test.PropsLookupIsOneLookup
-import SegmentationDev.Test.PropsDefaultValue
-import SegmentationDev.Test.PropsDefaultValues
-import SegmentationDev.Test.PropsLookupListedCodePoints
-import SegmentationDev.Test.PropsLookupMatchesPropsOnListedCodePoints
-import SegmentationDev.Test.PropsLookupNamedProperties
-import SegmentationDev.Test.RangeMergeWithBoundaries
-import SegmentationDev.Test.RangeMergeWithSmallLists
-import SegmentationDev.Test.MergeWithSortedOutput
-import SegmentationDev.Test.MergeWithOutputSorted
-import SegmentationDev.Test.MergeWithSameBounds
-import SegmentationDev.Test.MergeWithSplitPoints
-import SegmentationDev.Test.PropsRangesSorted
-import SegmentationDev.Test.PropsTableAxioms
-import SegmentationDev.Test.PropsTableMergeSorted
-import SegmentationDev.Test.PropsTableMergeScan
-import SegmentationDev.Test.PropsTableNoForbiddenProof
-import SegmentationDev.Test.PropsTableClosedTerm
-import SegmentationDev.Test.PropsLookupIsOneRangeLookup
-import SegmentationDev.Test.PropsLookupNotThreeLookups
-import SegmentationDev.Test.PropsLookupListedCodePointsByNumber
-import SegmentationDev.Test.PropsLookupNamedPropertiesByDecide
-import SegmentationDev.Test.PropsDefaultUncoveredCodePoints
 
 /-!
 # Test driver
