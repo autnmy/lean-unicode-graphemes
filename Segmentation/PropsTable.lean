@@ -407,7 +407,8 @@ private theorem Range.scanList_mergeSteps {α β γ : Type} (f : α → β → �
             Range.scanList_cons_of_holds x (by omega), Range.scanList_cons_below hb (by omega)]
         · have hbudget : Range.mergeBudget
               ({ lo := y.lo, hi := x.hi, value := x.value } :: a) (y :: b) ≤ steps := by
-            simp [Range.mergeBudget, Nat.ne_of_lt hxy] at hsteps ⊢
+            simp only [Range.mergeBudget, Nat.ne_of_lt hxy, ↓reduceIte, Nat.reduceLeDiff]
+              at hsteps ⊢
             omega
           rw [Range.scanList_cons_of_not_holds
               { lo := x.lo, hi := y.lo - 1, value := f x.value db } hin,
@@ -434,7 +435,8 @@ private theorem Range.scanList_mergeSteps {α β γ : Type} (f : α → β → �
               Range.scanList_cons_of_holds y (by omega), Range.scanList_cons_below ha (by omega)]
           · have hbudget : Range.mergeBudget (x :: a)
                 ({ lo := x.lo, hi := y.hi, value := y.value } :: b) ≤ steps := by
-              simp [Range.mergeBudget, Ne.symm (Nat.ne_of_lt hyx)] at hsteps ⊢
+              simp only [Range.mergeBudget, Ne.symm (Nat.ne_of_lt hyx), ↓reduceIte,
+                Nat.reduceLeDiff] at hsteps ⊢
               omega
             rw [Range.scanList_cons_of_not_holds
                 { lo := y.lo, hi := x.lo - 1, value := f da y.value } hin,
