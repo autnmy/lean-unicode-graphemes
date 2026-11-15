@@ -6,7 +6,7 @@ component: table_generation
 severity: medium
 audience: both
 related_components:
-  - SegmentationTest
+  - SegmentationDev.Test
   - Segmentation.Tables
 tags:
   - unicode-data
@@ -15,14 +15,14 @@ tags:
   - parser
 applies_when:
   - A generator writes tables from data files and a test compares the tables with the same files
-  - Adding a new property table or a new value name to TableGen/Ucd.lean
+  - Adding a new property table or a new value name to SegmentationDev/TableGen/Ucd.lean
 ---
 
 # A shared parser hides its own mistakes from the exhaustive table check
 
 ## Context
 
-`lake exe gen-tables` reads the Unicode data files and writes the range tables. `lake test` then reads the same files and checks the table lookup for every code point U+0000..U+10FFFF. Both sides read the files through the same parsers in `TableGen/Ucd.lean`.
+`lake exe gen-tables` reads the Unicode data files and writes the range tables. `lake test` then reads the same files and checks the table lookup for every code point U+0000..U+10FFFF. Both sides read the files through the same parsers in `SegmentationDev/TableGen/Ucd.lean`.
 
 So the exhaustive check cannot catch one kind of bug. Suppose the parser maps the name `Extend` to `.SpacingMark`, or reads an unknown name as the default `Other`. Then the generator and the reference get the same wrong value, and all 1,114,112 comparisons still pass.
 
@@ -42,7 +42,7 @@ An exhaustive check looks like proof, so reviewers rarely look past it. But it o
 
 ## Evidence
 
-- PR #12 adds the parsers, `normalize` and `paint` in `TableGen/Ucd.lean`. Its module comment says that a default would give the same wrong answer on both sides.
-- `SegmentationTest/DataChecks.lean` builds the reference with `paint` in `loadReference`, and `checkReferenceSpots` checks it against fixed values.
-- `SegmentationTest/Ucd.lean` has one `#guard` for each Grapheme_Cluster_Break and InCB name, each against a constructor written in the test.
-- Theorems in `SegmentationTest/Ucd.lean` check that an unknown name and an empty file are errors.
+- PR #12 adds the parsers, `normalize` and `paint` in `SegmentationDev/TableGen/Ucd.lean`. Its module comment says that a default would give the same wrong answer on both sides.
+- `SegmentationDev/Test/DataChecks.lean` builds the reference with `paint` in `loadReference`, and `checkReferenceSpots` checks it against fixed values.
+- `SegmentationDev/Test/Ucd.lean` has one `#guard` for each Grapheme_Cluster_Break and InCB name, each against a constructor written in the test.
+- Theorems in `SegmentationDev/Test/Ucd.lean` check that an unknown name and an empty file are errors.

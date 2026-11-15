@@ -1,12 +1,12 @@
 ---
-module: SegmentationTest
+module: SegmentationDev.Test
 date: 2026-11-12
 problem_type: convention
 component: testing_framework
 severity: high
 audience: both
 related_components:
-  - Gate.Axioms
+  - SegmentationDev.Gate.Axioms
 tags:
   - adddecl
   - run-tac
@@ -22,7 +22,7 @@ applies_when:
 
 ## Context
 
-`SegmentationTest/AssertAxiomsRejectsForeignAxiom.lean` checks that `#assert_axioms` rejects a theorem that depends on an axiom outside the allowed list. It cannot write `axiom` in source, because project code bans that word. So it uses `addDecl` inside `run_tac` to add an axiom of type `False`, plus a theorem that uses it.
+`SegmentationDev/Test/AssertAxiomsRejectsForeignAxiom.lean` checks that `#assert_axioms` rejects a theorem that depends on an axiom outside the allowed list. It cannot write `axiom` in source, because project code bans that word. So it uses `addDecl` inside `run_tac` to add an axiom of type `False`, plus a theorem that uses it.
 
 Before the fix, the code did not remove the declarations when the proof ended. `addDecl` changes the environment of the module being elaborated, and Lean saves that environment in the compiled module. Every file that imports the test module then gets the axiom of `False`. Restoring the saved messages does not remove the declarations. A check that imported the built module confirmed that the axiom was exported.
 
@@ -46,6 +46,6 @@ A saved axiom of `False` in a test module can prove anything in any module that 
 
 ## Evidence
 
-- PR #23 adds `SegmentationTest/AssertAxiomsRejectsForeignAxiom.lean`. It saves `envBefore ← getEnv` before the two `addDecl` calls and calls `setEnv envBefore` after the rejection check. Its comment says the restore stops the axiom of `False` from being exported to importing modules.
-- `SegmentationTest.lean` in PR #23 imports this test module, so `lake test` builds it alongside the other tests.
-- Verification step to run: `lake build SegmentationTest.AssertAxiomsRejectsForeignAxiom`. Then elaborate a file that imports it and lists constants whose names end in `.GateAcceptance.foreignAxiom`. The list must be empty.
+- PR #23 adds `SegmentationDev/Test/AssertAxiomsRejectsForeignAxiom.lean`. It saves `envBefore ← getEnv` before the two `addDecl` calls and calls `setEnv envBefore` after the rejection check. Its comment says the restore stops the axiom of `False` from being exported to importing modules.
+- `SegmentationDev/Test.lean` in PR #23 imports this test module, so `lake test` builds it alongside the other tests.
+- Verification step to run: `lake build SegmentationDev.Test.AssertAxiomsRejectsForeignAxiom`. Then elaborate a file that imports it and lists constants whose names end in `.GateAcceptance.foreignAxiom`. The list must be empty.

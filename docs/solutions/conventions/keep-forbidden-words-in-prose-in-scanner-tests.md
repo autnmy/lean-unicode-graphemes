@@ -1,12 +1,12 @@
 ---
-module: SegmentationTest
+module: SegmentationDev.Test
 date: 2026-11-13
 problem_type: convention
 component: testing_framework
 severity: medium
 audience: both
 related_components:
-  - Gate.KeywordScan
+  - SegmentationDev.Gate.KeywordScan
   - CI
 tags:
   - keyword-scan
@@ -15,14 +15,14 @@ tags:
   - test-inputs
 applies_when:
   - Writing a test whose input contains sorry, admit, axiom, native_decide, implemented_by, extern or unsafe
-  - Writing an error message in a test of Gate.findForbidden
+  - Writing an error message in a test of SegmentationDev.Gate.findForbidden
 ---
 
 # Keep forbidden words in prose positions inside scanner tests
 
 ## Context
 
-The forbidden-word scanner (`Gate.findForbidden`, run as `keyword-scan`) fails the build on `sorry`, `admit`, `axiom`, `native_decide`, `implemented_by`, `extern` or `unsafe` used as code. In CI it scans every `.lean` file in the repository, and that includes the test files that feed it those same words as inputs. The scanner skips prose: comments, plain string text and «…» names. It does not skip the `{…}` part of an `s!` or `m!` string, because that part is a Lean term.
+The forbidden-word scanner (`SegmentationDev.Gate.findForbidden`, run as `keyword-scan`) fails the build on `sorry`, `admit`, `axiom`, `native_decide`, `implemented_by`, `extern` or `unsafe` used as code. In CI it scans every `.lean` file in the repository, and that includes the test files that feed it those same words as inputs. The scanner skips prose: comments, plain string text and «…» names. It does not skip the `{…}` part of an `s!` or `m!` string, because that part is a Lean term.
 
 ## Solution
 
@@ -40,6 +40,6 @@ If a test file uses a forbidden word as code, the scan fails on the test file it
 
 ## Evidence
 
-- In PR #29, `SegmentationTest/FindForbiddenScansInterpolation.lean` has rows where a word inside `s!` or `m!` braces is reported, for example the `s!"{(show Nat from by sorry)}"` input expecting `[(1, "sorry")]`, while text outside the braces expects `[]`.
-- `SegmentationTest/FindForbiddenProse.lean`, `SegmentationTest/FindForbiddenWords.lean` and `SegmentationTest/FindForbiddenScansInterpolation.lean` in PR #29 each state in a comment that the inputs are plain string literals, so the scan of the file itself sees no code use. Their error messages interpolate only `repr` of bindings.
+- In PR #29, `SegmentationDev/Test/FindForbiddenScansInterpolation.lean` has rows where a word inside `s!` or `m!` braces is reported, for example the `s!"{(show Nat from by sorry)}"` input expecting `[(1, "sorry")]`, while text outside the braces expects `[]`.
+- `SegmentationDev/Test/FindForbiddenProse.lean`, `SegmentationDev/Test/FindForbiddenWords.lean` and `SegmentationDev/Test/FindForbiddenScansInterpolation.lean` in PR #29 each state in a comment that the inputs are plain string literals, so the scan of the file itself sees no code use. Their error messages interpolate only `repr` of bindings.
 - The PR #29 description reports that the CI keyword step, scanning every `.lean` file outside `.lake`, checked 79 files and found no forbidden words.

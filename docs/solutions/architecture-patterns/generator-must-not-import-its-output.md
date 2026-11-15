@@ -13,7 +13,7 @@ tags:
   - code-generation
   - imports
 applies_when:
-  - Adding an import to TableGen or GenTables.lean
+  - Adding an import to TableGen or SegmentationDev/GenTables.lean
   - Moving a constant the generator reads
 ---
 
@@ -29,7 +29,7 @@ The generator needs `unicodeVersion` to find `data/ucd/<version>/`. That constan
 
 PR #12 moves `unicodeVersion` and `uax29Revision` unchanged into `Segmentation/Version.lean`, which imports nothing from the library. `Segmentation.lean` imports it, so `Segmentation.unicodeVersion` stays the one Lean definition of the version (CI and the README still write the data path out literally).
 
-`TableGen/Ucd.lean` imports only `Segmentation.Statements`, `Segmentation.Version` and `Segmentation.Tables.Range`. None of those reach the generated modules. Keep it that way: when the generator needs another constant, put it in a module outside the generated import chain rather than importing `Segmentation`.
+`SegmentationDev/TableGen/Ucd.lean` imports only `Segmentation.Statements`, `Segmentation.Version` and `Segmentation.Tables.Range`. None of those reach the generated modules. Keep it that way: when the generator needs another constant, put it in a module outside the generated import chain rather than importing `Segmentation`.
 
 ## Why it matters
 
@@ -39,4 +39,4 @@ Importing the top-level library is the easy choice and works fine while the tabl
 
 - PR #12 adds `Segmentation/Version.lean`; its module comment says it imports nothing from the library so the generator can read the version without building the tables it writes.
 - PR #12 removes the constants from `Segmentation.lean` and adds `import Segmentation.Version` and `import Segmentation.Tables` there.
-- `TableGen/Ucd.lean` imports `Segmentation.Statements`, `Segmentation.Version` and `Segmentation.Tables.Range`, and defines `dataDir` from `Segmentation.unicodeVersion`.
+- `SegmentationDev/TableGen/Ucd.lean` imports `Segmentation.Statements`, `Segmentation.Version` and `Segmentation.Tables.Range`, and defines `dataDir` from `Segmentation.unicodeVersion`.
