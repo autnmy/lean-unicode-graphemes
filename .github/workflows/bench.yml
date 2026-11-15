@@ -41,9 +41,12 @@ jobs:
       - name: Check the resolved UnicodeExtra commit and record the run metadata
         run: |
           set -eu
-          rev=$(jq -r '.packages[] | select(.url | test("lean4-unicode-extra")) | .rev' lake-manifest.json)
+          # A path package (this library) has no `url`, so a missing one reads as "".
+          rev=$(jq -r '.packages[] | select((.url // "") | test("lean4-unicode-extra")) | .rev' lake-manifest.json)
           echo "UnicodeExtra resolved to commit: $rev"
-          if ! printf '%s\n' "$rev" | grep -qxE '44228db53c81[0-9a-f]{28}'; then
+          # Exactly one 40-digit id: no match or two matches fail instead of checking nothing.
+          if [ "$(printf '%s\n' "$rev" | grep -cxE '44228db53c81[0-9a-f]{28}' || true)" -ne 1 ] \
+            || [ "$(printf '%s\n' "$rev" | wc -l)" -ne 1 ]; then
             echo "Expected one 40-digit commit id starting with 44228db53c81; got: $rev" >&2
             exit 1
           fi
