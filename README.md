@@ -243,9 +243,26 @@ the input is shown beside them, and nothing is subtracted.
 **What is tested.** The input generator, the comparison and the table's
 format have tests. The timing and memory values are measured, not tested.
 
-**Results.** No results are published yet. The table will be copied here
-from the `bench-results` artifact of the first green run of
-`.github/workflows/bench.yml` on `main`, with that run's link and date.
+**Results.** The table below is copied unchanged from the `bench-results`
+artifact of the first green run of `.github/workflows/bench.yml` on `main`:
+[run 43705448890](https://github.com/autnmy/lean-unicode-graphemes/actions/runs/43705448890),
+started 2026-11-15T10:43:25Z on a push of commit
+`a2d350507c970ca4d346a2e7651380cd428acce4`. Both libraries built together
+on one toolchain, and the check found the same clusters on every input.
+
+- Machine: AMD EPYC 7763 64-Core Processor, 4 cores, Linux runnervmccnms
+  7.0.0-1019-azure #20-Ubuntu SMP PREEMPT Mon Oct 19 22:41:16 UTC 2026
+  x86_64 GNU/Linux
+- Toolchain: `leanprover/lean4:v4.36.0-rc2`
+- lean-unicode-graphemes commit: `a2d350507c970ca4d346a2e7651380cd428acce4`
+- UnicodeExtra commit: `44228db53c8104753bf02bff36279a65ea46dce4`
+
+| Input | Samples | Calls per sample | This library median (ns) | This library min-max (ns) | UnicodeExtra median (ns) | UnicodeExtra min-max (ns) | Baseline peak (KiB) | This library peak (KiB) | UnicodeExtra peak (KiB) |
+|---|---|---|---|---|---|---|---|---|---|
+| plain-ascii | 31 | 1000 | 65616 | 65440-67950 | 10900 | 10836-11354 | 12140 | 12108 | 12128 |
+| mixed-scripts | 31 | 1000 | 45273 | 45173-45554 | 13214 | 13036-13375 | 12348 | 12132 | 12200 |
+| emoji | 31 | 1000 | 22085 | 22027-22237 | 6927 | 6874-7037 | 12152 | 12320 | 12372 |
+| large-mixed | 7 | 1 | 2369743663 | 2362626317-2380430256 | 511984218 | 506820922-521901586 | 40820 | 781304 | 268128 |
 
 ## Contributing
 
