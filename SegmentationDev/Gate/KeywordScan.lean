@@ -200,4 +200,31 @@ private def forbiddenParts (code : List Char) : List (Nat × String) :=
 def findForbidden (source : String) : List (Nat × String) :=
   forbiddenParts (blankProse source.toList .code [] ' ' [])
 
+/--
+Checks each named Lean file with `findForbidden` and prints each find as `path:line: word`.
+Returns exit status 1 when it finds one, when a file cannot be read, or when it is given no paths
+at all, since a scan of nothing would otherwise pass; 0 otherwise. This is the body of
+`lake exe keyword-scan`. It lives in this library module, not in the executable root, so that a
+test module can import it: Lake builds a library module only from imports some library owns.
+-/
+def scanFiles (args : List String) : IO UInt32 := do
+  if args.isEmpty then
+    IO.eprintln "keyword-scan: no files given; pass the .lean files to check"
+    return 1
+  let mut problems := 0
+  for path in args do
+    try
+      for (line, word) in findForbidden (← IO.FS.readFile path) do
+        IO.eprintln s!"{path}:{line}: {word}"
+        problems := problems + 1
+    catch error =>
+      IO.eprintln s!"keyword-scan: cannot read {path}: {error}"
+      problems := problems + 1
+  if problems == 0 then
+    IO.println s!"keyword-scan: {args.length} files checked, no forbidden words"
+    return 0
+  else
+    IO.eprintln s!"keyword-scan: {problems} problems in {args.length} files"
+    return 1
+
 end SegmentationDev.Gate
