@@ -140,8 +140,10 @@ Three Lean projects on Unicode came before this one:
   François G. Dorais, gives Lean the Unicode character properties. It is
   listed on the Lean package index. Its README lists no text segmentation.
 - [UnicodeExtra](https://github.com/fgdorais/lean4-unicode-extra), also by
-  François G. Dorais, lists "text segmentation into grapheme clusters" in its
-  README as a candidate, not as done.
+  François G. Dorais, now splits text into grapheme clusters, words and
+  sentences. Its CI tests these against the Unicode test files for grapheme,
+  word and sentence breaks. Its grapheme code has no correctness proof; this
+  library adds one for grapheme clusters.
 - [unicode-lean](https://github.com/jpyxal-straylight/unicode-lean) implements
   UAX #29 text segmentation against the Unicode 17.0.0 data. Its theorem that
   grapheme segmentation matches the published Unicode test lines is closed
