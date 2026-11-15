@@ -5,28 +5,35 @@ import Bench.Libraries
 -- `Segmentation.graphemes`, and `oursClusterCount` counts `oursClusters`' result."
 -- After csimp, compiled `Segmentation.graphemes` runs the fast scanner and returns the same
 -- clusters, so only the definitions themselves can show the column still runs the reference.
--- The walk follows names in `Bench`, so a call through a local helper is caught too.
+-- The walk follows names in `Bench` and `Segmentation`, so a call through a helper is caught
+-- too. It fails on any name that runs the scanner, and unless it reaches `clustersOf`, so a
+-- column built on the scanner some other way cannot pass.
 open Lean in
 theorem «the benchmark's reference column never calls Segmentation.graphemes» : True := by
   run_tac do
     let env ← getEnv
+    let scanner : List Name :=
+      [``Segmentation.graphemes, ``Segmentation.graphemesFast, ``Segmentation.boundariesFast,
+        ``Segmentation.sliceGraphemes]
     let mut seen : NameSet := {}
     let mut todo : Array Name := #[``Bench.oursClusters, ``Bench.oursClusterCount]
     let mut i := 0
     while i < todo.size do
       let n := todo[i]!
       i := i + 1
-      if n == ``Segmentation.graphemes then
-        throwError m!"the benchmark's reference column calls {n}, which csimp sends to the fast scanner"
+      if scanner.contains n then
+        throwError m!"the benchmark's reference column reaches {n}, which runs the fast scanner"
       if seen.contains n then continue
       seen := seen.insert n
-      if (`Bench).isPrefixOf n then
+      if (`Bench).isPrefixOf n || (`Segmentation).isPrefixOf n then
         match env.find? n with
         | some (.defnInfo info) =>
           for c in info.value.getUsedConstants do
             todo := todo.push c
         | some _ => pure ()
         | none => throwError m!"{n} is missing"
+    unless seen.contains ``Segmentation.clustersOf do
+      throwError m!"the benchmark's reference column does not run Segmentation.clustersOf"
     match env.find? ``Bench.oursClusterCount with
     | some (.defnInfo info) =>
       unless info.value.getUsedConstants.contains ``Bench.oursClusters do

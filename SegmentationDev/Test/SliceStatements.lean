@@ -8,7 +8,7 @@ import Segmentation
 -- its variables, so it is pinned at `Tables.props`. The ascriptions name the committed statement
 -- terms, so a theorem proved against a restated or weaker local statement fails here.
 open Segmentation in
-theorem «the four committed statements hold for graphemesFast and boundariesFast» : True := by
+theorem graphemesFast_boundariesFast_satisfy_committed_statements : True := by
   have _join : Segmentation.JoinRestoresInput Segmentation.graphemesFast :=
     Segmentation.graphemesFast_join
   have _nonEmpty : Segmentation.ClustersNonEmpty Segmentation.graphemesFast :=
@@ -26,7 +26,7 @@ theorem «the four committed statements hold for graphemesFast and boundariesFas
 -- registered. This reads the compiler's csimp table instead, and fails if either lemma loses its
 -- attribute or rewrites to some other function.
 open Lean in
-theorem «csimp rewrites graphemes and boundaries to the fast adapters» : True := by
+theorem csimp_maps_graphemes_boundaries_to_fast_adapters : True := by
   run_tac do
     let state := Compiler.CSimp.ext.getState (← getEnv)
     for (lemma, reference, fast) in

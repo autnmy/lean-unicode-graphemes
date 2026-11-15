@@ -8,7 +8,7 @@ import Segmentation
 -- segmenter or its list core, or if the walk never reaches `sliceGraphemes`. A type pin cannot
 -- catch this: an adapter defined as `graphemes s` satisfies every pin.
 open Lean in
-theorem «graphemesFast and boundariesFast reach no reference segmenter» : True := by
+theorem graphemesFast_boundariesFast_reach_no_reference_segmenter : True := by
   run_tac do
     let env ← getEnv
     let reference : List Name :=
