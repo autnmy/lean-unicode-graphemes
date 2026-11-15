@@ -21,7 +21,7 @@ applies_when:
 
 ## Context
 
-`Segmentation/Statements.lean` states its theorems before the property lookup and the segmenter exist. It does this with one line: `variable (props : Char → Props) (graphemes : String → List String) (boundaries : String → List Nat)`.
+`Segmentation/Statements.lean` states its theorems before the property lookup and the segmenter exist. It does this with one `variable` declaration, wrapped over two lines: `variable (props : Char → Props) (graphemes : String → List String) (boundaries : String → List Nat)`.
 
 In Lean, a definition takes only the section variables it uses, in the order the `variable` line declares them. So `JoinRestoresInput` and `ClustersNonEmpty` take only `graphemes`. `CutsMatchRules` takes `props` then `graphemes`. `BoundariesMatchCuts` takes `graphemes` then `boundaries`. Later proofs apply them in exactly these forms, for example `CutsMatchRules props graphemes`.
 

@@ -134,7 +134,8 @@ def rules : List Rule := [
 -- committed (L3) before either exists. The final theorems apply them to the library's own
 -- `props` (the generated tables), `graphemes` and `boundaries`:
 -- `theorem graphemes_join : JoinRestoresInput graphemes := ...`.
-variable (props : Char → Props) (graphemes : String → List String) (boundaries : String → List Nat)
+variable (props : Char → Props) (graphemes : String → List String)
+    (boundaries : String → List Nat)
 
 /-- Rule `r` applies at position `i` (a count of code points) of `cs`. -/
 def Rule.Applies (r : Rule) (cs : List Char) (i : Nat) : Prop :=

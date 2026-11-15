@@ -188,7 +188,8 @@ theorem Left.holds_ending_one_star_one_nil {a e z : Cls} :
 -/
 def RunParity (c : Cls) (odd : Bool) (l : List Props) : Prop :=
   ((∀ x ∈ l, c x = true) ∧ (l.length % 2 == 1) = odd) ∨
-    ∃ a x b, l = a ++ x :: b ∧ c x = false ∧ (∀ y ∈ b, c y = true) ∧ (b.length % 2 == 1) = odd
+    ∃ a x b, l = a ++ x :: b ∧ c x = false ∧
+      (∀ y ∈ b, c y = true) ∧ (b.length % 2 == 1) = odd
 
 private theorem parity_snoc (b : List Props) (q : Props) (odd : Bool) :
     ((b ++ [q]).length % 2 == 1) = odd ↔ (b.length % 2 == 1) = !odd := by
@@ -453,7 +454,8 @@ private theorem firstBreak_cons {applies : Rule → Prop} {r : Rule} {l : List R
       | succ j => exact hearlier j r'' (by omega) hr''
 
 private theorem firstBreak_cons_brk {applies : Rule → Prop} {r : Rule} {l : List Rule}
-    (h : r.verdict = .brk) : FirstBreak applies (r :: l) ↔ applies r ∨ FirstBreak applies l := by
+    (h : r.verdict = .brk) :
+    FirstBreak applies (r :: l) ↔ applies r ∨ FirstBreak applies l := by
   rw [firstBreak_cons, h]
   by_cases ha : applies r <;> simp [ha]
 
@@ -474,7 +476,8 @@ private theorem breaksBefore_iff_firstBreak (p : Props) (ps : List Props) (n : P
   unfold rules
   simp only [firstBreak_cons_brk, firstBreak_cons_noBrk, firstBreak_nil]
   simp only [not_and_not_and_iff]
-  simp only [Left.holds_ending_one_cons_iff, ← scanStateOf_linkerTail, ← scanStateOf_zwjAfterPict,
+  simp only [Left.holds_ending_one_cons_iff, ← scanStateOf_linkerTail,
+    ← scanStateOf_zwjAfterPict,
     ← scanStateOf_riOdd, right_one_cons_iff, not_sot_nothing, anyCp, left_any_iff, right_any_iff,
     right_eot_cons_iff, and_false, and_true, true_and, false_or, or_false, ← Bool.and_eq_true]
   unfold breaksBefore breakRows
