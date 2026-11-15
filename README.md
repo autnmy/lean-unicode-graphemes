@@ -151,6 +151,29 @@ revision 49 with the Unicode 18.0.0 data, it proves the four theorems under
 check in CI rejects. This section says nothing more about what the other
 projects prove than what is written above.
 
+## Using the package
+
+To depend on this package from a project whose Lake configuration is
+`lakefile.toml`, add:
+
+```toml
+[[require]]
+name = "lean-unicode-graphemes"
+git = "https://github.com/autnmy/lean-unicode-graphemes"
+rev = "main"
+```
+
+From a `lakefile.lean`, the package name has to be written in `«»`, because
+it contains hyphens:
+
+```lean
+require «lean-unicode-graphemes» from git
+  "https://github.com/autnmy/lean-unicode-graphemes" @ "main"
+```
+
+Then run `lake update`, and write `import Segmentation` in the files that use
+the library.
+
 ## Building and testing
 
 The toolchain is pinned in `lean-toolchain` (`leanprover/lean4:v4.35.0`).
