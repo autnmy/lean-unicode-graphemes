@@ -35,9 +35,17 @@ name = "BenchChecks"
 roots = []
 globs = ["BenchTest.+"]
 
+# Compares both libraries' clusters, then measures them: `lake exe bench check`, then
+# `lake exe bench report results.md`.
 [[lean_exe]]
 name = "bench"
 root = "Main"
+
+# Writes the results file when the two libraries cannot build together. It imports neither
+# library, so it builds when they do not.
+[[lean_exe]]
+name = "bench-build-failure"
+root = "BuildFailureMain"
 
 [[lean_exe]]
 name = "bench-tests"
