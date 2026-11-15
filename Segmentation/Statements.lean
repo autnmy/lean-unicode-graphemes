@@ -120,7 +120,7 @@ inductive Left where
 
 /-- The right side of a rule, read against the text after the position. -/
 inductive Right where
-  /-- `Any`: any text after holds, the empty text included. -/
+  /-- Nothing written: any text after holds, the empty text included. -/
   | any
   /-- `eot`: the text after is empty. -/
   | eot
