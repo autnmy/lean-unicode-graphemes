@@ -1,6 +1,6 @@
 import Segmentation
 import SegmentationDev.Test.Statements
-import SegmentationDev.Test.«RangeLookupBoundaries.2»
+import SegmentationDev.Test.RangeLookupBoundaries
 import SegmentationDev.Test.RangeLookupEmptyAndSingle
 import SegmentationDev.Test.Ucd
 import SegmentationDev.Test.Tables
