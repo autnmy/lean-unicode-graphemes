@@ -9,7 +9,7 @@ Checks of `Segmentation.TableLookup`: the committed tables pass `Range.Sorted`, 
 -- "Any lemmas about sorted, non-overlapping ranges the generated tables need, checked against
 -- the tables themselves."
 open Segmentation.Tables in
-theorem «the three committed tables are proved sorted and non-overlapping» :
+theorem committed_tables_sorted_and_non_overlapping :
     Range.Sorted gcbRanges ∧ Range.Sorted extPictRanges ∧ Range.Sorted incbRanges :=
   ⟨gcbRanges_sorted, extPictRanges_sorted, incbRanges_sorted⟩
 
@@ -18,14 +18,14 @@ open Segmentation Segmentation.Tables in
 -- ranges) returns the same value as a linear scan of the same range list, for every code point."
 -- The statements carry no hypothesis, so the sortedness of the real tables must be proved, not
 -- left to callers.
-theorem «gcbOf, extPictOf and incbOf equal the scan for every n with no sortedness premise» :
+theorem gcbOf_extPictOf_incbOf_eq_scan_without_sorted_premise :
     (∀ n : Nat, gcbOf n = Range.scan .other gcbRanges n) ∧
     (∀ n : Nat, extPictOf n = Range.scan false extPictRanges n) ∧
     (∀ n : Nat, incbOf n = Range.scan .none incbRanges n) :=
   ⟨gcbOf_eq_scan, extPictOf_eq_scan, incbOf_eq_scan⟩
 
 open Segmentation Segmentation.Tables in
-theorem «props reads every property through the linear scan of its table for every Char» :
+theorem props_eq_linear_scan_of_tables_for_every_char :
     ∀ c : Char, props c =
       { gcb := Range.scan GCB.other gcbRanges c.toNat,
         extPict := Range.scan false extPictRanges c.toNat,
@@ -36,7 +36,7 @@ theorem «props reads every property through the linear scan of its table for ev
 -- both the reference and the theorems must agree with the Unicode data values.
 open Segmentation Segmentation.Tables in
 set_option maxRecDepth 20000 in
-theorem «the linear scan of the committed tables gives the file values for U+094D, U+00A9 and U+10FFFF» :
+theorem linear_scan_of_committed_tables_gives_file_values_094D_00A9_10FFFF :
     incbOf 0x094D = InCB.linker ∧ extPictOf 0x00A9 = true ∧ extPictOf 0x0041 = false ∧
       incbOf 0x10FFFF = InCB.none := by
   rw [incbOf_eq_scan, incbOf_eq_scan, extPictOf_eq_scan, extPictOf_eq_scan]

@@ -57,7 +57,7 @@ def isError {α : Type} : Except String α → Bool
 -- `decide` decodes the string literal while elaborating, one nested step per
 -- character, which needs more than the default recursion depth.
 set_option maxRecDepth 20000 in
-theorem «parseIncb reads only InCB lines and takes the value from the third field» :
+theorem parseIncb_reads_incb_lines_value_from_third_field :
     (match SegmentationDev.TableGen.parseIncb
         "0915          ; Alphabetic # Lo       DEVANAGARI LETTER KA\n094D          ; InCB; Linker # Mn       DEVANAGARI SIGN VIRAMA\n" with
      | .ok [r] => r.lo == 0x094D && r.hi == 0x094D && r.value == Segmentation.InCB.linker
@@ -65,7 +65,7 @@ theorem «parseIncb reads only InCB lines and takes the value from the third fie
 
 -- Only Consonant, Extend and Linker are InCB values the type can hold.
 -- Any other value on an InCB line must stop the parse.
-theorem «parseIncb rejects an unknown InCB value instead of defaulting to None» :
+theorem parseIncb_rejects_unknown_value :
     (SegmentationDev.TableGen.parseIncb "094D ; InCB; Linkr # misspelled\n" matches .error _) = true := by
   decide
 
@@ -75,7 +75,7 @@ theorem «parseIncb rejects an unknown InCB value instead of defaulting to None�
 
 -- An empty or truncated file would make every code point read `false` on both the generator and
 -- the reference side, so an empty parse result must be an error.
-theorem «parseExtPict fails on a file with no Extended_Pictographic entries» :
+theorem parseExtPict_fails_without_entries :
     (match SegmentationDev.TableGen.parseExtPict "# emoji-data.txt\n\n0023          ; Emoji                # E0.0   [1] (#\uFE0F)       hash sign\n" with
      | .error _ => true
      | .ok _ => false) = true := by decide
@@ -89,7 +89,7 @@ theorem «parseExtPict fails on a file with no Extended_Pictographic entries» :
 
 -- The generator and the reference share this parser, so a name it does not know must be an
 -- error: read as the default `Other`, both sides would agree and the exhaustive check would pass.
-theorem «parseGcb rejects a misspelled value name instead of falling back to Other» :
+theorem parseGcb_rejects_misspelled_value :
     (match SegmentationDev.TableGen.parseGcb "1F1E6..1F1FF  ; Regional_Indicatr # So  [26] REGIONAL INDICATOR SYMBOL LETTER A..Z\n" with
      | .error _ => true
      | .ok _ => false) = true := by decide
@@ -106,7 +106,7 @@ def overlapping : List (Range GCB) :=
 
 #guard isError (SegmentationDev.TableGen.paint GCB.other overlapping)
 
-theorem «normalize rejects overlapping entries with different values instead of keeping the last» :
+theorem normalize_rejects_overlapping_entries_with_different_values :
     (match SegmentationDev.TableGen.normalize
         [({ lo := 0x41, hi := 0x45, value := Segmentation.GCB.control } : Segmentation.Tables.Range Segmentation.GCB),
          { lo := 0x43, hi := 0x43, value := Segmentation.GCB.extend }] with

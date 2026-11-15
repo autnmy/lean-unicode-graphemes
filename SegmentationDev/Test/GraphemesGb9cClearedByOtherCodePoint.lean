@@ -4,7 +4,7 @@ import Segmentation
 -- InCB Consonant. The text before 'K' ends with 'x', not with a linker run, so GB9c does not
 -- hold and GB999 breaks. A linker flag that survived the cluster break at 'x' would join 'x K'.
 set_option maxRecDepth 20000 in
-theorem «clustersOf clears the GB9c state at a code point that is neither linker nor InCB Extend (GraphemeBreakTest line 858 order)» :
+theorem clustersOf_clears_gb9c_state_at_other_code_point_line_858 :
     Segmentation.clustersOf
       (fun c =>
         if c = 'L' then { gcb := .extend, extPict := false, incb := .linker }

@@ -11,18 +11,18 @@ one-pass scan state for any property lookup (`mem_cutsOf`).
 -- unfolded copies, so a theorem that is missing, renamed, or proved against a restated or weaker
 -- local statement fails here.
 open Segmentation in
-theorem «graphemes_rules proves the committed CutsMatchRules at Tables.props and graphemes» :
+theorem graphemes_rules_type_is_cutsMatchRules_props_graphemes :
     Segmentation.CutsMatchRules Tables.props Segmentation.graphemes :=
   (Segmentation.graphemes_rules : Segmentation.CutsMatchRules Tables.props Segmentation.graphemes)
 
-theorem «boundaries_agree proves the committed BoundariesMatchCuts at graphemes and boundaries» :
+theorem boundaries_agree_type_is_boundariesMatchCuts_graphemes_boundaries :
     Segmentation.BoundariesMatchCuts Segmentation.graphemes Segmentation.boundaries :=
   (Segmentation.boundaries_agree :
     Segmentation.BoundariesMatchCuts Segmentation.graphemes Segmentation.boundaries)
 
 -- The type quantifies over every `props`, so a lemma proved only at `Tables.props` fails here.
 open Segmentation in
-theorem «mem_cutsOf holds for every props with its stated type» :
+theorem mem_cutsOf_type_holds_for_every_props :
     ∀ (props : Char → Props) (c : Char) (cs : List Char) (i : Nat),
       i ∈ cutsOf props (c :: cs) ↔ i = 0 ∨ i = cs.length + 1 ∨
         ∃ (j : Nat) (h : j < cs.length), i = j + 1 ∧

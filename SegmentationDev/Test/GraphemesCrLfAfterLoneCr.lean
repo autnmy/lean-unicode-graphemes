@@ -4,7 +4,7 @@ import Segmentation
 -- '\n' is LF. The first CR is followed by a CR, so GB4 breaks; the second CR is followed by LF,
 -- so GB3 joins. Expected clusters: [CR], [CR LF].
 set_option maxRecDepth 20000 in
-theorem «clustersOf joins CR LF but keeps a lone CR before it apart (GB3 against GB4)» :
+theorem clustersOf_joins_cr_lf_and_splits_lone_cr_before_it :
     Segmentation.clustersOf
       (fun c =>
         if c = '\r' then { gcb := .cr, extPict := false, incb := .none }

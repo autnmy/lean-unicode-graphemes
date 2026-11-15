@@ -8,7 +8,7 @@ Checks of `Segmentation.RangeLookup`: the reference scan `Range.scan`, the sorte
 -- The ascription pins the theorem to `Range.lookup` itself, as `Tables.props` calls it, for every
 -- sorted table and every `n`, so a theorem about a copy of the search, one with an extra
 -- hypothesis, or one bounded on `n` fails here.
-theorem «lookup_eq_scan states that Range.lookup equals Range.scan on every sorted table for every n»
+theorem lookup_eq_scan_type_is_lookup_eq_scan_on_sorted_tables
     {α : Type} {d : α} {table : Array (Segmentation.Tables.Range α)}
     (h : Segmentation.Tables.Range.Sorted table) (n : Nat) :
     Segmentation.Tables.Range.lookup d table n = Segmentation.Tables.Range.scan d table n :=
@@ -17,7 +17,7 @@ theorem «lookup_eq_scan states that Range.lookup equals Range.scan on every sor
 -- The theorem's two sides, both evaluated by the kernel, agree with what applying it says at a
 -- hit in each range, in each gap, and past the end.
 open Segmentation.Tables in
-theorem «lookup_eq_scan agrees with kernel evaluation on a small sorted table» :
+theorem lookup_eq_scan_agrees_with_kernel_evaluation_on_small_table :
     let table : Array (Range Nat) := #[⟨1, 2, 1⟩, ⟨5, 5, 2⟩, ⟨8, 20, 3⟩]
     (∀ n, Range.lookup 0 table n = Range.scan 0 table n) ∧
       (Range.lookup 0 table 1, Range.lookup 0 table 5, Range.lookup 0 table 20,
@@ -31,7 +31,7 @@ open Segmentation.Tables in
 -- A range holds `lo` to `hi`, both included. A half-open reference would miss `hi`, and a
 -- reference that ignored the default would not give it in gaps, past the end or on an empty
 -- table.
-theorem «Range.scan gives the value at both ends of a range and the default in a gap, past the end and on an empty table» :
+theorem range_scan_hits_range_ends_and_defaults_in_gap_past_end_and_empty :
     let table : Array (Range Nat) :=
       #[{ lo := 10, hi := 20, value := 1 }, { lo := 30, hi := 30, value := 2 }]
     (Range.scan 0 table 10, Range.scan 0 table 20, Range.scan 0 table 21,
@@ -49,7 +49,7 @@ theorem «Range.scan gives the value at both ends of a range and the default in 
 -- On an unsorted, overlapping list the reference still has one answer: the first range in list
 -- order that holds `n`, not the later one and not whatever a halving search would land on.
 open Segmentation.Tables in
-theorem «Range.scanList returns the first matching range in list order when ranges overlap» :
+theorem range_scanList_returns_first_match_when_ranges_overlap :
     let ranges : List (Range Nat) :=
       [{ lo := 0, hi := 9, value := 1 }, { lo := 5, hi := 15, value := 2 }]
     (Range.scanList 0 ranges 5, Range.scanList 0 ranges 12, Range.scanList 0 ranges 16,
@@ -65,7 +65,7 @@ theorem «Range.scanList returns the first matching range in list order when ran
 -- adjacent ranges (`next.lo = hi + 1`) share none and must pass, so a check stricter than
 -- `hi < next.lo` would reject valid tables.
 open Segmentation.Tables in
-theorem «Range.chainOK rejects out-of-order, overlapping, endpoint-sharing and reversed ranges and accepts gapped and adjacent lists» :
+theorem range_chainOK_rejects_bad_orders_and_accepts_gapped_and_adjacent :
     (Range.chainOK ([{ lo := 10, hi := 20, value := 1 }, { lo := 0, hi := 5, value := 2 }] : List (Range Nat)),
      Range.chainOK ([{ lo := 0, hi := 10, value := 1 }, { lo := 10, hi := 20, value := 2 }] : List (Range Nat)),
      Range.chainOK ([{ lo := 0, hi := 10, value := 1 }, { lo := 5, hi := 20, value := 2 }] : List (Range Nat)),
@@ -85,12 +85,12 @@ open Segmentation.Tables in
 -- Each consecutive pair has `hi < next.lo` (2 < 10 and 4 < 6), but the middle range has
 -- `lo > hi`, so the first and last ranges are not ordered by that chain. Only the per-range
 -- `lo ≤ hi` check catches it.
-theorem «chainOK rejects an inverted range even when every neighbour pair is ordered» :
+theorem chainOK_rejects_inverted_range_with_ordered_neighbours :
     Range.chainOK ([⟨1, 2, 0⟩, ⟨10, 4, 0⟩, ⟨6, 7, 0⟩] : List (Range Nat)) = false := by
   decide
 
 open Segmentation.Tables in
-theorem «Range.Sorted holds for a gapped array and fails for an array whose second range reaches back over the first» :
+theorem range_sorted_holds_for_gapped_and_fails_for_overlapping_array :
     Range.Sorted (#[{ lo := 0, hi := 3, value := 1 }, { lo := 7, hi := 9, value := 2 }] : Array (Range Nat)) ∧
       ¬ Range.Sorted (#[{ lo := 0, hi := 8, value := 1 }, { lo := 7, hi := 9, value := 2 }] : Array (Range Nat)) := by
   decide
