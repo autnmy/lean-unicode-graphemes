@@ -56,4 +56,4 @@ The `decide` proof turns a comment into a build failure. If the generator later 
 
 - PR #18 adds `Segmentation/TableLookup.lean` with `gcbRanges_sorted`, `extPictRanges_sorted` and `incbRanges_sorted`, each `by decide` under `set_option maxRecDepth 20000 in`. Its module docstring says a regenerated table that is out of order or overlapping makes the build fail there.
 - PR #18 defines `Range.Sorted` as `Range.chainOK table.toList = true` with an `inferInstanceAs` decidability instance in `Segmentation/RangeLookup.lean`.
-- `SegmentationTest/TableLookupMatchesScan.lean` in PR #18 checks with `collectAxioms` that the three `_sorted` facts and the four corollaries use no axiom beyond `propext`, `Classical.choice` and `Quot.sound`. The PR body reports that `lake build` and `lake test` both exited 0.
+- `SegmentationTest/TableLookupMatchesScan.lean` (now `SegmentationDev/Test/TableLookupMatchesScan.lean`) in PR #18 checks with `collectAxioms` that the three `_sorted` facts and the four corollaries use no axiom beyond `propext`, `Classical.choice` and `Quot.sound`. The PR body reports that `lake build` and `lake test` both exited 0.

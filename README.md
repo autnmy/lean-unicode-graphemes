@@ -46,7 +46,7 @@ CI runs these checks on every push and pull request. To run them locally, from
 the repository root, after `lake test`:
 
 ```sh
-lake env lean SegmentationTest/HeadlineAxioms.lean
+lake env lean SegmentationDev/Test/HeadlineAxioms.lean
 ```
 
 This prints the `#print axioms` output for the four theorems above, and fails
@@ -69,7 +69,7 @@ test files name these words there as prose, for example in a comment such as
 them as code.
 
 ```sh
-lake build SegmentationTest.GraphemeBreakTestTheorem
+lake build SegmentationDev.Test.GraphemeBreakTestTheorem
 ```
 
 This proves that `graphemes` matches all 853 test lines of
@@ -92,9 +92,9 @@ you have to trust them, or check them another way:
   compares the table lookup with the data files for every code point, and
   `graphemes` must agree with all 853 test lines of the Unicode test file
   `GraphemeBreakTest.txt`. That last agreement is also a theorem,
-  `SegmentationTest.GraphemeBreakTestTheorem.graphemes_match_graphemeBreakTest`,
+  `SegmentationDev.Test.GraphemeBreakTestTheorem.graphemes_match_graphemeBreakTest`,
   which the kernel checks by `decide +kernel`. It reads the test lines from
-  `SegmentationTest/GraphemeBreakTestData.lean`, which `lake exe gen-tables`
+  `SegmentationDev/Test/GraphemeBreakTestData.lean`, which `lake exe gen-tables`
   writes from the file; `lake test` and CI fail when that module differs from
   what the file gives. So the theorem is only as good as the file, which is
   trusted like the other data files.

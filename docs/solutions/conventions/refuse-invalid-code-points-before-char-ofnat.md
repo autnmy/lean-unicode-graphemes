@@ -1,12 +1,12 @@
 ---
-module: SegmentationTest
+module: SegmentationDev.Test
 date: 2026-11-12
 problem_type: convention
 component: testing_framework
 severity: medium
 audience: both
 related_components:
-  - TableGen
+  - SegmentationDev.TableGen
 tags:
   - lean
   - char-ofnat
@@ -41,5 +41,5 @@ If the value reaches `Char.ofNat` unchecked, the test runs the code on U+0000 in
 
 ## Evidence
 
-- PR #16 adds `codePoint?` in `SegmentationTest/GraphemeBreakTestFile.lean`, with the comment that surrogates and values past U+10FFFF are refused because `Char.ofNat` would turn them into U+0000.
-- `SegmentationTest/GraphemeBreakTestFileTests.lean` in the same change proves, with `decide +kernel`, that `parseTestFile` rejects a line holding `D800` and a line holding `110000`, each after a valid line.
+- PR #16 adds `codePoint?` in `SegmentationTest/GraphemeBreakTestFile.lean` (now `SegmentationDev/Test/GraphemeBreakTestFile.lean`), with the comment that surrogates and values past U+10FFFF are refused because `Char.ofNat` would turn them into U+0000.
+- `SegmentationDev/Test/GraphemeBreakTestFileTests.lean` in the same change proves, with `decide +kernel`, that `parseTestFile` rejects a line holding `D800` and a line holding `110000`, each after a valid line.

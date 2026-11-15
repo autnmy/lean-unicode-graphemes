@@ -16,37 +16,44 @@ autoImplicit = false
 [[lean_lib]]
 name = "Segmentation"
 
+# The development modules (table generator, axiom gate, keyword scanner and tests) all live
+# under `SegmentationDev`, so their names cannot clash with modules of a package that depends
+# on this one. The globs below end in `.+`, which matches submodules only: the exe roots
+# `SegmentationDev.Test`, `SegmentationDev.GenTables` and `SegmentationDev.KeywordScan` each
+# define `main` and stay out of every library.
+
 # Parses the UCD files into the property tables. Kept out of `Segmentation` so
 # users of the library do not build the parser; the test driver imports it.
 [[lean_lib]]
-name = "TableGen"
+name = "SegmentationTableGen"
+roots = ["SegmentationDev.TableGen"]
 
 # Compile-time checks of the theorem statements. The test driver imports them, and Lake
 # resolves an import only to a module that some library of the package owns.
 [[lean_lib]]
 name = "SegmentationChecks"
 roots = []
-globs = ["SegmentationTest.+"]
+globs = ["SegmentationDev.Test.+"]
 
 # The checks CI runs on the proofs and the source: the `#assert_axioms` command and the
 # forbidden-word scanner. Kept out of `Segmentation` so users of the library do not build it.
 [[lean_lib]]
-name = "Gate"
+name = "SegmentationGate"
 roots = []
-globs = ["Gate.+"]
+globs = ["SegmentationDev.Gate.+"]
 
 [[lean_exe]]
 name = "segmentation-tests"
-root = "SegmentationTest"
+root = "SegmentationDev.Test"
 
 # Writes the generated property tables under Segmentation/Tables/ from the UCD
 # files: `lake exe gen-tables`, run from the package root.
 [[lean_exe]]
 name = "gen-tables"
-root = "GenTables"
+root = "SegmentationDev.GenTables"
 
-# Fails on any forbidden word (`Gate.forbiddenWords`) used as code in the Lean files it is
-# given: `lake exe keyword-scan <paths>`. CI passes it every tracked `.lean` file.
+# Fails on any forbidden word (`SegmentationDev.Gate.forbiddenWords`) used as code in the Lean
+# files it is given: `lake exe keyword-scan <paths>`. CI passes it every tracked `.lean` file.
 [[lean_exe]]
 name = "keyword-scan"
-root = "KeywordScan"
+root = "SegmentationDev.KeywordScan"

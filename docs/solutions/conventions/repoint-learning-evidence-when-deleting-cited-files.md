@@ -6,7 +6,7 @@ component: documentation
 severity: low
 audience: both
 related_components:
-  - SegmentationTest
+  - SegmentationDev.Test
 tags:
   - learnings
   - evidence
@@ -37,4 +37,4 @@ A learning whose evidence cannot be opened reads as unverified, and a later chec
 
 - PR #29 deletes `SegmentationTest/AxiomCheckerDisallowed.lean` and `SegmentationTest/DisallowedAxiomsReduceBoolAndUser.lean`.
 - In the same pull request, `docs/solutions/conventions/native-decide-adds-its-own-axiom-not-ofreducebool.md` changes its Evidence line from those two paths to `SegmentationTest/DisallowedAxioms.lean`.
-- `SegmentationTest/DisallowedAxioms.lean`, added by PR #29, keeps the comment that `Lean.ofReduceBool` stands for any other axiom outside the allowed three, which is the claim the learning cites.
+- `SegmentationTest/DisallowedAxioms.lean`, added by PR #29 and now at `SegmentationDev/Test/DisallowedAxioms.lean`, keeps the comment that `Lean.ofReduceBool` stands for any other axiom outside the allowed three, which is the claim the learning cites.

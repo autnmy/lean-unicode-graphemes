@@ -30,7 +30,7 @@ jobs:
           grep -E "$pattern" README.md | sha256sum --check --strict
       # The Unicode data files are pinned: each file SHA256SUMS lists must match
       # its digest. Which files the list must name is checked by `lake test`
-      # (TableGen.checkDigestList), so the list is stated in one place. This runs
+      # (SegmentationDev.TableGen.checkDigestList), so the list is stated in one place. This runs
       # before the build so it hashes the bytes git checked out.
       - name: Check the Unicode data files against SHA256SUMS
         working-directory: data/ucd/18.0.0
@@ -46,14 +46,14 @@ jobs:
           test: true
       # Shows each headline theorem's `#print axioms` output in this log and fails if any of them
       # depends on an axiom outside propext, Classical.choice and Quot.sound. The theorem list is
-      # in SegmentationTest/HeadlineAxioms.lean; `#assert_axioms` fails on a name that does not
+      # in SegmentationDev/Test/HeadlineAxioms.lean; `#assert_axioms` fails on a name that does not
       # resolve, so a renamed theorem cannot drop out unnoticed. It reads the build above.
       - name: Print and check the axioms of the headline theorems
         env:
           LC_ALL: C
         run: |
           set -eu
-          lake env lean SegmentationTest/HeadlineAxioms.lean
+          lake env lean SegmentationDev/Test/HeadlineAxioms.lean
       # Proves by `decide +kernel` that `graphemes` matches all 853 lines of GraphemeBreakTest.txt,
       # and fails if that proof depends on an axiom outside the three standard ones. The test
       # driver does not import this module or its tests, so this step is the only place CI checks
@@ -64,7 +64,7 @@ jobs:
         timeout-minutes: 10
         env:
           LC_ALL: C
-        run: lake build SegmentationTest.GraphemeBreakTestTheorem SegmentationTest.GraphemeBreakTestTheoremTests
+        run: lake build SegmentationDev.Test.GraphemeBreakTestTheorem SegmentationDev.Test.GraphemeBreakTestTheoremTests
       # A check that has only ever passed could be checking nothing, so this plants a sorry, a
       # native_decide and a user axiom in throwaway files and fails unless the check rejects each.
       - name: Check that the axiom check rejects forbidden axioms
@@ -82,7 +82,7 @@ jobs:
         run: |
           set -euo pipefail
           lake build keyword-scan
-          lake env lean SegmentationTest/KeywordScanMainExitCodes.lean
+          lake env lean SegmentationDev/Test/KeywordScanMainExitCodes.lean
           git ls-files -z '*.lean' | xargs -0 lake exe keyword-scan
       # The committed tables and GraphemeBreakTest.txt cases must be exactly what
       # the generator writes from the data files. `git status` also reports new
@@ -92,7 +92,7 @@ jobs:
         run: |
           set -e
           lake exe gen-tables
-          generated="Segmentation/Tables SegmentationTest/GraphemeBreakTestData.lean"
+          generated="Segmentation/Tables SegmentationDev/Test/GraphemeBreakTestData.lean"
           changes=$(git status --porcelain -- $generated)
           if [ -n "$changes" ]; then
             echo "The committed generated files differ from lake exe gen-tables output:" >&2

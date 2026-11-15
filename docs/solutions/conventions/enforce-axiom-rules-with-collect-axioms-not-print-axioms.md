@@ -1,5 +1,5 @@
 ---
-module: SegmentationTest
+module: SegmentationDev.Test
 date: 2026-11-12
 problem_type: convention
 component: testing_framework
@@ -45,15 +45,15 @@ theorem «graphemes_join uses no sorry and no axiom beyond propext, Classical.ch
   trivial
 ```
 
-The repository now wraps this check in one command, `#assert_axioms` in `Gate/Axioms.lean`, which holds the allowed list (`Gate.allowedAxioms`) in one place. It prints the `#print axioms` output for each name it is given, and fails on a disallowed axiom, an unknown name or an empty list. Use it instead of writing the loop above again:
+The repository now wraps this check in one command, `#assert_axioms` in `SegmentationDev/Gate/Axioms.lean`, which holds the allowed list (`SegmentationDev.Gate.allowedAxioms`) in one place. It prints the `#print axioms` output for each name it is given, and fails on a disallowed axiom, an unknown name or an empty list. Use it instead of writing the loop above again:
 
 ```lean
-import Gate.Axioms
+import SegmentationDev.Gate.Axioms
 
 #assert_axioms Segmentation.graphemes_join Segmentation.graphemes_ne_empty
 ```
 
-Put the check in a file under `SegmentationTest/`, and import that file from `SegmentationTest.lean`. Only `lake test` elaborates those files. The headline theorems are listed in `SegmentationTest/HeadlineAxioms.lean`, which CI also runs with `lake env lean` so that the job log shows their axioms.
+Put the check in a file under `SegmentationDev/Test/`, and import that file from `SegmentationDev/Test.lean`. Only `lake test` elaborates those files. The headline theorems are listed in `SegmentationDev/Test/HeadlineAxioms.lean`, which CI also runs with `lake env lean` so that the job log shows their axioms.
 
 Put a type pin next to the check: a theorem whose stated type is the committed statement and whose body is the theorem under test. Then a renamed theorem, or one about a weaker statement, also fails the check.
 
@@ -65,7 +65,7 @@ The subset form also keeps the guard stable. A proof can change shape and use fe
 
 ## Evidence
 
-- PR #15 adds `SegmentationTest/GraphemesPartition.lean`. Its two last theorems call `collectAxioms` on `Segmentation.graphemes_join` and `Segmentation.graphemes_ne_empty` inside `run_tac`, and they `throwError` on any axiom outside `propext`, `Classical.choice` and `Quot.sound`. PR #23 later replaced those loops, and the copies in other test files, with the shared `#assert_axioms` command; the type pins stayed.
+- PR #15 adds `SegmentationTest/GraphemesPartition.lean` (now `SegmentationDev/Test/GraphemesPartition.lean`). Its two last theorems call `collectAxioms` on `Segmentation.graphemes_join` and `Segmentation.graphemes_ne_empty` inside `run_tac`, and they `throwError` on any axiom outside `propext`, `Classical.choice` and `Quot.sound`. PR #23 later replaced those loops, and the copies in other test files, with the shared `#assert_axioms` command; the type pins stayed.
 - The comment above those checks in the same file says that `#print axioms` only prints, and that a `sorry` proof depends on `sorryAx`, which is not in the allowed list.
 - The same file pins each theorem's type with ascriptions to `Segmentation.JoinRestoresInput Segmentation.graphemes` and `Segmentation.ClustersNonEmpty Segmentation.graphemes`.
 - PR #15 changes `SegmentationTest.lean` to import `SegmentationTest.GraphemesPartition`, so `lake test` elaborates the checks.
