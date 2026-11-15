@@ -6,7 +6,7 @@ component: testing_framework
 severity: medium
 audience: both
 related_components:
-  - TableGen
+  - SegmentationDev.TableGen
 tags:
   - lean
   - char-ofnat

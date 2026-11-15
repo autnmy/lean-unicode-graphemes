@@ -1,5 +1,5 @@
 ---
-module: TableGen
+module: SegmentationDev.TableGen
 date: 2026-11-12
 problem_type: design_pattern
 component: table_generation

@@ -1,5 +1,5 @@
 ---
-module: TableGen
+module: SegmentationDev.TableGen
 date: 2026-11-12
 problem_type: architecture_pattern
 component: table_generation
@@ -13,7 +13,7 @@ tags:
   - code-generation
   - imports
 applies_when:
-  - Adding an import to TableGen or SegmentationDev/GenTables.lean
+  - Adding an import to SegmentationDev.TableGen or SegmentationDev/GenTables.lean
   - Moving a constant the generator reads
 ---
 
@@ -21,7 +21,7 @@ applies_when:
 
 ## Context
 
-`Segmentation.lean` imports `Segmentation.Tables`, which imports the three generated modules under `Segmentation/Tables/`. If `TableGen` imported `Segmentation`, then a broken generated module (a bad hand edit, a half-finished write) would stop `TableGen` from building. The tool that rewrites the tables would then be unable to run.
+`Segmentation.lean` imports `Segmentation.Tables`, which imports the three generated modules under `Segmentation/Tables/`. If `SegmentationDev.TableGen` imported `Segmentation`, then a broken generated module (a bad hand edit, a half-finished write) would stop `SegmentationDev.TableGen` from building. The tool that rewrites the tables would then be unable to run.
 
 The generator needs `unicodeVersion` to find `data/ucd/<version>/`. That constant used to live in `Segmentation.lean`.
 

@@ -6,7 +6,7 @@ component: testing_framework
 severity: low
 audience: both
 related_components:
-  - TableGen
+  - SegmentationDev.TableGen
 tags:
   - parser
   - negative-test
