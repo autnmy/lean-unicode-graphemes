@@ -9,6 +9,7 @@ import SegmentationDev.Test.SliceAgreesSubSlice
 import SegmentationDev.Test.SliceClustersMatchCuts
 import SegmentationDev.Test.SliceScannerNoCopy
 import SegmentationDev.Test.SliceAgreeHeadlineGate
+import SegmentationDev.Test.SliceFastNoReference
 
 /-!
 # The `String.Slice` scanner agrees with the reference
@@ -24,7 +25,9 @@ import SegmentationDev.Test.SliceAgreeHeadlineGate
   measured from the sub-slice start, and a CR at its end is not joined with the LF just past it;
 * that each cluster's byte bounds are neighbouring cuts, that the clusters are views of the
   input rather than copies, and that the empty input has one cut at 0;
-* that `sliceGraphemes_agree` passes the axiom gate and is in both headline lists.
+* that `sliceGraphemes_agree` passes the axiom gate and is in both headline lists;
+* that `graphemesFast` and `boundariesFast` reach neither `graphemes`, `boundaries`, `clustersOf`
+  nor `cutsOf`, so what runs after the csimp rewrite is the scanner.
 
 Each module holds one concern, so a failure names the behaviour it checks. The check below
 makes sure every definition on the scanner's path, the internal scan included, is plain with no
@@ -41,7 +44,8 @@ theorem slice_scanner_definitions_are_plain_with_no_compiled_substitute : True :
     let env ← getEnv
     for name in [``Segmentation.sliceGraphemes, ``Segmentation.sliceBoundaries,
         ``Segmentation.charProps, ``Segmentation.asciiProps, ``Segmentation.scanClusters,
-        ``Segmentation.clusterBounds] do
+        ``Segmentation.clusterBounds, ``Segmentation.graphemesFast,
+        ``Segmentation.boundariesFast] do
       match env.find? name with
       | some (.defnInfo _) => pure ()
       | some _ => throwError m!"{name} is not a plain definition (a partial definition is opaque)"

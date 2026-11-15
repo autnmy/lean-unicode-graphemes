@@ -50,6 +50,7 @@ import SegmentationDev.Test.FindForbiddenScansInterpolation
 import SegmentationDev.Test.FindForbiddenProse
 import SegmentationDev.Test.PropsTable
 import SegmentationDev.Test.SliceAgrees
+import SegmentationDev.Test.SliceStatements
 
 /-!
 # Test driver
