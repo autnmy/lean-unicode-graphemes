@@ -49,6 +49,7 @@ import SegmentationDev.Test.FindForbiddenStringForms
 import SegmentationDev.Test.FindForbiddenScansInterpolation
 import SegmentationDev.Test.FindForbiddenProse
 import SegmentationDev.Test.PropsTable
+import SegmentationDev.Test.SliceAgrees
 
 /-!
 # Test driver
