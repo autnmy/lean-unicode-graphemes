@@ -8,7 +8,7 @@ import SegmentationDev.Gate.Axioms
 -- CutsMatchRules and BoundariesMatchCuts (graphemes_rules, boundaries_agree). The command must
 -- pass on all four and leave one `#print axioms` message per theorem, naming it.
 open Lean Elab Command in
-theorem «assert_axioms prints the print axioms output for each of the four headline theorems» :
+theorem assert_axioms_prints_axioms_of_each_headline_theorem :
     True := by
   run_tac do
     let saved := (← getThe Core.State).messages

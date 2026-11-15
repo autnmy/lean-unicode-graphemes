@@ -6,7 +6,7 @@ import SegmentationDev.KeywordScan
 -- The scanned sources are written to a temporary directory as string data, so no forbidden
 -- word appears as code in this file. Every file is removed before the proof ends.
 open Lean in
-theorem «keyword-scan main exits 1 on a file using a forbidden word, 0 on a clean file and 1 with no paths» :
+theorem keyword_scan_main_exits_one_on_forbidden_word_zero_on_clean_one_on_no_paths :
     True := by
   run_tac do
     let dir : System.FilePath := ".lake" / "keyword-scan-acceptance"

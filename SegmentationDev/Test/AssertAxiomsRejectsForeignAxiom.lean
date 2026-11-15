@@ -8,7 +8,7 @@ import SegmentationDev.Gate.Axioms
 -- so no axiom declaration appears in project code. The command must reject a theorem that
 -- uses it, and must still accept a theorem that uses only the allowed axioms.
 open Lean Elab Command in
-theorem «assert_axioms fails on a theorem that rests on an axiom outside propext, Classical.choice and Quot.sound» :
+theorem assert_axioms_rejects_theorem_using_foreign_axiom :
     True := by
   run_tac do
     -- Declarations added inside a proof must sit under the name of the theorem being proved.

@@ -8,7 +8,7 @@ import SegmentationDev.Gate.KeywordScan
 -- at the start of the list would miss it. The inputs are plain string literals, so the scan of
 -- this file itself sees no code use.
 open Lean in
-theorem «findForbidden reports each of the seven words used as code with its line» : True := by
+theorem findForbidden_reports_each_word_used_as_code_with_its_line : True := by
   run_tac do
     let cases : List (String × List (Nat × String)) := [
       ("theorem t : True := by\n  sorry", [(2, "sorry")]),

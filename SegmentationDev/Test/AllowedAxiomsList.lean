@@ -5,7 +5,7 @@ import SegmentationDev.Gate.Axioms
 -- axiom outside `propext`, `Classical.choice` and `Quot.sound`, and on any of `sorry`, `admit`,
 -- `axiom`, `native_decide`, `implemented_by`, `extern` or `unsafe` in project code."
 open Lean in
-theorem «allowedAxioms is exactly propext, Classical.choice and Quot.sound» : True := by
+theorem allowedAxioms_eq_propext_choice_quot_sound : True := by
   run_tac do
     let allowed := SegmentationDev.Gate.allowedAxioms
     unless allowed.length == 3 && allowed.contains ``propext &&
