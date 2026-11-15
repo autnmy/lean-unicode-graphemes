@@ -1,10 +1,17 @@
 name: Benchmark
 
-# Measures this library against UnicodeExtra (bench/). It runs only on pushes to main and on
-# manual dispatch, in a workflow of its own, so it never delays the checks in ci.yml.
+# Measures this library against UnicodeExtra (bench/). It runs on pushes to main, on manual
+# dispatch, and on pull requests that change the benchmark or this workflow, so a broken
+# benchmark is seen before it lands. It is a workflow of its own, so it never delays the checks
+# in ci.yml. Pull requests use `pull_request`, never `pull_request_target`, so a fork's code runs
+# with the read-only token below and no secrets.
 on:
   push:
     branches: [main]
+  pull_request:
+    paths:
+      - 'bench/**'
+      - '.github/workflows/bench.yml'
   workflow_dispatch:
 
 # The job compiles and runs code fetched from another repository, so its token can only read.
@@ -23,14 +30,32 @@ jobs:
       LC_ALL: C
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # Installs the toolchain named in bench/lean-toolchain. The build is staged by
-      # bench/build.sh below, so the action builds and tests nothing itself.
+      # Installs elan. The action runs on the root package because its configure step fails
+      # without a lake-manifest.json, and bench/ has none until `lake update` writes it below.
+      # The build is staged by bench/build.sh below, so the action builds and tests nothing.
       - uses: leanprover/lean-action@24581d74d674803a25a81b10b059c5c0cdd344c6 # v1.6.2
         with:
           auto-config: false
           build: false
           test: false
-          lake-package-directory: bench
+      # The action installed the root package's toolchain. This installs the one named in
+      # bench/lean-toolchain and fails unless `lean` in bench/ reports that version, so the
+      # results are never labelled with a toolchain that did not run.
+      - name: Install and check the bench toolchain
+        run: |
+          set -eu
+          toolchain=$(cat lean-toolchain)
+          elan toolchain install "$toolchain"
+          version=$(lean --version)
+          echo "$version"
+          expected="version ${toolchain#leanprover/lean4:v},"
+          case "$version" in
+            *"$expected"*) ;;
+            *)
+              echo "Expected lean to report $expected from $toolchain; got: $version" >&2
+              exit 1
+              ;;
+          esac
       # bench/lake-manifest.json is not committed: this resolves UnicodeExtra's pinned commit
       # afresh on every run.
       - name: Fetch UnicodeExtra
