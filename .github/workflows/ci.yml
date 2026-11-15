@@ -58,7 +58,10 @@ jobs:
       # and fails if that proof depends on an axiom outside the three standard ones. The test
       # driver does not import this module or its tests, so this step is the only place CI checks
       # them, and the time limit bounds the whole check: a proof that needs 10 minutes or more
-      # fails. The tests also run the decided check over all 853 cases, against a segmenter that
+      # fails. Only the Segmentation library is built before this step, so the limit also covers
+      # compiling the modules these two import that are not in it, such as SegmentationDev.TableGen,
+      # SegmentationDev.Test.GraphemeBreakTestFile, SegmentationDev.Test.GraphemeBreakTestData and
+      # SegmentationDev.Gate.Axioms. The tests also run the decided check over all 853 cases, against a segmenter that
       # never joins, to show it can fail.
       - name: Check the GraphemeBreakTest.txt theorem within 10 minutes
         timeout-minutes: 10
