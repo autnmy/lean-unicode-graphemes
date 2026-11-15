@@ -52,8 +52,11 @@ def ScanState.start (p : Props) : ScanState :=
 /-- One row of the decision table: when `applies` holds for the state before a position and the
 code point after it, `breaks` is the verdict there. -/
 structure BreakRow where
+  /-- The rule names this row stands for, as in `Segmentation.rules` (such as `GB9c`). -/
   name : String
+  /-- Whether the row applies, given the state before the position and the code point after it. -/
   applies : ScanState → Props → Bool
+  /-- The verdict where the row applies: `true` is a boundary, `false` is no boundary. -/
   breaks : Bool
 
 open GCB in

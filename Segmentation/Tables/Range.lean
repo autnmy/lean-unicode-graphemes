@@ -14,8 +14,11 @@ namespace Segmentation.Tables
 
 /-- The code points `lo` to `hi`, both included, all carrying `value`. -/
 structure Range (α : Type) where
+  /-- The first code point of the range. -/
   lo : Nat
+  /-- The last code point of the range, included. -/
   hi : Nat
+  /-- The property value every code point of the range carries. -/
   value : α
   deriving Repr
 
