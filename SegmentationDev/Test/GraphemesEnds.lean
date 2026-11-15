@@ -6,7 +6,7 @@ theorem graphemes_empty_eq_nil :
   decide
 
 -- `cutPoints []` is `[0]`, and BoundariesMatchCuts asks `boundaries s = cutPoints (graphemes s)`.
-theorem boundaries_empty_eq_zero :
+theorem boundaries_empty_eq_singleton_zero :
     (Segmentation.boundaries "" == [0]) = true := by
   decide
 
