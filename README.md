@@ -187,6 +187,61 @@ lake build   # build the Segmentation library
 lake test    # build and run the test suite
 ```
 
+## Benchmark against UnicodeExtra
+
+The `bench/` directory holds a separate Lake package that times this
+library's `Segmentation.graphemes` against UnicodeExtra's
+`Unicode.graphemeClusters` on the same inputs. It is a package of its own so
+that the library keeps no dependencies. It depends on this library by path
+and on UnicodeExtra by git at commit `44228db53c81`. It uses its own
+toolchain, `leanprover/lean4:v4.36.0-rc2` (in `bench/lean-toolchain`),
+because UnicodeExtra at that commit needs it.
+
+**Where it runs.** The workflow `.github/workflows/bench.yml` runs on every
+push to `main` and on manual dispatch, on a GitHub `ubuntu-latest` runner.
+The results file records the runner's CPU model, core count and `uname -a`.
+In `bench/`, the job runs:
+
+```sh
+lake update                  # fetch UnicodeExtra; the log prints the full commit id
+sh build.sh results.md       # build this library, UnicodeExtra, then the benchmark
+lake test                    # the input, comparison and report tests
+lake exe bench check         # both libraries must return the same clusters
+lake exe bench report results.md
+```
+
+The job fails unless the commit `lake update` resolved starts with
+`44228db53c81`. If this library, UnicodeExtra, or a module that only imports
+both fails to build, `results.md` says which one failed and why, and the job
+fails. A failure in the benchmark's own code is reported as a harness
+failure, which says nothing about the two libraries.
+
+**Inputs.** Four inputs are generated from a fixed seed: `plain-ascii`;
+`mixed-scripts` (Latin with combining marks, CJK, Hangul syllables and jamo,
+Indic conjuncts); `emoji` (ZWJ sequences, skin-tone modifiers, flags); and
+`large-mixed`, at least 10,000,000 bytes of UTF-8 mixing the other three.
+Before anything is timed, `lake exe bench check` compares the two libraries'
+clusters on every input and fails with the first difference.
+
+**Timing.** Times are nanoseconds per call, from `IO.monoNanosNow`. Each
+small input gets 31 samples of 1000 calls each; `large-mixed` gets 7 samples
+of one call each. Each input first gets 2 warm-up samples that are not
+counted. The table shows the median and the minimum and maximum. This
+library's time includes copying each cluster into a new `String`;
+UnicodeExtra's covers its slices.
+
+**Memory.** Each input and library runs in a process of its own. The table
+shows that process's peak resident memory (`VmHWM` in `/proc/self/status`).
+Each peak includes building the input. A baseline process that only builds
+the input is shown beside them, and nothing is subtracted.
+
+**What is tested.** The input generator, the comparison and the table's
+format have tests. The timing and memory values are measured, not tested.
+
+**Results.** No results are published yet. The table will be copied here
+from the `bench-results` artifact of the first green run of
+`.github/workflows/bench.yml` on `main`, with that run's link and date.
+
 ## Contributing
 
 Issues and pull requests are welcome. The build pipeline works an issue only

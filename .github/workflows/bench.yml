@@ -1,0 +1,103 @@
+name: Benchmark
+
+# Measures this library against UnicodeExtra (bench/). It runs only on pushes to main and on
+# manual dispatch, in a workflow of its own, so it never delays the checks in ci.yml.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# The job compiles and runs code fetched from another repository, so its token can only read.
+# Uploading an artifact needs no further permission.
+permissions:
+  contents: read
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: bench
+    env:
+      LC_ALL: C
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Installs the toolchain named in bench/lean-toolchain. The build is staged by
+      # bench/build.sh below, so the action builds and tests nothing itself.
+      - uses: leanprover/lean-action@24581d74d674803a25a81b10b059c5c0cdd344c6 # v1.6.2
+        with:
+          auto-config: false
+          build: false
+          test: false
+          lake-package-directory: bench
+      # bench/lake-manifest.json is not committed: this resolves UnicodeExtra's pinned commit
+      # afresh on every run.
+      - name: Fetch UnicodeExtra
+        run: lake update
+      # Prints the full commit id `lake update` resolved and fails unless it is the pinned one.
+      # The lakefile names a 12-digit prefix; this check ties the full id to it. It also sets the
+      # run metadata the results file reports.
+      - name: Check the resolved UnicodeExtra commit and record the run metadata
+        run: |
+          set -eu
+          # A path package (this library) has no `url`, so a missing one reads as "".
+          rev=$(jq -r '.packages[] | select((.url // "") | test("lean4-unicode-extra")) | .rev' lake-manifest.json)
+          echo "UnicodeExtra resolved to commit: $rev"
+          # Exactly one 40-digit id: no match or two matches fail instead of checking nothing.
+          if [ "$(printf '%s\n' "$rev" | grep -cxE '44228db53c81[0-9a-f]{28}' || true)" -ne 1 ] \
+            || [ "$(printf '%s\n' "$rev" | wc -l)" -ne 1 ]; then
+            echo "Expected one 40-digit commit id starting with 44228db53c81; got: $rev" >&2
+            exit 1
+          fi
+          cpu=$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | sed 's/^ *//')
+          {
+            echo "BENCH_THEIRS_COMMIT=$rev"
+            echo "BENCH_OURS_COMMIT=$GITHUB_SHA"
+            echo "BENCH_TOOLCHAIN=$(cat lean-toolchain)"
+            echo "BENCH_MACHINE=$cpu, $(nproc) cores, $(uname -a)"
+          } >> "$GITHUB_ENV"
+      # Builds each library, then a module that imports both, then the benchmark. A library
+      # failure writes results.md saying the two cannot build together; a failure in the
+      # benchmark's own code is reported as a harness failure and writes nothing.
+      # A stand-in `lake` fails each build target in turn: only a library target may write the
+      # "cannot build together" results file, and every failure must fail the script.
+      - name: Check that the build script tells library failures from harness failures
+        run: sh build-self-test.sh
+      - name: Build both libraries and the benchmark
+        run: sh build.sh results.md
+      # The input, comparison and report tests. They run before anything is timed.
+      - name: Run the bench tests
+        run: lake test
+      # A comparison that has only ever passed could be checking nothing, so this drops one of
+      # this library's clusters and fails unless `check` exits with status 1 and names the
+      # difference.
+      - name: Check that a cluster difference fails the comparison
+        run: |
+          set +e
+          output=$(lake exe bench check --break-ours 2>&1)
+          status=$?
+          set -e
+          printf '%s\n' "$output"
+          if [ "$status" -ne 1 ]; then
+            echo "Expected exit status 1 from a broken comparison; got $status." >&2
+            exit 1
+          fi
+          if ! printf '%s\n' "$output" | grep -q "clusters differ on input"; then
+            echo "The broken comparison did not print the first difference." >&2
+            exit 1
+          fi
+      # Both libraries must return the same clusters on every input before either is timed.
+      - name: Compare both libraries' clusters on every input
+        run: lake exe bench check
+      - name: Time both libraries and record their peak memory
+        run: lake exe bench report results.md
+      # Uploads the results table, or the "cannot build together" result when a library failed
+      # to build. It is skipped when no results file was written.
+      - name: Upload the results
+        if: always() && hashFiles('bench/results.md') != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: bench-results
+          path: bench/results.md
+          if-no-files-found: error

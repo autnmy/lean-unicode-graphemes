@@ -1,1 +1,4 @@
 /.lake/
+# The benchmark package's build output, and the manifest CI writes with `lake update` each run.
+/bench/.lake/
+/bench/lake-manifest.json
