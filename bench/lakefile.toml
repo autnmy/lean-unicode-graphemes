@@ -15,11 +15,13 @@ name = "lean-unicode-graphemes"
 path = ".."
 
 # Pinned to a commit, never a branch or tag, so the code CI compiles and runs cannot change
-# under the benchmark. CI checks that `lake update` resolves this to a full id with this prefix.
+# under the benchmark. The id is written in full because Lake passes it to `git fetch`, and a
+# git remote serves only refs and full object ids, never an abbreviated one. CI checks that
+# `lake update` resolves it to a full id starting with `44228db53c81`.
 [[require]]
 name = "UnicodeExtra"
 git = "https://github.com/fgdorais/lean4-unicode-extra"
-rev = "44228db53c81"
+rev = "44228db53c8104753bf02bff36279a65ea46dce4"
 
 # Inputs, comparison, statistics and reporting. Lake resolves an import only to a module that
 # some library of the package owns.

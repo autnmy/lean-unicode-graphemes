@@ -61,8 +61,8 @@ jobs:
       - name: Fetch UnicodeExtra
         run: lake update
       # Prints the full commit id `lake update` resolved and fails unless it is the pinned one.
-      # The lakefile names a 12-digit prefix; this check ties the full id to it. It also sets the
-      # run metadata the results file reports.
+      # The lakefile names the full id; this check ties it to the `44228db53c81` prefix the README
+      # cites. It also sets the run metadata the results file reports.
       - name: Check the resolved UnicodeExtra commit and record the run metadata
         run: |
           set -eu
