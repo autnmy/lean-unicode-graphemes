@@ -1,0 +1,44 @@
+name = "bench"
+description = "Benchmark of lean-unicode-graphemes against UnicodeExtra on the same inputs"
+# A package of its own, so the library's root package keeps no dependencies. Run from `bench/`:
+# `lake update` fetches UnicodeExtra, `lake test` runs the bench tests.
+testDriver = "«bench-tests»"
+
+# A misspelled name must be an error, not a fresh implicit variable.
+[leanOptions]
+autoImplicit = false
+
+# The library under test, read from this checkout. Lake writes the hyphenated name in «» in
+# the manifest it generates.
+[[require]]
+name = "lean-unicode-graphemes"
+path = ".."
+
+# Pinned to a commit, never a branch or tag, so the code CI compiles and runs cannot change
+# under the benchmark. CI checks that `lake update` resolves this to a full id with this prefix.
+[[require]]
+name = "UnicodeExtra"
+git = "https://github.com/fgdorais/lean4-unicode-extra"
+rev = "44228db53c81"
+
+# Inputs, comparison, statistics and reporting. Lake resolves an import only to a module that
+# some library of the package owns.
+[[lean_lib]]
+name = "Bench"
+roots = []
+globs = ["Bench.+"]
+
+# The bench test modules the test driver imports. The glob matches submodules only, so the
+# driver `BenchTest`, which defines `main`, stays out.
+[[lean_lib]]
+name = "BenchChecks"
+roots = []
+globs = ["BenchTest.+"]
+
+[[lean_exe]]
+name = "bench"
+root = "Main"
+
+[[lean_exe]]
+name = "bench-tests"
+root = "BenchTest"
