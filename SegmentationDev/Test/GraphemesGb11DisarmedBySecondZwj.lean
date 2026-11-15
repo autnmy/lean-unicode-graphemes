@@ -7,7 +7,7 @@ import Segmentation
 -- ZWJ ZWJ, which GB11's left side does not match, so GB999 breaks there. A state that stays
 -- armed after any ZWJ would join the second pictograph.
 set_option maxRecDepth 20000 in
-theorem «clustersOf does not apply GB11 after a second ZWJ» :
+theorem clustersOf_no_gb11_after_second_zwj :
     Segmentation.clustersOf
       (fun c =>
         if c = 'P' then { gcb := .other, extPict := true, incb := .none }

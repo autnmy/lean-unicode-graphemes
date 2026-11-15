@@ -1,6 +1,6 @@
 import Segmentation.Tables.Range
 
-theorem «range lookup on an empty table returns the default and a single range hits at lo and hi» :
+theorem range_lookup_empty_defaults_and_single_range_hits_lo_and_hi :
     (Segmentation.Tables.Range.lookup (7 : Nat) (#[] : Array (Segmentation.Tables.Range Nat)) 0,
      [0x2FF, 0x300, 0x36F, 0x370].map fun n =>
       Segmentation.Tables.Range.lookup (0 : Nat)

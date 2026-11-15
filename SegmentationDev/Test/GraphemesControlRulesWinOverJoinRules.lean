@@ -7,7 +7,7 @@ import Segmentation
 -- Prepend), so GB999 breaks there. A segmenter that checked GB9/GB9b first would join 'C' to
 -- 'E' and 'p' to the last 'C'.
 set_option maxRecDepth 20000 in
-theorem «clustersOf lets GB4 and GB5 win over GB9 and GB9b (first matching rule wins)» :
+theorem clustersOf_gb4_gb5_win_over_gb9_gb9b :
     Segmentation.clustersOf
       (fun c =>
         if c = 'C' then { gcb := .control, extPict := false, incb := .none }

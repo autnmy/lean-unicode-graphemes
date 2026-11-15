@@ -4,7 +4,7 @@ import Segmentation
 -- Extended_Pictographic, 'Z' is ZWJ, anything else is Other. A pictograph earlier in the text,
 -- cut off by an ordinary letter, must not leave GB11 armed for the ZWJ after that letter.
 set_option maxRecDepth 20000 in
-theorem «clustersOf does not apply GB11 when the ZWJ follows a non-pictograph (GraphemeBreakTest line 848)» :
+theorem clustersOf_no_gb11_when_zwj_follows_non_pictograph_line_848 :
     Segmentation.clustersOf
       (fun c =>
         if c = 'P' then { gcb := .other, extPict := true, incb := .none }

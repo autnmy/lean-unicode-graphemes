@@ -6,7 +6,7 @@ import SegmentationDev.Gate.KeywordScan
 -- Each source holds a literal whose escapes or quotes could make the scanner lose its place.
 -- A word in code after the literal must still be reported, and a word inside one must not be.
 open Lean in
-theorem «findForbidden keeps its place after escaped char literals, raw strings and throwError strings» :
+theorem findForbidden_keeps_place_after_char_escapes_raw_and_throwError_strings :
     True := by
   run_tac do
     let cases : List (String × List (Nat × String)) := [
