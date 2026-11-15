@@ -3,6 +3,17 @@ import BenchTest.InputsAreFourNamed
 import BenchTest.InputsAsciiIsPlain
 import BenchTest.InputsMixedHasEveryFeature
 import BenchTest.InputsEmojiHasEveryFeature
+import BenchTest.FirstDifferenceAtStart
+import BenchTest.FirstDifferenceIsFirst
+import BenchTest.FirstDifferenceEarliest
+import BenchTest.FirstDifferenceLengthMismatch
+import BenchTest.FirstDifferenceOursIsPrefix
+import BenchTest.FirstDifferenceTheirsIsPrefix
+import BenchTest.FirstDifferenceEmptyCluster
+import BenchTest.FirstDifferenceEqualLists
+import BenchTest.CheckAllNamesLaterInput
+import BenchTest.CheckAllFirstInputInOrder
+import BenchTest.ExitCodeFor
 
 /-!
 # Benchmark test driver
