@@ -28,7 +28,8 @@ holds it. This is the plain search `Range.lookup` is proved against, so it does 
 -/
 def Range.scanList {α : Type} (default : α) : List (Range α) → Nat → α
   | [], _ => default
-  | range :: rest, n => if range.lo ≤ n ∧ n ≤ range.hi then range.value else scanList default rest n
+  | range :: rest, n =>
+    if range.lo ≤ n ∧ n ≤ range.hi then range.value else scanList default rest n
 
 /-- The value of the first range in `table` that holds code point `n`, or `default`. -/
 def Range.scan {α : Type} (default : α) (table : Array (Range α)) (n : Nat) : α :=
