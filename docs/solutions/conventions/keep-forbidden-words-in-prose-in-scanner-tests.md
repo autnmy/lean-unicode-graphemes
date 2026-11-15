@@ -30,7 +30,7 @@ In a test file, put a forbidden word only in:
 
 - a plain `"…"` string literal used as a test input,
 - a `--` or `/- … -/` comment,
-- a «…» theorem name.
+- a snake_case theorem name where the word is joined to its neighbours by `_`, such as `axiom_gate_self_test_rejects_sorry_native_decide_and_user_axiom`. The scanner treats `_` as part of a word, so the whole name is one word. Test theorems no longer use «…» names (see `name-test-theorems-in-snake-case-not-guillemet-sentences.md`), although the scanner still skips them.
 
 In an error message such as `throwError m!"…"`, interpolate only bindings, for example `{repr src}` or `{repr got}`. Never write a forbidden word between the braces. Build multi-line inputs from plain literals joined with `++`, not from interpolated strings.
 
