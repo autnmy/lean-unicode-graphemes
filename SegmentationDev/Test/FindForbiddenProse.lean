@@ -8,7 +8,7 @@ import SegmentationDev.Gate.KeywordScan
 -- where the prose ends, so code after a closed comment, an escaped quote or a «…» name is still
 -- scanned. The inputs are plain string literals, so the scan of this file itself sees no code use.
 open Lean in
-theorem «findForbidden skips comments, strings and quoted names but scans the code after them» :
+theorem findForbidden_skips_prose_but_scans_code_after_it :
     True := by
   run_tac do
     let cases : List (String × List (Nat × String)) := [

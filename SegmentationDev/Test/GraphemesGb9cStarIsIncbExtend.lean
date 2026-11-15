@@ -5,7 +5,7 @@ import Segmentation
 -- 'e' joins by GB9, but it ends the linker run, so GB9c does not hold before 'K' and GB999
 -- breaks. A state that counted GCB Extend as part of the run would join 'K'.
 set_option maxRecDepth 20000 in
-theorem «clustersOf does not apply GB9c across a GCB Extend mark that is not InCB Extend» :
+theorem clustersOf_no_gb9c_across_gcb_extend_without_incb_extend :
     Segmentation.clustersOf
       (fun c =>
         if c = 'L' then { gcb := .extend, extPict := false, incb := .linker }

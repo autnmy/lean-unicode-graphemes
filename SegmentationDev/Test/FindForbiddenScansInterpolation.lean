@@ -7,7 +7,7 @@ import SegmentationDev.Gate.KeywordScan
 -- around it is a string. The inputs are plain string literals, so the scan of this file itself
 -- sees no code use.
 open Lean in
-theorem «findForbidden scans the code inside interpolated strings» : True := by
+theorem findForbidden_scans_code_inside_interpolated_strings : True := by
   run_tac do
     let cases : List (String × List (Nat × String)) := [
       ("def hidden : String := s!\"{(show Nat from by sorry)}\"", [(1, "sorry")]),

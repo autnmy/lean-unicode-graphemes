@@ -13,7 +13,7 @@ open SegmentationDev.Test.GraphemeBreakTestFile
 
 -- The expected clusters come from the file's ÷ and × markers, never from the segmenter.
 -- The comment line is not a test line, so the data line is physical line 2.
-theorem «parseTestFile reads expected clusters from the markers, astral code points included» :
+theorem parseTestFile_reads_clusters_from_markers_with_astral_code_points :
     (match parseTestFile "# header\n÷ 1F1E6 × 1F1E7 ÷ 0020 ÷\t# x\n" with
       | .ok [c] =>
         c.line == 2 && c.codePoints == [0x1F1E6, 0x1F1E7, 0x0020] &&
@@ -55,58 +55,58 @@ def graphemeBreakTestValidLine : String := "÷ 0041 ÷ 0042 ÷\t# ok\n"
 #guard !(parseTestFile (graphemeBreakTestValidLine ++ "÷\t# bad\n")).toBool
 
 -- Only ÷ and × are markers; a "+" must fail the parse, not be read as either.
-theorem «parseTestFile rejects a line with an unknown marker beside a valid line» :
+theorem parseTestFile_rejects_unknown_marker :
     (parseTestFile (graphemeBreakTestValidLine ++ "÷ 0041 + 0042 ÷\t# bad\n")).toBool = false := by
   decide +kernel
 
 -- Every line of the file ends with ÷ (the break at the end of the text). A line without it has
 -- no defined last cluster, so it must fail instead of being guessed at or skipped.
-theorem «parseTestFile rejects a line without its trailing break marker beside a valid line» :
+theorem parseTestFile_rejects_missing_trailing_break_marker :
     (parseTestFile (graphemeBreakTestValidLine ++ "÷ 0041 × 0042\t# bad\n")).toBool = false := by
   decide +kernel
 
 -- D800 is a surrogate, not a valid Char. Char.ofNat would quietly turn it into U+0000, so the
 -- parser must refuse it rather than test the segmenter on a different code point.
-theorem «parseTestFile rejects a surrogate code point beside a valid line» :
+theorem parseTestFile_rejects_surrogate_code_point :
     (parseTestFile (graphemeBreakTestValidLine ++ "÷ D800 ÷\t# bad\n")).toBool = false := by
   decide +kernel
 
 -- 110000 is past the last Unicode code point, so it is not a valid Char and the line must fail.
-theorem «parseTestFile rejects a code point above 10FFFF beside a valid line» :
+theorem parseTestFile_rejects_code_point_above_10FFFF :
     (parseTestFile (graphemeBreakTestValidLine ++ "÷ 110000 ÷\t# bad\n")).toBool = false := by
   decide +kernel
 
 /-! ## Counting the test lines -/
 
 -- The count the file states in its own trailer is what the parsed count is checked against.
-theorem «statedLineCount reads 853 from the file's Lines trailer» :
+theorem statedLineCount_reads_853_from_trailer :
     (statedLineCount "÷ 0020 ÷ 0020 ÷\t# x\n#\n# Lines: 853\n#\n# EOF\n" == some 853 &&
       statedLineCount "÷ 0020 ÷ 0020 ÷\t# x\n# EOF\n" == none) = true := by
   decide
 
-theorem «checkCounts accepts 853 parsed lines when the file states 853» :
+theorem checkCounts_accepts_853_lines_when_file_states_853 :
     (checkCounts 853 (some 853)).toBool = true := by
   decide
 
 -- A parser that silently skips one line must not pass.
-theorem «checkCounts rejects a parse that dropped a line the file states» :
+theorem checkCounts_rejects_dropped_line :
     (checkCounts 852 (some 853)).toBool = false := by
   decide
 
 -- A file cut to 852 lines whose trailer was edited to agree must still fail:
 -- agreeing with the trailer alone is not enough, the count must be 853.
-theorem «checkCounts rejects a file truncated with a matching trailer» :
+theorem checkCounts_rejects_truncated_file_with_matching_trailer :
     (checkCounts 852 (some 852)).toBool = false := by
   decide
 
 -- A run that compared nothing must fail rather than pass with zero mismatches.
-theorem «checkCounts rejects an empty parse with an empty trailer» :
+theorem checkCounts_rejects_empty_parse_with_empty_trailer :
     (checkCounts 0 (some 0)).toBool = false := by
   decide
 
 -- Without the file's own "# Lines:" trailer there is nothing independent to
 -- check the parsed count against, so the check must fail rather than pass.
-theorem «checkCounts rejects 853 parsed lines when the file states no count» :
+theorem checkCounts_rejects_853_lines_without_stated_count :
     (checkCounts 853 none).toBool = false := by
   decide
 
@@ -126,7 +126,7 @@ def graphemeBreakTestTwoLinesClaiming853 : String :=
 
 -- A truncated file whose trailer was edited to agree must never render into the data the
 -- theorem reads.
-theorem «renderCasesModule refuses a test file whose trailer agrees with a count other than 853» :
+theorem renderCasesModule_refuses_count_other_than_853 :
     (match renderCasesModule
         "UNICODE LICENSE V3\n\nCopyright © 1991-2025 Unicode, Inc.\n"
         "÷ 0020 ÷ 0020 ÷\t# x\n#\n# Lines: 1\n#\n# EOF\n" with
@@ -145,7 +145,7 @@ theorem «renderCasesModule refuses a test file whose trailer agrees with a coun
 
 -- A segmenter that splits every code point apart gets both joined lines wrong, so both line
 -- numbers must be reported, not only the first; the line in between is right and must not appear.
-theorem «mismatches names every differing line, in file order» :
+theorem mismatches_names_every_differing_line_in_order :
     (mismatches
         (fun cps => cps.map fun c => [c])
         [ { line := 30, codePoints := [0x000D, 0x000A], expected := [[0x000D, 0x000A]] },
@@ -156,7 +156,7 @@ theorem «mismatches names every differing line, in file order» :
 
 -- Twelve differing lines is more than the ten that the existing table
 -- comparison reports, so a copied cap would drop the last two.
-theorem «mismatches names all twelve differing lines with no cap» :
+theorem mismatches_names_all_twelve_differing_lines :
     mismatches (fun cps => cps.map fun c => [c])
       ((List.range 12).map fun i =>
         ({ line := 100 + i, codePoints := [0x000D, 0x000A],
@@ -166,7 +166,7 @@ theorem «mismatches names all twelve differing lines with no cap» :
 
 -- A segmenter that drops the text must be caught on every line; only the line
 -- it gets right (line 31) is left out, and lines keep the file's order.
-theorem «mismatches reports a segmenter that returns no clusters» :
+theorem mismatches_reports_segmenter_with_no_clusters :
     mismatches (fun cps => if cps = [0x0020] then [[0x0020]] else [])
       [({ line := 29, codePoints := [0x000D, 0x000A], expected := [[0x000D, 0x000A]] } : GraphemeBreakCase),
        { line := 31, codePoints := [0x0020], expected := [[0x0020]] },
@@ -176,7 +176,7 @@ theorem «mismatches reports a segmenter that returns no clusters» :
 
 -- A segmenter that keeps the whole input as one cluster agrees with lines whose expected
 -- result is one cluster, so nothing is reported for them.
-theorem «mismatches is empty when every line's clusters agree» :
+theorem mismatches_eq_nil_when_all_lines_agree :
     (mismatches
         (fun cps => [cps])
         [ { line := 29, codePoints := [0x000D, 0x000A], expected := [[0x000D, 0x000A]] },

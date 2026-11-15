@@ -34,7 +34,7 @@ Read the axiom list with core's `Lean.collectAxioms` at compile time. Throw an e
 
 ```lean
 open Lean in
-theorem «graphemes_join uses no sorry and no axiom beyond propext, Classical.choice and Quot.sound» :
+theorem graphemes_join_uses_only_allowed_axioms :
     True := by
   run_tac do
     let used ← collectAxioms ``Segmentation.graphemes_join

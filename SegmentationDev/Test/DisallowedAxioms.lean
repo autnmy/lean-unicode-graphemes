@@ -9,7 +9,7 @@ import SegmentationDev.Gate.Axioms
 -- themselves. The rule is a subset check: a proof that uses all, some or none of the allowed
 -- axioms passes. The result keeps the order of the input, so each expected list is exact.
 open Lean in
-theorem «disallowedAxioms reports exactly the axioms outside propext, Classical.choice and Quot.sound» :
+theorem disallowedAxioms_reports_exactly_axioms_outside_allowed :
     True := by
   run_tac do
     let cases : List (Array Name × List Name) := [
