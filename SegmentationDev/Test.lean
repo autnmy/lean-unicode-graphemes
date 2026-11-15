@@ -69,6 +69,11 @@ import SegmentationDev.Test.PropsTableMergeSorted
 import SegmentationDev.Test.PropsTableMergeScan
 import SegmentationDev.Test.PropsTableNoForbiddenProof
 import SegmentationDev.Test.PropsTableClosedTerm
+import SegmentationDev.Test.PropsLookupIsOneRangeLookup
+import SegmentationDev.Test.PropsLookupNotThreeLookups
+import SegmentationDev.Test.PropsLookupListedCodePointsByNumber
+import SegmentationDev.Test.PropsLookupNamedPropertiesByDecide
+import SegmentationDev.Test.PropsDefaultUncoveredCodePoints
 
 /-!
 # Test driver
