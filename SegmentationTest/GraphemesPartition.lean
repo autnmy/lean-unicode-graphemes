@@ -2,22 +2,22 @@ import Segmentation
 
 /-!
 Checks of the partition theorems in `Segmentation.Partition`: the clusters of `graphemes` join
-back to the input (`H1a`), and no cluster is empty (`H1b`).
+back to the input (`JoinRestoresInput`), and no cluster is empty (`ClustersNonEmpty`).
 -/
 
 -- The type ascriptions pin each theorem to the committed statement applied to the real
 -- segmenter, so a theorem that is missing, renamed, or about a weaker statement or a different
 -- segmenter fails here.
-theorem «graphemes_join is stated as H1a applied to graphemes» :
-    Segmentation.H1a Segmentation.graphemes :=
+theorem «graphemes_join is stated as JoinRestoresInput applied to graphemes» :
+    Segmentation.JoinRestoresInput Segmentation.graphemes :=
   Segmentation.graphemes_join
 
-theorem «graphemes_ne_empty is stated as H1b applied to graphemes» :
-    Segmentation.H1b Segmentation.graphemes :=
+theorem «graphemes_ne_empty is stated as ClustersNonEmpty applied to graphemes» :
+    Segmentation.ClustersNonEmpty Segmentation.graphemes :=
   Segmentation.graphemes_ne_empty
 
--- H1a must hold for every string, including the empty one and text that splits into several
--- clusters (a base letter with a combining mark, then CR LF, then a letter).
+-- JoinRestoresInput must hold for every string, including the empty one and text that splits
+-- into several clusters (a base letter with a combining mark, then CR LF, then a letter).
 theorem «graphemes_join gives back a multi-cluster string with combining mark and CRLF» :
     String.join (Segmentation.graphemes "") = "" ∧
       String.join (Segmentation.graphemes "e\u0301\r\nx") = "e\u0301\r\nx" :=

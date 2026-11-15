@@ -1,18 +1,18 @@
 import Segmentation
 
--- `cutPoints []` is `[0]`, so the empty text must have no clusters for H2' to hold.
+-- `cutPoints []` is `[0]`, so the empty text must have no clusters for BoundariesMatchCuts to hold.
 theorem «graphemes of the empty string is the empty list» :
     (Segmentation.graphemes "" == ([] : List String)) = true := by
   decide
 
--- `cutPoints []` is `[0]`, and H2' asks `boundaries s = cutPoints (graphemes s)`.
+-- `cutPoints []` is `[0]`, and BoundariesMatchCuts asks `boundaries s = cutPoints (graphemes s)`.
 theorem «boundaries of the empty string is the single cut 0» :
     (Segmentation.boundaries "" == [0]) = true := by
   decide
 
 -- "`Segmentation.boundaries : String → List Nat`, the cut positions counted in code points."
--- `cutPoints []` is `[0]`, so for H2' the boundary list of the empty text must be `[0]`, not `[]`,
--- and the empty text has no clusters.
+-- `cutPoints []` is `[0]`, so for BoundariesMatchCuts the boundary list of the empty text must be
+-- `[0]`, not `[]`, and the empty text has no clusters.
 theorem «cutsOf on empty input is [0], matching cutPoints of no clusters» :
     Segmentation.cutsOf (fun _ => { gcb := .Other, extPict := false, incb := .None }) [] = [0] ∧
       Segmentation.clustersOf (fun _ => { gcb := .Other, extPict := false, incb := .None }) [] = [] := by

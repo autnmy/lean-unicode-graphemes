@@ -7,8 +7,8 @@ import Segmentation.ScanInvariants
 
 `mem_cutsOf` says which positions `cutsOf` lists: both ends of the text, and each position inside
 it where `breaksBefore` says ÷ for the scan state that has read every code point before it. It
-holds for any property lookup. `boundaries_agree` proves `H2'`: `boundaries` lists the cut points
-of `graphemes`.
+holds for any property lookup. `boundaries_agree` proves `BoundariesMatchCuts`: `boundaries`
+lists the cut points of `graphemes`.
 
 `clustersOf.go` reads the text one code point at a time, so `mem_cutsOf` is proved through a
 lemma about `go` part way through the text. That lemma names the scan state by the properties
@@ -127,10 +127,10 @@ theorem mem_cutsOf (props : Char → Props) (c : Char) (cs : List Char) (i : Nat
     · exact Or.inr (Or.inl (by omega))
     · exact Or.inr (Or.inr ⟨j, hj, by omega, hb⟩)
 
-/-- `H2'` for `graphemes` and `boundaries`: `boundaries` lists the cut points of `graphemes`. A
-cluster turned into a string keeps its length in code points, so both sides add up the same
-lengths. -/
-theorem boundaries_agree : H2' graphemes boundaries := by
+/-- `BoundariesMatchCuts` for `graphemes` and `boundaries`: `boundaries` lists the cut points of
+`graphemes`. A cluster turned into a string keeps its length in code points, so both sides add
+up the same lengths. -/
+theorem boundaries_agree : BoundariesMatchCuts graphemes boundaries := by
   intro s
   simp [boundaries, cutsOf, cutPoints, graphemes, List.map_map, Function.comp_def,
     String.length_ofList]
