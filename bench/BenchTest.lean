@@ -17,6 +17,8 @@ import BenchTest.ExitCodeFor
 import BenchTest.SummarizeStats
 import BenchTest.ReportRendering
 import BenchTest.OursIsReference
+import BenchTest.FastIsSlice
+import BenchTest.FastClustersCrLf
 
 /-!
 # Benchmark test driver

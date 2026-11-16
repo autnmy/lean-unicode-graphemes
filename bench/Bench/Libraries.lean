@@ -2,13 +2,15 @@ import Segmentation
 import UnicodeExtra
 
 /-!
-# The two segmenters, as the benchmark calls them
+# The three segmenters, as the benchmark calls them
 
-The only place that calls UnicodeExtra. The comparison needs both libraries' clusters as
-`String`s, so UnicodeExtra's slices are copied here. The timed calls count clusters instead, so
-each library is timed on its own output: this library's copies are part of its time, and
-UnicodeExtra's slices are never copied while it is timed. This library's column checks and times
-the reference `List Char` path, `clustersOf`, in one place: `oursClusters`.
+The only place that calls UnicodeExtra. The comparison needs every column's clusters as
+`String`s, so UnicodeExtra's and the fast scanner's slices are copied here. The timed calls
+count clusters instead, so each segmenter is timed on its own output: the reference's copies
+are part of its time, and the slices of UnicodeExtra and the fast scanner are never copied
+while they are timed. This library's reference column checks and times the `List Char` path,
+`clustersOf`, in one place: `oursClusters`. The fast column calls `Segmentation.sliceGraphemes`
+directly, in `fastClusters` and `fastClusterCount`.
 
 `Unicode.graphemeClusters` is walked with `for`, which accepts a list, an array or an iterator,
 so this code does not depend on which of them it returns.
@@ -39,5 +41,14 @@ def theirsClusterCount (text : String) : Nat := Id.run do
   for _ in Unicode.graphemeClusters text do
     count := count + 1
   return count
+
+/-- The fast `String.Slice` scanner's clusters of `text`, each slice copied into a `String` so
+they can be compared with the other two columns. -/
+def fastClusters (text : String) : List String :=
+  (Segmentation.sliceGraphemes text.toSlice).map String.Slice.copy
+
+/-- How many clusters the fast scanner finds in `text`, without copying any of them. -/
+def fastClusterCount (text : String) : Nat :=
+  (Segmentation.sliceGraphemes text.toSlice).length
 
 end Bench
