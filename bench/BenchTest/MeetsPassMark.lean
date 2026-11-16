@@ -8,7 +8,7 @@ field, or took the arguments the other way round, gives the opposite answer some
 -/
 
 -- The fast max is above UnicodeExtra's max and UnicodeExtra's median is below the fast median,
--- so comparing the wrong field or swapping the arguments gives false here.
+-- so comparing median with median (500 ≤ 300) or max with max (900 ≤ 500) gives false here.
 /-- The pass mark is met when the fast median equals UnicodeExtra's maximum sample. -/
 theorem meetsPassMark_true_at_theirs_max :
     Bench.meetsPassMark { median := 500, min := 100, max := 900, count := 3 }
