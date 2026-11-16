@@ -13,6 +13,14 @@ import BenchTest.FirstDifferenceEmptyCluster
 import BenchTest.FirstDifferenceEqualLists
 import BenchTest.CheckAllNamesLaterInput
 import BenchTest.CheckAllFirstInputInOrder
+import BenchTest.FirstDifferenceFastIsPrefix
+import BenchTest.FirstDifferenceFastEmptyCluster
+import BenchTest.FirstDifferenceFastLonger
+import BenchTest.CheckAllOnlyFastDiffers
+import BenchTest.CheckAllOnlyFastDiffersLater
+import BenchTest.CheckAllOnlyOursDiffers
+import BenchTest.CheckAllOnlyTheirsDiffers
+import BenchTest.CheckAllAllAgree
 import BenchTest.ExitCodeFor
 import BenchTest.SummarizeStats
 import BenchTest.ReportRendering
