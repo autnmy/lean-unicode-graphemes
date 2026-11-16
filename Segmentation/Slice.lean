@@ -63,6 +63,58 @@ theorem charProps_eq_props (c : Char) : charProps c = Tables.props c := by
     rw [asciiProps_eq_props c.toNat h, Char.ofNat_toNat]
   · exact Tables.propsLookup_eq_props c
 
+/-- Whether there is a boundary between the text summarised by `s` and a next code point with
+properties `next`, decided by one `match` on the two break classes instead of a search through
+`breakRows`. The arms keep the order of `breakRows`, so the first rule that applies decides, and
+a break is the default (GB999). -/
+def breaksBeforeFast (s : ScanState) (next : Props) : Bool :=
+  match s.prev.gcb, next.gcb with
+  -- GB3
+  | .cr, .lf => false
+  -- GB4, GB5
+  | .cr, _ | .lf, _ | .control, _ => true
+  | _, .cr | _, .lf | _, .control => true
+  -- GB6, GB7, GB8
+  | .l, .l | .l, .v | .l, .lv | .l, .lvt => false
+  | .lv, .v | .lv, .t | .v, .v | .v, .t => false
+  | .lvt, .t | .t, .t => false
+  -- GB9, GB9a
+  | _, .extend | _, .zwj | _, .spacingMark => false
+  -- GB9b
+  | .prepend, _ => false
+  | _, _ =>
+    -- GB9c
+    if s.linkerTail && incbIs .consonant next then false
+    -- GB11
+    else if s.zwjAfterPict && isExtPict next then false
+    -- GB12, GB13
+    else if s.riOdd && next.gcb == .regionalIndicator then false
+    else true
+
+/-- `breaksBefore` read as a chain of `if`s over `breakRows`, one per row in order, ending in a
+break. In this form `simp` can compare it with the `match` of `breaksBeforeFast`. -/
+private theorem breaksBefore_eq_foldr (s : ScanState) (next : Props) :
+    breaksBefore s next =
+      breakRows.foldr (fun row rest => if row.applies s next then row.breaks else rest) true := by
+  unfold breaksBefore
+  generalize breakRows = rows
+  induction rows with
+  | nil => rfl
+  | cons row rows ih =>
+    rw [List.find?_cons, List.foldr_cons]
+    cases row.applies s next <;> simp [ih]
+
+/-- `breaksBeforeFast` makes the same decision as `breaksBefore`, for every state and every next
+code point. -/
+theorem breaksBeforeFast_eq_breaksBefore :
+    ∀ s next, breaksBeforeFast s next = breaksBefore s next := by
+  intro s next
+  rw [breaksBefore_eq_foldr]
+  obtain ⟨⟨prevGcb, _, _⟩, _, _, _, _⟩ := s
+  obtain ⟨nextGcb, _, _⟩ := next
+  cases prevGcb <;> cases nextGcb <;>
+    simp [breaksBeforeFast, breakRows, gcbIn, incbIs, isExtPict]
+
 /-- The bounds of one cluster in `s`: it runs from `start`, included, to `stop`, excluded. -/
 structure ClusterBounds (s : String.Slice) where
   /-- The position of the cluster's first code point. -/
