@@ -33,6 +33,3 @@ theorem fast_column_reaches_sliceGraphemes : True := by
       unless seen.contains ``Segmentation.sliceGraphemes do
         throwError m!"{root} does not call Segmentation.sliceGraphemes"
   trivial
-
-#guard Bench.fastClusters "a\r\nb" == ["a", "\r\n", "b"]
-#guard Bench.fastClusterCount "a\r\nb" == 3

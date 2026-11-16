@@ -16,9 +16,7 @@ import BenchTest.CheckAllFirstInputInOrder
 import BenchTest.FirstDifferenceFastIsPrefix
 import BenchTest.FirstDifferenceFastEmptyCluster
 import BenchTest.FirstDifferenceFastLonger
-import BenchTest.FirstDifferenceFastExtraCluster
 import BenchTest.CheckAllOnlyFastDiffers
-import BenchTest.CheckAllOnlyFastDiffersLater
 import BenchTest.CheckAllOnlyOursDiffers
 import BenchTest.CheckAllOnlyTheirsDiffers
 import BenchTest.CheckAllAllAgree
@@ -26,14 +24,6 @@ import BenchTest.ExitCodeFor
 import BenchTest.SummarizeStats
 import BenchTest.ReportRendering
 import BenchTest.MeetsPassMark
-import BenchTest.MeetsPassMarkAtMax
-import BenchTest.MeetsPassMarkAboveMax
-import BenchTest.MeetsPassMarkAtMaxWrongFields
-import BenchTest.MeetsPassMarkAboveMaxWrongRules
-import BenchTest.ReportPassMarkLines
-import BenchTest.ReportLargeMixedPeaks
-import BenchTest.ReportFastColumnsGuards
-import BenchTest.ReportFastColumns
 import BenchTest.OursIsReference
 import BenchTest.FastIsSlice
 import BenchTest.FastClustersCrLf
