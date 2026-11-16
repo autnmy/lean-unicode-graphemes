@@ -1,0 +1,12 @@
+name = "docs"
+reservoir = false
+buildDir = "."
+
+[[require]]
+scope = "leanprover"
+name = "doc-gen4"
+rev = "main"
+
+[[require]]
+name = "UnicodeBasic"
+path = ".."
