@@ -1,0 +1,17 @@
+name = "UnicodeExtra"
+description = "Unicode algorithms for Lean 4"
+keywords = ["unicode"]
+precompileModules = true
+defaultTargets = ["UnicodeExtra"]
+testDriver = "UnicodeExtraTest"
+
+[[lean_lib]]
+name = "UnicodeExtra"
+
+[[lean_lib]]
+name = "UnicodeExtraTest"
+
+[[require]]
+name = "UnicodeBasic"
+git = "https://github.com/fgdorais/lean4-unicode-basic"
+rev = "main"
