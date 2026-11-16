@@ -29,11 +29,12 @@ name = "Bench"
 roots = []
 globs = ["Bench.+"]
 
-# The bench test modules the test driver imports. The glob matches submodules only, so the
-# driver `BenchTest`, which defines `main`, stays out.
+# The bench test modules. The glob matches submodules only, so the driver `BenchTest`, which
+# defines `main`, stays out. `Main` is a root so that the test modules that import it resolve:
+# the `bench` executable alone does not make Lake find `Main` for an import.
 [[lean_lib]]
 name = "BenchChecks"
-roots = []
+roots = ["Main"]
 globs = ["BenchTest.+"]
 
 # Compares both libraries' clusters, then measures them: `lake exe bench check`, then
