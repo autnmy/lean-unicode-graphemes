@@ -12,10 +12,11 @@ import Segmentation.Rules
 text: the clusters are slices of the input, and the cuts are positions in it.
 
 The scan steps through the slice one code point at a time and makes the same decision as
-`clustersOf.go` at each step, with the same `ScanState`, `ScanState.push` and `breaksBefore`.
-Only the property lookup differs: `charProps` answers an ASCII code point from the small
-`asciiProps`, with no table, and any other code point with one search in the combined table
-`Tables.propsLookup`. Both are proved equal to `Tables.props`.
+`clustersOf.go` at each step, with the same `ScanState` and `ScanState.push`. Two things differ.
+The property lookup `charProps` answers an ASCII code point from the small `asciiProps`, with no
+table, and any other code point with one search in the combined table `Tables.propsLookup`; both
+are proved equal to `Tables.props`. The break decision `breaksBeforeFast` is one `match` on the
+two break classes instead of a search through `breakRows`, and is proved equal to `breaksBefore`.
 
 The recursion runs on the position in the slice, which moves forward by one code point each
 step, so it ends on every input without a step budget.
@@ -133,7 +134,7 @@ def scanClusters (s : String.Slice) (start pos : s.Pos) (start_le_pos : start �
   else
     let props := charProps (pos.get atEnd)
     have pos_le_next : pos ≤ pos.next atEnd := Std.le_of_lt String.Slice.Pos.lt_next
-    if breaksBefore state props then
+    if breaksBeforeFast state props then
       ⟨start, pos, start_le_pos⟩ ::
         scanClusters s pos (pos.next atEnd) pos_le_next (state.push props)
     else
@@ -217,7 +218,7 @@ theorem scanClusters_agree (s : String.Slice) :
     rw [scanClusters]
     split
     · contradiction
-    simp only [hget]
+    simp only [hget, breaksBeforeFast_eq_breaksBefore]
     unfold clustersOf.go
     by_cases hb : breaksBefore state (charProps c) = true
     · simp only [hb, ↓reduceIte]
