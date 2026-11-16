@@ -83,7 +83,14 @@ def checks : List Check := [
   { name := "Unicode version is 18.0.0",
     passed := Segmentation.unicodeVersion == "18.0.0" },
   { name := "UAX #29 revision is 49",
-    passed := Segmentation.uax29Revision == 49 }
+    passed := Segmentation.uax29Revision == 49 },
+  -- Runs compiled: a scan that recursed once per cluster would need a million stack frames here.
+  { name := "a million ASCII letters then U+0301 give a million clusters, the mark on the last",
+    passed :=
+      let clusters := Segmentation.sliceGraphemes
+        (String.ofList (List.replicate 1000000 'a' ++ ['\u0301'])).toSlice
+      clusters.length == 1000000 &&
+        clusters.getLast?.map String.Slice.copy == some "a\u0301" }
 ]
 
 end SegmentationDev.Test
