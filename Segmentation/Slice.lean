@@ -11,12 +11,17 @@ import Segmentation.Rules
 `Segmentation.graphemes`, but read the slice in place. They build no `List Char` and copy no
 text: the clusters are slices of the input, and the cuts are positions in it.
 
-The scan steps through the slice one code point at a time and makes the same decision as
-`clustersOf.go` at each step, with the same `ScanState` and `ScanState.push`. Two things differ.
-The property lookup `charProps` answers an ASCII code point from the small `asciiProps`, with no
-table, and any other code point with one search in the combined table `Tables.propsLookup`; both
-are proved equal to `Tables.props`. The break decision `breaksBeforeFast` is one `match` on the
-two break classes instead of a search through `breakRows`, and is proved equal to `breaksBefore`.
+The scan `scanClusters` steps through the slice one code point at a time and makes the same
+decision as `clustersOf.go` at each step. It is a tail-recursive loop: each closed cluster's
+bounds are pushed onto an `Array`, and `sliceGraphemes` and `sliceBoundaries` build their list
+once from that array. A non-ASCII code point is looked up with one search in the combined table
+`Tables.propsLookup`, proved equal to `Tables.props`, decided by `breaksBeforeFast`, one `match`
+proved equal to `breaksBefore`, and read with `ScanState.push`. An ASCII code point needs none of
+that: `asciiBreaksBefore` decides it from the previous break class and the byte alone, which can
+only join it as the LF of CR LF or after a Prepend, and `asciiState` is the state after it. So in
+a run of ASCII text only a CR before LF, and the first non-ASCII code point after the run, are
+decided by more than the one byte. `scanClusters_step` proves both branches equal to the step of
+`clustersOf.go`.
 
 The recursion runs on the position in the slice, which moves forward by one code point each
 step, so it ends on every input without a step budget.
@@ -159,63 +164,110 @@ structure ClusterBounds (s : String.Slice) where
   /-- A cluster never ends before it starts. -/
   start_le_stop : start ≤ stop
 
-/-- The clusters of `s` from the open cluster that starts at `start` onwards, when the code points
-from `start` up to `pos` are read and `state` summarises the text read so far. This is
-`clustersOf.go` on positions: the open cluster is the bytes from `start` to `pos`. -/
+/-- `acc` followed by the clusters of `s` from the open cluster that starts at `start` onwards,
+when the code points from `start` up to `pos` are read and `state` summarises the text read so
+far. This is `clustersOf.go` on positions: the open cluster is the bytes from `start` to `pos`,
+and each closed cluster is pushed onto `acc`, so every recursive call is a tail call.
+
+An ASCII code point is decided by `asciiBreaksBefore` and read into `asciiState`, with no
+property lookup; any other code point is looked up once in `Tables.propsLookup` and decided by
+`breaksBeforeFast`. `scanClusters_step` proves both branches are the step of `charProps`,
+`breaksBeforeFast` and `ScanState.push`. -/
 def scanClusters (s : String.Slice) (start pos : s.Pos) (start_le_pos : start ≤ pos)
-    (state : ScanState) : List (ClusterBounds s) :=
-  if atEnd : pos = s.endPos then [⟨start, pos, start_le_pos⟩]
+    (state : ScanState) (acc : Array (ClusterBounds s)) : Array (ClusterBounds s) :=
+  if atEnd : pos = s.endPos then acc.push ⟨start, pos, start_le_pos⟩
   else
-    let props := charProps (pos.get atEnd)
+    let c := pos.get atEnd
     have pos_le_next : pos ≤ pos.next atEnd := Std.le_of_lt String.Slice.Pos.lt_next
-    if breaksBeforeFast state props then
-      ⟨start, pos, start_le_pos⟩ ::
-        scanClusters s pos (pos.next atEnd) pos_le_next (state.push props)
+    have start_le_next : start ≤ pos.next atEnd :=
+      String.Slice.Pos.le_trans start_le_pos pos_le_next
+    if c.toNat < 128 then
+      if asciiBreaksBefore state.prev.gcb c.toNat then
+        scanClusters s pos (pos.next atEnd) pos_le_next (asciiState c.toNat)
+          (acc.push ⟨start, pos, start_le_pos⟩)
+      else
+        scanClusters s start (pos.next atEnd) start_le_next (asciiState c.toNat) acc
     else
-      scanClusters s start (pos.next atEnd) (String.Slice.Pos.le_trans start_le_pos pos_le_next)
-        (state.push props)
+      let props := Tables.propsLookup c
+      if breaksBeforeFast state props then
+        scanClusters s pos (pos.next atEnd) pos_le_next (state.push props)
+          (acc.push ⟨start, pos, start_le_pos⟩)
+      else
+        scanClusters s start (pos.next atEnd) start_le_next (state.push props) acc
 termination_by pos
 decreasing_by all_goals exact String.Slice.Pos.lt_next
 
-/-- The bounds of the extended grapheme clusters of `s`, in order; `[]` for an empty slice. -/
-def clusterBounds (s : String.Slice) : List (ClusterBounds s) :=
-  if empty : s.startPos = s.endPos then []
+/-- One step of `scanClusters` before the end of the slice is the step of `clustersOf.go`: look up
+the next code point with `charProps`, decide with `breaksBeforeFast`, and read it with
+`ScanState.push`. -/
+theorem scanClusters_step (s : String.Slice) (start pos : s.Pos) (start_le_pos : start ≤ pos)
+    (state : ScanState) (acc : Array (ClusterBounds s)) (atEnd : pos ≠ s.endPos) :
+    scanClusters s start pos start_le_pos state acc =
+      if breaksBeforeFast state (charProps (pos.get atEnd)) then
+        scanClusters s pos (pos.next atEnd) (Std.le_of_lt String.Slice.Pos.lt_next)
+          (state.push (charProps (pos.get atEnd))) (acc.push ⟨start, pos, start_le_pos⟩)
+      else
+        scanClusters s start (pos.next atEnd)
+          (String.Slice.Pos.le_trans start_le_pos (Std.le_of_lt String.Slice.Pos.lt_next))
+          (state.push (charProps (pos.get atEnd))) acc := by
+  rw [scanClusters, dite_eq_right atEnd]
+  unfold charProps
+  by_cases ascii : (pos.get atEnd).toNat < 128
+  · simp only [ascii, ↓reduceIte, breaksBeforeFast_asciiProps, ScanState.push_asciiProps]
+  · simp only [ascii, ↓reduceIte]
+
+/-- The bounds of the extended grapheme clusters of `s`, in order; empty for an empty slice. -/
+def clusterBounds (s : String.Slice) : Array (ClusterBounds s) :=
+  if empty : s.startPos = s.endPos then #[]
   else
     scanClusters s s.startPos (s.startPos.next empty)
       (Std.le_of_lt String.Slice.Pos.lt_next)
-      (ScanState.start (charProps (s.startPos.get empty)))
+      (ScanState.start (charProps (s.startPos.get empty))) #[]
 
 /-- The extended grapheme clusters of `s`, by UAX #29 revision 49 and Unicode 18.0.0, as slices
-of `s`: no text is copied. `Segmentation.graphemes` gives the same clusters as strings. -/
+of `s`: no text is copied. `Segmentation.graphemes` gives the same clusters as strings. The list
+is built once, straight from the array of cluster bounds. -/
 def sliceGraphemes (s : String.Slice) : List String.Slice :=
-  (clusterBounds s).map fun b => s.slice b.start b.stop b.start_le_stop
+  (clusterBounds s).foldr (fun b rest => s.slice b.start b.stop b.start_le_stop :: rest) []
 
 /-- The boundaries between the extended grapheme clusters of `s`, as positions in `s`, both ends
 included; `[s.startPos]` for an empty slice. A position counts bytes from the start of `s`, not
 of the string `s` is a slice of. -/
 def sliceBoundaries (s : String.Slice) : List s.Pos :=
-  s.startPos :: (clusterBounds s).map (·.stop)
+  s.startPos :: (clusterBounds s).foldr (fun b rest => b.stop :: rest) []
+
+/-- `sliceGraphemes` maps each cluster's bounds to its slice of `s`. -/
+theorem sliceGraphemes_eq_map (s : String.Slice) :
+    sliceGraphemes s =
+      (clusterBounds s).toList.map fun b => s.slice b.start b.stop b.start_le_stop := by
+  rw [sliceGraphemes, ← Array.foldr_toList, List.map_eq_foldr]
+
+/-- `sliceBoundaries` is the slice's start followed by each cluster's end. -/
+theorem sliceBoundaries_eq_map (s : String.Slice) :
+    sliceBoundaries s = s.startPos :: (clusterBounds s).toList.map (·.stop) := by
+  rw [sliceBoundaries, ← Array.foldr_toList, List.map_eq_foldr]
 
 /-! ### Agreement with the reference -/
 
 /-- `scanClusters` follows `clustersOf.go`. When `start` splits the text of `s` after the code
-points `read`, and `pos` splits it after `read ++ cluster` with `rest` still to read, the clusters
-the scan returns read back as the clusters `clustersOf.go` returns from the open cluster
-`cluster`, and the byte offsets of `start` and of each cluster's end are the running sums of the
+points `read`, and `pos` splits it after `read ++ cluster` with `rest` still to read, the scan
+keeps `acc` and appends clusters `out` to it; `out` reads back as the clusters `clustersOf.go`
+returns from the open cluster `cluster`, and the byte offsets of `start` and of each cluster's end are the running sums of the
 UTF-8 sizes of those clusters, starting from the size of `read`. -/
 theorem scanClusters_agree (s : String.Slice) :
     ∀ (rest : List Char) (start pos : s.Pos) (start_le_pos : start ≤ pos) (state : ScanState)
-      (read cluster : List Char),
+      (acc : Array (ClusterBounds s)) (read cluster : List Char),
       start.Splits (String.ofList read) (String.ofList (cluster ++ rest)) →
       pos.Splits (String.ofList (read ++ cluster)) (String.ofList rest) →
-      (scanClusters s start pos start_le_pos state).map
-          (fun b => (s.slice b.start b.stop b.start_le_stop).copy) =
-        (clustersOf.go charProps state cluster.reverse rest).map String.ofList ∧
-      (String.ofList read).utf8ByteSize ::
-          (scanClusters s start pos start_le_pos state).map (·.stop.offset.byteIdx) =
-        ((clustersOf.go charProps state cluster.reverse rest).map
-          (fun g => (String.ofList g).utf8ByteSize)).scanl (· + ·) (String.ofList read).utf8ByteSize
-  | [], start, pos, start_le_pos, state, read, cluster, hstart, hpos => by
+      ∃ out : List (ClusterBounds s),
+        (scanClusters s start pos start_le_pos state acc).toList = acc.toList ++ out ∧
+        out.map (fun b => (s.slice b.start b.stop b.start_le_stop).copy) =
+          (clustersOf.go charProps state cluster.reverse rest).map String.ofList ∧
+        (String.ofList read).utf8ByteSize :: out.map (·.stop.offset.byteIdx) =
+          ((clustersOf.go charProps state cluster.reverse rest).map
+            (fun g => (String.ofList g).utf8ByteSize)).scanl (· + ·)
+            (String.ofList read).utf8ByteSize
+  | [], start, pos, start_le_pos, state, acc, read, cluster, hstart, hpos => by
     rw [List.append_nil] at hstart
     rw [String.ofList_nil] at hpos
     have atEnd : pos = s.endPos := hpos.eq_endPos_iff.mpr rfl
@@ -226,11 +278,10 @@ theorem scanClusters_agree (s : String.Slice) :
       exact h
     have hoff : pos.offset.byteIdx = (String.ofList (read ++ cluster)).utf8ByteSize := by
       rw [hpos.offset_eq_rawEndPos, String.byteIdx_rawEndPos]
-    rw [scanClusters]
-    split
-    · simp [clustersOf.go, hcopy, hoff]
-    · contradiction
-  | c :: rest, start, pos, start_le_pos, state, read, cluster, hstart, hpos => by
+    rw [scanClusters, dite_eq_left atEnd]
+    refine ⟨[⟨start, pos, start_le_pos⟩], Array.toList_push, ?_, ?_⟩ <;>
+      simp [clustersOf.go, hcopy, hoff]
+  | c :: rest, start, pos, start_le_pos, state, acc, read, cluster, hstart, hpos => by
     have hpos' : pos.Splits (String.ofList (read ++ cluster))
         (String.singleton c ++ String.ofList rest) := by
       rwa [String.ofList_cons] at hpos
@@ -249,28 +300,28 @@ theorem scanClusters_agree (s : String.Slice) :
       exact h
     have hoff : pos.offset.byteIdx = (String.ofList (read ++ cluster)).utf8ByteSize := by
       rw [hpos.offset_eq_rawEndPos, String.byteIdx_rawEndPos]
-    rw [scanClusters]
-    split
-    · contradiction
+    rw [scanClusters_step s start pos start_le_pos state acc atEnd]
     simp only [hget, breaksBeforeFast_eq_breaksBefore]
     unfold clustersOf.go
     by_cases hb : breaksBefore state (charProps c) = true
     · simp only [hb, ↓reduceIte]
-      obtain ⟨ih₁, ih₂⟩ := scanClusters_agree s rest pos (pos.next atEnd) _
-        (state.push (charProps c)) (read ++ cluster) [c] hpos hnext
+      obtain ⟨out, hout, ih₁, ih₂⟩ := scanClusters_agree s rest pos (pos.next atEnd) _
+        (state.push (charProps c)) (acc.push ⟨start, pos, start_le_pos⟩) (read ++ cluster) [c]
+        hpos hnext
       simp only [List.reverse_cons, List.reverse_nil, List.nil_append] at ih₁ ih₂
-      refine ⟨?_, ?_⟩
+      refine ⟨⟨start, pos, start_le_pos⟩ :: out, ?_, ?_, ?_⟩
+      · rw [hout, Array.toList_push, List.append_assoc, List.singleton_append]
       · rw [List.map_cons, hcopy, ih₁, List.reverse_reverse, List.map_cons]
       · rw [List.map_cons, hoff, ih₂, List.reverse_reverse, List.map_cons, List.scanl_cons,
           String.ofList_append, String.utf8ByteSize_append]
     · simp only [hb, Bool.false_eq_true, ↓reduceIte]
-      obtain ⟨ih₁, ih₂⟩ := scanClusters_agree s rest start (pos.next atEnd) _
-        (state.push (charProps c)) read (cluster ++ [c])
+      obtain ⟨out, hout, ih₁, ih₂⟩ := scanClusters_agree s rest start (pos.next atEnd) _
+        (state.push (charProps c)) acc read (cluster ++ [c])
         (by rw [List.append_assoc]; exact hstart)
         (by rw [← List.append_assoc]; exact hnext)
       simp only [List.reverse_append, List.reverse_cons, List.reverse_nil, List.nil_append,
         List.singleton_append] at ih₁ ih₂
-      exact ⟨ih₁, ih₂⟩
+      exact ⟨out, hout, ih₁, ih₂⟩
 
 /-- The UTF-8 sizes of the prefixes of `pre ++ clusters.flatten` that end at the code-point cuts
 between `clusters` are the running sums of the clusters' UTF-8 sizes, starting from `pre`'s. -/
@@ -295,8 +346,8 @@ theorem sliceGraphemes_agree_clustersOf (s : String.Slice) :
       (sliceBoundaries s).map (fun p => p.offset.byteIdx) =
         ((clustersOf Tables.props s.copy.toList).map
           (fun g => (String.ofList g).utf8ByteSize)).scanl (· + ·) 0 := by
-  rw [← funext charProps_eq_props]
-  unfold sliceGraphemes sliceBoundaries clusterBounds
+  rw [← funext charProps_eq_props, sliceGraphemes_eq_map, sliceBoundaries_eq_map]
+  unfold clusterBounds
   split
   · rename_i empty
     have : s.copy = "" := (s.splits_startPos.eq_endPos_iff).mp empty
@@ -318,11 +369,13 @@ theorem sliceGraphemes_agree_clustersOf (s : String.Slice) :
       rw [List.nil_append, ← String.singleton_eq_ofList]
       rw [String.empty_append] at hnext'
       exact hnext'
-    obtain ⟨ih₁, ih₂⟩ := scanClusters_agree s rest s.startPos (s.startPos.next empty) _
-      (ScanState.start (charProps c)) [] [c] hstart hnext
+    obtain ⟨out, hout, ih₁, ih₂⟩ := scanClusters_agree s rest s.startPos (s.startPos.next empty) _
+      (ScanState.start (charProps c)) #[] [] [c] hstart hnext
     simp only [List.reverse_cons, List.reverse_nil, List.nil_append, String.ofList_nil,
       String.utf8ByteSize_empty] at ih₁ ih₂
-    simp only [hget, hcs, clustersOf]
+    simp only [List.nil_append] at hout
+    rw [hget, hout]
+    simp only [hcs, clustersOf]
     refine ⟨?_, ?_⟩
     · rw [List.map_map]
       exact ih₁
