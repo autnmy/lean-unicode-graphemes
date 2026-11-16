@@ -10,6 +10,7 @@ import SegmentationDev.Test.SliceClustersMatchCuts
 import SegmentationDev.Test.SliceScannerNoCopy
 import SegmentationDev.Test.SliceAgreeHeadlineGate
 import SegmentationDev.Test.SliceFastNoReference
+import SegmentationDev.Test.SliceAsciiPath
 
 /-!
 # The `String.Slice` scanner agrees with the reference
@@ -30,7 +31,8 @@ import SegmentationDev.Test.SliceFastNoReference
   `boundariesFast` pass the axiom gate and are in both headline lists;
 * that `graphemesFast` and `boundariesFast` are computed from `sliceGraphemes` and reach neither
   `graphemes`, `boundaries`, `clustersOf` nor `cutsOf`, so what runs after the csimp rewrite is
-  the scanner.
+  the scanner;
+* the ASCII branch of the scan and the array it fills, in `SliceAsciiPath`.
 
 Each module holds one concern, so a failure names the behaviour it checks. The check below
 makes sure every definition on the scanner's path, the internal scan included, is plain with no
@@ -48,7 +50,8 @@ theorem slice_scanner_definitions_are_plain_with_no_compiled_substitute : True :
     for name in [``Segmentation.sliceGraphemes, ``Segmentation.sliceBoundaries,
         ``Segmentation.charProps, ``Segmentation.asciiProps, ``Segmentation.scanClusters,
         ``Segmentation.clusterBounds, ``Segmentation.graphemesFast,
-        ``Segmentation.boundariesFast, ``Segmentation.breaksBeforeFast] do
+        ``Segmentation.boundariesFast, ``Segmentation.breaksBeforeFast,
+        ``Segmentation.asciiBreaksBefore, ``Segmentation.asciiState] do
       match env.find? name with
       | some (.defnInfo _) => pure ()
       | some _ => throwError m!"{name} is not a plain definition (a partial definition is opaque)"
