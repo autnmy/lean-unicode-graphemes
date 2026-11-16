@@ -116,6 +116,40 @@ theorem breaksBeforeFast_eq_breaksBefore :
   cases prevGcb <;> cases nextGcb <;>
     simp [breaksBeforeFast, breakRows, gcbIn, incbIs, isExtPict]
 
+/-- Whether there is a boundary before the ASCII code point `n` (below 128), when the code point
+before it has break class `prev`. An ASCII code point has no InCB value and is not
+Extended_Pictographic, so GB9c, GB11 and GB12/GB13 never join it, and the verdict needs neither
+the scan flags nor a table: a CR, LF or control code point breaks unless it is the LF of CR LF
+(GB3, GB4, GB5), and any other ASCII code point breaks unless it follows a Prepend (GB9b). -/
+def asciiBreaksBefore (prev : GCB) (n : Nat) : Bool :=
+  if n < 0x20 ∨ n = 0x7F then !(prev == .cr && n == 0x0A)
+  else prev != .prepend
+
+/-- The scan state after reading the ASCII code point `n` (below 128): its properties, and every
+look-back flag clear, since no flag survives a code point that is not InCB Linker or Extend,
+Extended_Pictographic, GCB Extend or ZWJ, or a regional indicator. -/
+def asciiState (n : Nat) : ScanState :=
+  { prev := asciiProps n, linkerTail := false, pictTail := false, zwjAfterPict := false,
+    riOdd := false }
+
+/-- `breaksBeforeFast` before an ASCII code point is `asciiBreaksBefore` on the previous break
+class, whatever the flags of the state. -/
+theorem breaksBeforeFast_asciiProps (s : ScanState) (n : Nat) :
+    breaksBeforeFast s (asciiProps n) = asciiBreaksBefore s.prev.gcb n := by
+  obtain ⟨⟨prevGcb, _, _⟩, _, _, _, _⟩ := s
+  unfold asciiProps asciiBreaksBefore
+  by_cases hcr : n = 0x0D <;> by_cases hlf : n = 0x0A <;> by_cases hlow : n < 0x20 <;>
+    by_cases hdel : n = 0x7F <;>
+    cases prevGcb <;> simp [hcr, hlf, hlow, hdel, breaksBeforeFast, incbIs, isExtPict]
+
+/-- Pushing an ASCII code point gives `asciiState`, whatever the state before it. -/
+theorem ScanState.push_asciiProps (s : ScanState) (n : Nat) :
+    s.push (asciiProps n) = asciiState n := by
+  unfold ScanState.push asciiState asciiProps
+  by_cases hcr : n = 0x0D <;> by_cases hlf : n = 0x0A <;> by_cases hlow : n < 0x20 <;>
+    by_cases hdel : n = 0x7F <;>
+    simp [hcr, hlf, hlow, hdel, incbIs, isExtPict, gcbIn]
+
 /-- The bounds of one cluster in `s`: it runs from `start`, included, to `stop`, excluded. -/
 structure ClusterBounds (s : String.Slice) where
   /-- The position of the cluster's first code point. -/
