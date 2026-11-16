@@ -1,5 +1,5 @@
 name = "bench"
-description = "Benchmark of lean-unicode-graphemes against UnicodeExtra on the same inputs"
+description = "Benchmark of lean-unicode-graphemes (reference and fast) against UnicodeExtra on the same inputs"
 # A package of its own, so the library's root package keeps no dependencies. Run from `bench/`:
 # `lake test` runs the bench tests. Every dependency is a path in this checkout, so nothing is
 # fetched.
@@ -37,7 +37,8 @@ name = "BenchChecks"
 roots = ["Main"]
 globs = ["BenchTest.+"]
 
-# Compares both libraries' clusters, then measures them: `lake exe bench check`, then
+# Compares the clusters of this library's reference segmenter, its fast slice segmenter and
+# UnicodeExtra, then measures all three: `lake exe bench check`, then
 # `lake exe bench report results.md`.
 [[lean_exe]]
 name = "bench"

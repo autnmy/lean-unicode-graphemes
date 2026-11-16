@@ -42,4 +42,7 @@ build_library "Bench.Together (both libraries imported together)" +Bench.Togethe
 build_harness "the benchmark library" Bench
 build_harness "the bench executable" bench
 build_harness "the bench tests" bench-tests
+# Every bench test module, including the ones the test driver cannot import because they
+# import `Main`. Building them elaborates their `#guard` checks.
+build_harness "the bench test modules" BenchChecks
 echo "Both libraries and the benchmark built."
