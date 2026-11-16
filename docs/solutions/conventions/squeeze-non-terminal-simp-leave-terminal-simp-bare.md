@@ -33,6 +33,7 @@ The proofs in `Segmentation/` now follow one rule for this. Both kinds of call a
 - When `simp` closes its goal alone (`by simp`, `by simp [hz]`, `simp at hlen` that closes a contradiction), leave it bare. Do not squeeze it.
 - When one `simp` runs after a case split such as `cases odd <;> simp <;> omega`, a single `simp only` list must work in every branch. Run `simp?` in each branch and join the lists. In `parity_snoc` the list carries both `Bool.not_false` and `Bool.not_true`, one for each `Bool` case.
 - `simpa ... using h` was not part of this rule and was left as it was.
+- One exception: in `Segmentation/ScanInvariants.lean`, the helpers that `breaksBefore_iff_firstBreak` uses (`firstBreak_nil`, `firstBreak_cons_brk`, `firstBreak_cons_noBrk`, `not_and_not_and_iff`) use `simp only [...]` even where the call is terminal. This keeps that whole proof chain independent of the default simp set. Keep them squeezed.
 
 ## Why it matters
 
