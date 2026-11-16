@@ -1,7 +1,7 @@
 name: Benchmark
 
-# Measures this library's reference and fast segmenters against UnicodeExtra (bench/). It runs on pushes to main, on manual
-# dispatch, and on pull requests that change the benchmark, this workflow, the library, its
+# Measures this library's reference and fast segmenters against UnicodeExtra (bench/). It runs
+# on pushes to main, on manual dispatch, and on pull requests that change the benchmark, this workflow, the library, its
 # lakefile or its toolchain, so a broken benchmark is seen before it lands. The benchmark builds the library by
 # path on its own toolchain (bench/lean-toolchain), so a library change can break it even when
 # the library's own checks pass. It is a workflow of its own, so it never delays the checks
