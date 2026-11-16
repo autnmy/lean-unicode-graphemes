@@ -28,17 +28,23 @@ def sampleRun : RunMeta :=
 def sampleRow (name : String) : ResultRow :=
   { input := name, callsPerSample := 100,
     ours := summarize [300, 100, 200], theirs := summarize [30, 10, 20],
-    baselinePeakKb := 1111, oursPeakKb := 2222, theirsPeakKb := 3333 }
+    fast := summarize [25, 5, 15],
+    baselinePeakKb := 1111, oursPeakKb := 2222, theirsPeakKb := 3333, fastPeakKb := 4444 }
 
 def sampleTable : String :=
   renderTable sampleRun (Bench.InputKind.all.map fun k => sampleRow k.name)
 
 #guard Bench.InputKind.all.all fun k => reportMentions sampleTable s!"| {k.name} |"
 #guard reportMentions sampleTable
-  "| plain-ascii | 3 | 100 | 200 | 100-300 | 20 | 10-30 | 1111 | 2222 | 3333 |"
+  "| plain-ascii | 3 | 100 | 200 | 100-300 | 20 | 10-30 | 15 | 5-25 | 1111 | 2222 | 3333 | 4444 |"
 #guard ["This library median", "This library min-max", "UnicodeExtra median",
-    "UnicodeExtra min-max", "Samples", "Baseline peak", "This library peak",
-    "UnicodeExtra peak"].all (reportMentions sampleTable)
+    "UnicodeExtra min-max", "Fast median", "Fast min-max", "Samples", "Baseline peak",
+    "This library peak", "UnicodeExtra peak", "Fast peak"].all (reportMentions sampleTable)
+-- Every input gets a pass-mark line, and the list ends with the large-mixed peaks.
+#guard Bench.InputKind.all.all fun k =>
+  reportMentions sampleTable
+    s!"- {k.name}: fast median 15 ns, UnicodeExtra min-max 10-30 ns, fast median at most UnicodeExtra max: yes"
+#guard reportMentions sampleTable "- Peak memory on large-mixed: fast 4444 KiB, UnicodeExtra 3333 KiB"
 #guard reportMentions sampleTable sampleRun.machine
 #guard reportMentions sampleTable sampleRun.toolchain
 #guard reportMentions sampleTable sampleRun.oursCommit

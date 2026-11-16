@@ -15,21 +15,24 @@ by spaces. The baseline child, which only builds the input, prints its peak alon
 
 namespace Bench
 
-/-- What a child process measures: the input alone, or one library on it. -/
+/-- What a child process measures: the input alone, or one segmenter on it. `fast` is this
+library's slice scanner, `Segmentation.sliceGraphemes`. -/
 inductive Library where
   | baseline
   | ours
   | theirs
+  | fast
   deriving DecidableEq, Repr
 
 namespace Library
 
-def all : List Library := [.baseline, .ours, .theirs]
+def all : List Library := [.baseline, .ours, .theirs, .fast]
 
 def name : Library → String
   | .baseline => "baseline"
   | .ours => "ours"
   | .theirs => "theirs"
+  | .fast => "fast"
 
 def ofName? (name : String) : Option Library :=
   all.find? (·.name == name)
@@ -121,14 +124,16 @@ def runChild (library : Library) (kind : InputKind) : IO (Nat × List Nat) := do
   | none => throw (IO.userError
       s!"measure {library.name} {kind.name} printed no measurement line:\n{output.stdout}")
 
-/-- The results row of `kind`, from one child process per library. -/
+/-- The results row of `kind`, from one child process per segmenter and one for the baseline. -/
 def measureRow (kind : InputKind) : IO ResultRow := do
   let (baselinePeakKb, _) ← runChild .baseline kind
   let (oursPeakKb, oursSamples) ← runChild .ours kind
   let (theirsPeakKb, theirsSamples) ← runChild .theirs kind
+  let (fastPeakKb, fastSamples) ← runChild .fast kind
   return { input := kind.name, callsPerSample := (timingPlan kind).callsPerSample,
            ours := summarize oursSamples, theirs := summarize theirsSamples,
-           baselinePeakKb, oursPeakKb, theirsPeakKb }
+           fast := summarize fastSamples,
+           baselinePeakKb, oursPeakKb, theirsPeakKb, fastPeakKb }
 
 /-- The value of environment variable `name`, which the CI job must set. -/
 def requiredEnv (name : String) : IO String := do

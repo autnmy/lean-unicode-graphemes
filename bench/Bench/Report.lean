@@ -3,8 +3,9 @@
 
 The CI job uploads one markdown file: a table of the measurements and a list saying where they
 were taken. Everything here is pure, so the tests can check what the file says without running
-a benchmark. The file reports numbers only; it holds no sentence that judges which library is
-faster.
+a benchmark. The table reports numbers only. After it, a pass-mark list states, per input,
+whether the fast segmenter's median is at most UnicodeExtra's maximum sample in the same run. The
+list reports the mark and never enforces it: a run that misses it still writes the file.
 
 When the two libraries cannot build together on the bench toolchain there are no numbers, and
 the file states that result instead, with the target that failed and the compiler's last lines.
@@ -57,9 +58,12 @@ structure ResultRow where
   callsPerSample : Nat
   ours : Stats
   theirs : Stats
+  /-- The fast slice segmenter, `Segmentation.sliceGraphemes`. -/
+  fast : Stats
   baselinePeakKb : Nat
   oursPeakKb : Nat
   theirsPeakKb : Nat
+  fastPeakKb : Nat
 
 /-- How memory is measured, stated in the results so a reader knows what the peaks include. -/
 def memoryMethod : String :=
@@ -72,18 +76,43 @@ def timingMethod : String :=
   "Times are nanoseconds per call, from `IO.monoNanosNow`, over the stated number of samples " ++
   "after warm-up runs that are not counted. Each call's result is consumed, so it is computed."
 
+/-- The pass mark: the fast segmenter's median is no greater than UnicodeExtra's maximum sample.
+Both figures come from the same run, because runner speed varies between runs. -/
+def meetsPassMark (fast theirs : Stats) : Bool :=
+  fast.median ≤ theirs.max
+
 private def tableHeader : List String :=
   [ "| Input | Samples | Calls per sample | This library median (ns) | This library min-max (ns) " ++
-      "| UnicodeExtra median (ns) | UnicodeExtra min-max (ns) | Baseline peak (KiB) " ++
-      "| This library peak (KiB) | UnicodeExtra peak (KiB) |",
-    "|---|---|---|---|---|---|---|---|---|---|" ]
+      "| UnicodeExtra median (ns) | UnicodeExtra min-max (ns) | Fast median (ns) " ++
+      "| Fast min-max (ns) | Baseline peak (KiB) | This library peak (KiB) " ++
+      "| UnicodeExtra peak (KiB) | Fast peak (KiB) |",
+    "|---|---|---|---|---|---|---|---|---|---|---|---|---|" ]
 
 private def renderRow (row : ResultRow) : String :=
   let cells := [ row.input, toString row.ours.count, toString row.callsPerSample,
     toString row.ours.median, s!"{row.ours.min}-{row.ours.max}",
     toString row.theirs.median, s!"{row.theirs.min}-{row.theirs.max}",
-    toString row.baselinePeakKb, toString row.oursPeakKb, toString row.theirsPeakKb ]
+    toString row.fast.median, s!"{row.fast.min}-{row.fast.max}",
+    toString row.baselinePeakKb, toString row.oursPeakKb, toString row.theirsPeakKb,
+    toString row.fastPeakKb ]
   "| " ++ " | ".intercalate cells ++ " |"
+
+/-- The input whose peaks the pass-mark list reports. -/
+private def peakInputName : String := "large-mixed"
+
+private def passMarkLine (row : ResultRow) : String :=
+  let verdict := if meetsPassMark row.fast row.theirs then "yes" else "no"
+  s!"- {row.input}: fast median {row.fast.median} ns, " ++
+    s!"UnicodeExtra min-max {row.theirs.min}-{row.theirs.max} ns, " ++
+    s!"fast median at most UnicodeExtra max: {verdict}"
+
+private def peakLine (row : ResultRow) : String :=
+  s!"- Peak memory on {row.input}: fast {row.fastPeakKb} KiB, UnicodeExtra {row.theirsPeakKb} KiB"
+
+/-- One line per input, then the raw peaks on `large-mixed` when that input was measured. -/
+private def renderPassMark (rows : List ResultRow) : List String :=
+  ["Pass mark:", ""] ++ rows.map passMarkLine ++
+    ((rows.find? (·.input == peakInputName)).map peakLine).toList
 
 private def renderRunMeta (run : RunMeta) : List String :=
   [ s!"- Machine: {run.machine}",
@@ -91,10 +120,12 @@ private def renderRunMeta (run : RunMeta) : List String :=
     s!"- lean-unicode-graphemes commit: {run.oursCommit}",
     s!"- UnicodeExtra commit: {run.theirsCommit}" ]
 
-/-- The results file: one table of the measurements, then the run's metadata and methods. -/
+/-- The results file: one table of the measurements, the pass-mark list, then the run's metadata
+and methods. -/
 def renderTable (run : RunMeta) (rows : List ResultRow) : String :=
   "\n".intercalate (
     ["# Benchmark results", ""] ++ tableHeader ++ rows.map renderRow ++
+    [""] ++ renderPassMark rows ++
     [""] ++ renderRunMeta run ++
     [s!"- Timing: {timingMethod}", s!"- Memory: {memoryMethod}"]) ++ "\n"
 

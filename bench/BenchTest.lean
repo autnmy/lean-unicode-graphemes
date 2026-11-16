@@ -24,6 +24,13 @@ import BenchTest.CheckAllAllAgree
 import BenchTest.ExitCodeFor
 import BenchTest.SummarizeStats
 import BenchTest.ReportRendering
+import BenchTest.MeetsPassMark
+import BenchTest.MeetsPassMarkAtMax
+import BenchTest.MeetsPassMarkAboveMax
+import BenchTest.ReportPassMarkLines
+import BenchTest.ReportLargeMixedPeaks
+import BenchTest.ReportFastColumnsGuards
+import BenchTest.ReportFastColumns
 import BenchTest.OursIsReference
 import BenchTest.FastIsSlice
 import BenchTest.FastClustersCrLf
