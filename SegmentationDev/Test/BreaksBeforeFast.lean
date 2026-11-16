@@ -9,9 +9,9 @@ import Segmentation
 Grapheme_Cluster_Break values, and `breaksBeforeFast_eq_breaksBefore` proves it equal to the
 reference `breaksBefore` for every scan state. The checks below run the match itself on the
 cases the rules name, never through the equality, so a wrong arm fails here even though the
-equality would also catch it. The other `BreaksBeforeFast*` modules hold the rule-order and
-flag cases; this one holds the five named cases, the flag-clear counterparts, the check that
-the scanner calls the match, and the axiom gate on the equality.
+equality would also catch it. This module holds the five named cases, their flag-clear
+counterparts, the rule-order cases, the type of the equality, the check that the scanner calls
+the match, and the axiom gate on the equality.
 -/
 
 -- "CR then LF: no break."
@@ -59,6 +59,16 @@ theorem breaks_before_fast_zwj_without_pictograph_then_pictograph_is_a_break :
       { gcb := .other, extPict := true, incb := .none } = true := by
   decide
 
+-- GB11 joins only when the next code point is Extended_Pictographic. A fallback arm that read
+-- `s.zwjAfterPict` alone would join any code point after a pictograph's ZWJ and return false.
+/-- After ZWJ following a pictograph, the fast decision breaks before a non-pictographic Other. -/
+theorem breaks_before_fast_gb11_needs_pictographic_next :
+    Segmentation.breaksBeforeFast
+      { prev := { gcb := .zwj, extPict := false, incb := .extend },
+        linkerTail := false, pictTail := false, zwjAfterPict := true, riOdd := false }
+      { gcb := .other, extPict := false, incb := .none } = true := by
+  decide
+
 -- "An odd regional-indicator run, then a regional indicator: no break."
 /-- After an odd run of regional indicators, the next regional indicator joins it (GB12 and
 GB13). -/
@@ -69,15 +79,25 @@ theorem breaks_before_fast_odd_regional_indicator_run_then_indicator_is_no_break
       { gcb := .regionalIndicator, extPict := false, incb := .none } = false := by
   decide
 
--- "Keep the same rule order as `breakRows`: the first row that applies decides, and a break is
--- the default."
-/-- A Control code point followed by an Extend code point is a boundary: GB4 comes before GB9,
-so the break after a control wins over the extend join. -/
-theorem breaks_before_fast_control_then_extend_is_a_break :
+/-- After an even run of regional indicators, the next regional indicator starts a new
+cluster: the GB12 and GB13 join reads the riOdd flag, so a match that ignored it fails here. -/
+theorem breaks_before_fast_even_regional_indicator_run_then_indicator_is_a_break :
     Segmentation.breaksBeforeFast
-      { prev := { gcb := .control, extPict := false, incb := .none },
+      { prev := { gcb := .regionalIndicator, extPict := false, incb := .none },
         linkerTail := false, pictTail := false, zwjAfterPict := false, riOdd := false }
-      { gcb := .extend, extPict := false, incb := .none } = true := by
+      { gcb := .regionalIndicator, extPict := false, incb := .none } = true := by
+  decide
+
+-- The GB12/GB13 row of `breakRows` tests `s.riOdd` and the next class only, never `s.prev`.
+-- So for a state whose `riOdd` is set while `prev` is Other, the reference says no break. A fast
+-- arm that also required the previous class to be a regional indicator would break here, and
+-- would hold only on reachable states, not on every state.
+/-- With the odd-run flag set, the fast decision joins a regional indicator whatever the previous class. -/
+theorem breaks_before_fast_gb12_reads_ri_flag_not_previous_class :
+    Segmentation.breaksBeforeFast
+      { prev := { gcb := .other, extPict := false, incb := .none },
+        linkerTail := false, pictTail := false, zwjAfterPict := false, riOdd := true }
+      { gcb := .regionalIndicator, extPict := false, incb := .none } = false := by
   decide
 
 /-- After an InCB Linker tail, a next code point with InCB Consonant joins the cluster (GB9c),
@@ -97,6 +117,85 @@ theorem breaks_before_fast_no_linker_tail_then_consonant_is_a_break :
         linkerTail := false, pictTail := false, zwjAfterPict := false, riOdd := false }
       { gcb := .other, extPict := false, incb := .consonant } = true := by
   decide
+
+/-- With the linker flag clear, an InCB consonant after an Extend breaks by default. -/
+theorem breaksBeforeFast_no_linker_tail_then_consonant_breaks :
+    Segmentation.breaksBeforeFast
+      { prev := { gcb := .extend, extPict := false, incb := .extend },
+        linkerTail := false, pictTail := false, zwjAfterPict := false, riOdd := false }
+      { gcb := .other, extPict := false, incb := .consonant } = true := by
+  decide
+
+-- "Keep the same rule order as `breakRows`: the first row that applies decides, and a break is
+-- the default."
+/-- A Control code point followed by an Extend code point is a boundary: GB4 comes before GB9,
+so the break after a control wins over the extend join. -/
+theorem breaks_before_fast_control_then_extend_is_a_break :
+    Segmentation.breaksBeforeFast
+      { prev := { gcb := .control, extPict := false, incb := .none },
+        linkerTail := false, pictTail := false, zwjAfterPict := false, riOdd := false }
+      { gcb := .extend, extPict := false, incb := .none } = true := by
+  decide
+
+-- GB5 (break before Control) comes before GB9b (no break after Prepend). A match that tested the
+-- Prepend arm first would join the Control to the Prepend and return false.
+/-- After a Prepend code point, the fast decision still breaks before a Control code point. -/
+theorem breaks_before_fast_gb5_before_control_wins_over_gb9b_prepend :
+    Segmentation.breaksBeforeFast
+      { prev := { gcb := .prepend, extPict := false, incb := .none },
+        linkerTail := false, pictTail := false, zwjAfterPict := false, riOdd := false }
+      { gcb := .control, extPict := false, incb := .none } = true := by
+  decide
+
+/-- A Prepend code point followed by an LF is a boundary: GB5 comes before GB9b, so the break
+before a line feed wins over the prepend join. -/
+theorem breaks_before_fast_prepend_then_lf_is_a_break :
+    Segmentation.breaksBeforeFast
+      { prev := { gcb := .prepend, extPict := false, incb := .none },
+        linkerTail := false, pictTail := false, zwjAfterPict := false, riOdd := false }
+      { gcb := .lf, extPict := false, incb := .none } = true := by
+  decide
+
+-- GB3 (CR LF, no break) is the first row, ahead of GB4 (break after CR). Set flags must not
+-- change that. A match that tested "prev is CR" for a break before the CR LF pair returns true.
+/-- CR then LF is not a boundary in the fast decision, whatever the look-back flags hold. -/
+theorem breaks_before_fast_gb3_cr_lf_joins_with_every_flag_set :
+    Segmentation.breaksBeforeFast
+      { prev := { gcb := .cr, extPict := false, incb := .none },
+        linkerTail := true, pictTail := true, zwjAfterPict := true, riOdd := true }
+      { gcb := .lf, extPict := false, incb := .none } = false := by
+  decide
+
+-- GB4 comes before GB9c, GB11 and GB12/GB13 in `breakRows`. With every flag set and a next code
+-- point that each flag rule would join (a pictographic regional indicator with InCB Consonant),
+-- the break after Control or LF must still win. A match that tested the flags first returns false.
+/-- With every join flag set and a next code point that each flag test would join, a Control
+before it is still a boundary. -/
+theorem breaks_before_fast_flags_set_after_control_still_break :
+    Segmentation.breaksBeforeFast
+      { prev := { gcb := .control, extPict := false, incb := .none },
+        linkerTail := true, pictTail := true, zwjAfterPict := true, riOdd := true }
+      { gcb := .regionalIndicator, extPict := true, incb := .consonant } = true := by
+  decide
+
+/-- After LF, the fast decision breaks even when every look-back flag is set. -/
+theorem breaks_before_fast_set_flags_never_override_gb4_break :
+    Segmentation.breaksBeforeFast
+      { prev := { gcb := .lf, extPict := false, incb := .none },
+        linkerTail := true, pictTail := true, zwjAfterPict := true, riOdd := true }
+      { gcb := .regionalIndicator, extPict := true, incb := .consonant } = true := by
+  decide
+
+-- "Prove `breaksBeforeFast_eq_breaksBefore : ∀ s next, breaksBeforeFast s next = breaksBefore s
+-- next`." "Do not weaken a statement to make a proof go through."
+-- If the equality took a side condition, such as a reachable-state hypothesis, this stated type
+-- would not be accepted as the theorem's own.
+/-- The equality theorem holds for every scan state and every set of properties, with no
+hypothesis. -/
+theorem breaks_before_fast_equals_breaks_before_for_every_state :
+    ∀ (s : Segmentation.ScanState) (next : Segmentation.Props),
+      Segmentation.breaksBeforeFast s next = Segmentation.breaksBefore s next :=
+  Segmentation.breaksBeforeFast_eq_breaksBefore
 
 -- "`scanClusters` uses `breaksBeforeFast`, and `sliceGraphemes_agree`,
 -- `graphemes_eq_graphemesFast` and `boundaries_eq_boundariesFast` still prove."
