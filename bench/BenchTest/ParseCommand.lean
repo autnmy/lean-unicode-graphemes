@@ -1,4 +1,3 @@
-import Lean
 import Main
 
 /-!
@@ -56,30 +55,13 @@ theorem cluster_count_of_fast_times_a_counter_and_parses_by_name :
   decide
 
 -- The fast and reference counts are equal on every input, so only the definition shows which
--- counter the fast child process times. This walk fails unless `clusterCountOf` names
--- `Bench.fastClusterCount`, and the `.fast` arm is the only one that can.
-open Lean in
-theorem clusterCountOf_reaches_fastClusterCount : True := by
-  run_tac do
-    let env ← getEnv
-    let mut seen : NameSet := {}
-    let mut todo : Array Name := #[``Bench.clusterCountOf]
-    let mut i := 0
-    while i < todo.size do
-      let n := todo[i]!
-      i := i + 1
-      if seen.contains n then continue
-      seen := seen.insert n
-      if (`Bench.clusterCountOf).isPrefixOf n then
-        match env.find? n with
-        | some (.defnInfo info) =>
-          for c in info.value.getUsedConstants do
-            todo := todo.push c
-        | some _ => pure ()
-        | none => throwError m!"{n} is missing"
-    unless seen.contains ``Bench.fastClusterCount do
-      throwError m!"Bench.clusterCountOf does not use Bench.fastClusterCount"
-  trivial
+-- counter each child process times. Each arm is pinned, so swapping two of them fails here.
+theorem clusterCountOf_fast_is_fastClusterCount :
+    Bench.clusterCountOf .fast = some Bench.fastClusterCount := rfl
+theorem clusterCountOf_ours_is_oursClusterCount :
+    Bench.clusterCountOf .ours = some Bench.oursClusterCount := rfl
+theorem clusterCountOf_theirs_is_theirsClusterCount :
+    Bench.clusterCountOf .theirs = some Bench.theirsClusterCount := rfl
 
 -- `--break-fast` drops a cluster from the fast list only.
 #guard Bench.clustersFor (some .fast) .fast (fun _ => ["a", "b"]) "" == ["a"]
