@@ -97,33 +97,68 @@ def propsBlockStarts : Array Nat :=
         (starts.back?.getD 0)))
     #[]
 
-/-- The properties of `c`, read with the same binary search as `Tables.propsLookup` but only over
-the few ranges `propsBlockStarts` gives for `c`'s block, so a search takes a few steps instead of
-one per halving of the whole table. The window is checked with `Tables.Range.windowHolds` before
-it is used, so the result never depends on how `propsBlockStarts` was built: a code point past
-the last block, or a window that fails the check, is looked up in the whole table. -/
-def nonAsciiProps (c : Char) : Props :=
-  let n := c.toNat
+/-- The ranges of `Tables.propsRanges` that code point `n` is searched in: from the index
+`propsBlockStarts` gives for `n`'s block, included, to one past the index it gives for the next
+block, excluded. `none` when `n` is past the last block, or when the window fails
+`Tables.Range.windowHolds`, so a window it returns always holds `n`'s range if any range does. -/
+@[inline]
+def propsBlockWindow (n : Nat) : Option (Nat × Nat) :=
   let block := n / propsBlockSize
   if h : block + 1 < propsBlockStarts.size then
     let start := propsBlockStarts[block]
     let stop := min (propsBlockStarts[block + 1] + 1) Tables.propsRanges.size
-    if Tables.Range.windowHolds Tables.propsRanges n start stop then
-      Tables.Range.lookup.search Tables.propsDefault Tables.propsRanges n
-        (Tables.propsRanges.size + 1) start stop
-    else Tables.propsLookup c
-  else Tables.propsLookup c
+    if Tables.Range.windowHolds Tables.propsRanges n start stop then some (start, stop) else none
+  else none
+
+/-- Every window `propsBlockWindow` returns passes `Tables.Range.windowHolds`. -/
+theorem propsBlockWindow_windowHolds {n start stop : Nat}
+    (h : propsBlockWindow n = some (start, stop)) :
+    Tables.Range.windowHolds Tables.propsRanges n start stop = true := by
+  unfold propsBlockWindow at h
+  dsimp only at h
+  split at h
+  · split at h
+    · rename_i hwindow
+      simp only [Option.some.injEq, Prod.mk.injEq] at h
+      obtain ⟨rfl, rfl⟩ := h
+      exact hwindow
+    · cases h
+  · cases h
+
+/-- The properties of `c`, read with the same binary search as `Tables.propsLookup` but only over
+`window`, the ranges `propsBlockWindow` gives for `c`; with no window, the whole table. Taking the
+window as an argument lets the proof case on it without reducing `propsBlockWindow c.toNat`:
+casing on that term directly exceeds the kernel's recursion depth. -/
+@[inline]
+def searchPropsWindow (c : Char) : Option (Nat × Nat) → Props
+  | some (start, stop) =>
+    Tables.Range.lookup.search Tables.propsDefault Tables.propsRanges c.toNat
+      (Tables.propsRanges.size + 1) start stop
+  | none => Tables.propsLookup c
+
+/-- `searchPropsWindow` gives `Tables.propsLookup c` for any window that passes
+`Tables.Range.windowHolds`. -/
+theorem searchPropsWindow_eq_propsLookup (c : Char) (window : Option (Nat × Nat))
+    (hwindow : ∀ start stop, window = some (start, stop) →
+      Tables.Range.windowHolds Tables.propsRanges c.toNat start stop = true) :
+    searchPropsWindow c window = Tables.propsLookup c := by
+  match window with
+  | some (start, stop) =>
+    rw [searchPropsWindow, Tables.propsLookup]
+    exact Tables.Range.lookup_search_window_eq_lookup Tables.propsRanges_sorted c.toNat start stop
+      (hwindow start stop rfl)
+  | none => rfl
+
+/-- The properties of `c`, searched for only in the window `propsBlockWindow` gives for `c`, so a
+search takes a few steps instead of one per halving of the whole table. A code point with no
+window is looked up in the whole table, so the result never depends on how `propsBlockStarts` was
+built. -/
+def nonAsciiProps (c : Char) : Props :=
+  searchPropsWindow c (propsBlockWindow c.toNat)
 
 /-- `nonAsciiProps` gives the same properties as `Tables.propsLookup`, for every character. -/
-theorem nonAsciiProps_eq_propsLookup (c : Char) : nonAsciiProps c = Tables.propsLookup c := by
-  unfold nonAsciiProps
-  dsimp only
-  split
-  · split
-    · rename_i hwindow
-      exact Tables.Range.lookup_search_window_eq_lookup Tables.propsRanges_sorted _ _ _ hwindow
-    · rfl
-  · rfl
+theorem nonAsciiProps_eq_propsLookup (c : Char) : nonAsciiProps c = Tables.propsLookup c :=
+  searchPropsWindow_eq_propsLookup c _ fun _ _ => propsBlockWindow_windowHolds
 
 /-- Whether there is a boundary between the text summarised by `s` and a next code point with
 properties `next`, decided by one `match` on the two break classes instead of a search through

@@ -37,25 +37,16 @@ theorem nonAsciiProps_eq_propsLookup_type_is_for_every_char : True := by
     0x1F3FE, 0x1F468, 0x1F600, 0xE0100, 0xE01EF, 0xE01F0, 0x10FFFF].all fun n =>
   Segmentation.nonAsciiProps (Char.ofNat n) == Segmentation.Tables.propsLookup (Char.ofNat n)
 
-/-- Whether the window `propsBlockStarts` gives for `n`'s block passes `Range.windowHolds`, so
-`nonAsciiProps` searches that window rather than the whole table. -/
-def blockWindowHoldsForFastLookupTest (n : Nat) : Bool :=
-  let block := n / Segmentation.propsBlockSize
-  let starts := Segmentation.propsBlockStarts
-  let stop := min (starts.getD (block + 1) 0 + 1) Segmentation.Tables.propsRanges.size
-  block + 1 < starts.size &&
-    Segmentation.Tables.Range.windowHolds Segmentation.Tables.propsRanges n
-      (starts.getD block 0) stop
-
--- Every block of the index, at its first and its last code point, gets a window that passes the
--- check, so the scanner takes the short search on every code point the index covers.
+-- Every block of the index, at its first and its last code point, gets a window from
+-- `propsBlockWindow`, the function `nonAsciiProps` reads, so the scanner takes the short search
+-- on every code point the index covers rather than falling back to the whole table.
 #guard (List.range (Segmentation.propsBlockStarts.size - 1)).all fun block =>
-  blockWindowHoldsForFastLookupTest (block * Segmentation.propsBlockSize) &&
-    blockWindowHoldsForFastLookupTest ((block + 1) * Segmentation.propsBlockSize - 1)
+  (Segmentation.propsBlockWindow (block * Segmentation.propsBlockSize)).isSome &&
+    (Segmentation.propsBlockWindow ((block + 1) * Segmentation.propsBlockSize - 1)).isSome
 
 -- The index covers the code point the last range ends at.
-#guard blockWindowHoldsForFastLookupTest
-  ((Segmentation.Tables.propsRanges.back?.map (·.hi)).getD 0)
+#guard (Segmentation.propsBlockWindow
+  ((Segmentation.Tables.propsRanges.back?.map (·.hi)).getD 0)).isSome
 
 -- The scan reads non-ASCII properties through `nonAsciiProps`. `scanClusters` is defined by
 -- well-founded recursion, so its body sits in auxiliary definitions; the walk follows every
@@ -84,3 +75,5 @@ theorem scan_clusters_reads_non_ascii_props_through_block_index : True := by
 #assert_axioms Segmentation.nonAsciiProps_eq_propsLookup
   Segmentation.Tables.Range.lookup_search_window_eq_lookup Segmentation.nonAsciiProps
   Segmentation.propsBlockStarts Segmentation.Tables.Range.windowHolds
+  Segmentation.propsBlockWindow Segmentation.propsBlockWindow_windowHolds
+  Segmentation.searchPropsWindow Segmentation.searchPropsWindow_eq_propsLookup
