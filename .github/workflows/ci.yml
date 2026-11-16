@@ -118,7 +118,8 @@ jobs:
       # unsafe. The scanner skips comments, plain string text and «» names, where the test files
       # name these words as prose. It first runs its own exit-code test, which the test
       # driver does not import. It then gets every tracked .lean file from
-      # git and fails when given none, so it cannot pass by scanning nothing.
+      # git, except the third-party sources copied unchanged into bench/vendor/,
+      # and fails when given none, so it cannot pass by scanning nothing.
       - name: Check project code for forbidden words
         env:
           LC_ALL: C
@@ -126,7 +127,7 @@ jobs:
           set -euo pipefail
           lake build --wfail keyword-scan
           lake env lean SegmentationDev/Test/KeywordScanMainExitCodes.lean
-          git ls-files -z '*.lean' | xargs -0 lake exe keyword-scan
+          git ls-files -z '*.lean' ':!:bench/vendor/**' | xargs -0 lake exe keyword-scan
       # The committed tables and GraphemeBreakTest.txt cases must be exactly what
       # the generator writes from the data files. `git status` also reports new
       # untracked and deleted files, which `git diff` alone would miss. A
