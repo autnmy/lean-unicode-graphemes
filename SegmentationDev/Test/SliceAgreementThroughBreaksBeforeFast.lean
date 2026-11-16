@@ -7,7 +7,7 @@ import Segmentation
 open Lean in
 /-- The three agreement theorems are still proved theorems, and the scan proof they rest on
 rewrites with the equality between the fast break decision and the reference one. -/
-theorem slice_agreement_theorems_still_prove_through_breaks_before_fast_equality : True := by
+theorem slice_agreement_theorems_still_prove_through_breaksBeforeFast_equality : True := by
   run_tac do
     let env ← getEnv
     for name in [``Segmentation.sliceGraphemes_agree, ``Segmentation.graphemes_eq_graphemesFast,

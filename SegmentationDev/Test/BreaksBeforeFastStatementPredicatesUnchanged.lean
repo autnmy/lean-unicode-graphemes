@@ -6,7 +6,7 @@ import Segmentation
 -- through: editing the predicates the equality depends on. It pins `gcbIn`, `incbIs` and
 -- `isExtPict` to their definitions, and uses the equality on a GB11 case, where all three apply.
 /-- The equality holds while `gcbIn`, `incbIs` and `isExtPict` keep their definitions from `Statements.lean`. -/
-theorem breaks_before_fast_eq_uses_unchanged_statement_predicates :
+theorem breaksBeforeFast_eq_uses_unchanged_statement_predicates :
     (∀ (gs : List Segmentation.GCB) (p : Segmentation.Props),
         Segmentation.gcbIn gs p = gs.contains p.gcb) ∧
     (∀ (v : Segmentation.InCB) (p : Segmentation.Props),

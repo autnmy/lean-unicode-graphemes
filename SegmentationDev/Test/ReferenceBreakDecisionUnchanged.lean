@@ -6,7 +6,7 @@ import Segmentation
 open Lean in
 /-- The fast break decision exists, and the reference definitions still decide through the rule
 table and never call the fast decision. -/
-theorem reference_break_decision_never_reaches_breaks_before_fast : True := by
+theorem reference_break_decision_never_reaches_breaksBeforeFast : True := by
   run_tac do
     let env ← getEnv
     unless env.contains ``Segmentation.breaksBeforeFast do
