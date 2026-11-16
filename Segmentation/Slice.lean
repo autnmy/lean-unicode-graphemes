@@ -252,8 +252,9 @@ theorem sliceBoundaries_eq_map (s : String.Slice) :
 /-- `scanClusters` follows `clustersOf.go`. When `start` splits the text of `s` after the code
 points `read`, and `pos` splits it after `read ++ cluster` with `rest` still to read, the scan
 keeps `acc` and appends clusters `out` to it; `out` reads back as the clusters `clustersOf.go`
-returns from the open cluster `cluster`, and the byte offsets of `start` and of each cluster's end are the running sums of the
-UTF-8 sizes of those clusters, starting from the size of `read`. -/
+returns from the open cluster `cluster`, and the byte offsets of `start` and of each cluster's
+end are the running sums of the UTF-8 sizes of those clusters, starting from the size of
+`read`. -/
 theorem scanClusters_agree (s : String.Slice) :
     ∀ (rest : List Char) (start pos : s.Pos) (start_le_pos : start ≤ pos) (state : ScanState)
       (acc : Array (ClusterBounds s)) (read cluster : List Char),
