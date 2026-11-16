@@ -8,12 +8,28 @@ treat as one unit. It follows Unicode 18.0.0 and
 (`Segmentation/Version.lean` holds both versions), and uses Lean core only,
 with no Mathlib, Batteries or other Lake dependencies.
 
-It offers two functions:
+For speed, call the slice scanner in `Segmentation/Slice.lean`:
+
+- `Segmentation.sliceGraphemes : String.Slice → List String.Slice` splits
+  text into extended grapheme clusters, each one a slice of the input, so
+  nothing is copied.
+- `Segmentation.sliceBoundaries (s : String.Slice) : List s.Pos` returns the
+  cut positions as byte positions of the input, both ends included.
+
+The reference, the definitions the theorems below are about, is in
+`Segmentation/Graphemes.lean`:
 
 - `Segmentation.graphemes : String → List String` splits text into extended
   grapheme clusters.
 - `Segmentation.boundaries : String → List Nat` returns the cut positions,
   counted in code points from the start, both ends included.
+
+The two are proved equal by `Segmentation.sliceGraphemes_agree` (see "What is
+proved"). Two `@[csimp]` lemmas, `Segmentation.graphemes_eq_graphemesFast` and
+`Segmentation.boundaries_eq_boundariesFast`, make compiled calls to
+`graphemes` and `boundaries` run the slice scanner, so code that calls the
+reference also gets the fast code. The kernel still reduces the reference
+definitions themselves.
 
 ## What is proved
 
@@ -35,7 +51,25 @@ the theorem's type is the committed statement named in brackets.
 - `boundaries` returns exactly the cut positions of `graphemes`:
   `Segmentation.boundaries_agree` (`BoundariesMatchCuts graphemes boundaries`).
 
-Each of these four theorems depends on no axiom beyond `propext`,
+The fast segmenter is proved equal to the reference:
+
+- For any text `s`, the clusters of `sliceGraphemes s.toSlice`, each copied
+  into a `String`, are exactly `graphemes s`, and the cuts of
+  `sliceBoundaries s.toSlice`, as byte offsets, are `boundaries s` with each
+  code-point cut `n` mapped to the UTF-8 size of the first `n` code points:
+  `Segmentation.sliceGraphemes_agree`.
+
+The same four statements are proved for the fast scanner's `String` adapters,
+`Segmentation.graphemesFast : String → List String` (the clusters of
+`sliceGraphemes`, copied into strings) and
+`Segmentation.boundariesFast : String → List Nat`:
+`Segmentation.graphemesFast_join` (`JoinRestoresInput graphemesFast`),
+`Segmentation.graphemesFast_ne_empty` (`ClustersNonEmpty graphemesFast`),
+`Segmentation.graphemesFast_rules` (`CutsMatchRules Tables.props graphemesFast`)
+and `Segmentation.boundariesFast_agree`
+(`BoundariesMatchCuts graphemesFast boundariesFast`).
+
+Each of these nine theorems depends on no axiom beyond `propext`,
 `Classical.choice` and `Quot.sound`, the three standard axioms of Lean's logic.
 A proof that used `sorry`, `native_decide` or a new `axiom` would depend on an
 axiom outside that list.
@@ -49,7 +83,7 @@ the repository root, after `lake test`:
 lake env lean SegmentationDev/Test/HeadlineAxioms.lean
 ```
 
-This prints the `#print axioms` output for the four theorems above, and fails
+This prints the `#print axioms` output for the nine theorems above, and fails
 if any of them depends on an axiom outside the three standard ones.
 `sh scripts/axiom-gate-self-test.sh` shows that this check can fail: it writes
 throwaway files that use `sorry`, `native_decide` and a user `axiom`, and
@@ -150,7 +184,7 @@ Three Lean projects on Unicode came before this one:
   with `native_decide`.
 
 This library differs in what this repository shows: it follows UAX #29
-revision 49 with the Unicode 18.0.0 data, it proves the four theorems under
+revision 49 with the Unicode 18.0.0 data, it proves the theorems under
 "What is proved", and none of its proofs uses `native_decide`, which the axiom
 check in CI rejects. This section says nothing more about what the other
 projects prove than what is written above.
@@ -193,8 +227,9 @@ The `bench/` directory holds a separate Lake package that times this
 library's reference segmenter, `Segmentation.clustersOf` with each cluster
 copied into a `String` by `String.ofList`, against UnicodeExtra's
 `Unicode.graphemeClusters` on the same inputs. It also times the library's
-fast scanner, `Segmentation.sliceGraphemes` on `String.Slice`, with each
-cluster slice copied into a `String` for the comparison. It is a package of its own so
+fast scanner, `Segmentation.sliceGraphemes` on `String.Slice`. Only the
+check that compares the clusters copies the fast scanner's slices into
+`String`s; the timed calls copy nothing. It is a package of its own so
 that the library keeps no dependencies. It depends on this library and on
 UnicodeExtra by path, so it builds with no network. Its toolchain, in
 `bench/lean-toolchain`, is `leanprover/lean4:v4.35.0`, the library's own.
@@ -258,9 +293,13 @@ fails with the first difference.
 **Timing.** Times are nanoseconds per call, from `IO.monoNanosNow`. Each
 small input gets 31 samples of 1000 calls each; `large-mixed` gets 7 samples
 of one call each. Each input first gets 2 warm-up samples that are not
-counted. The table shows the median and the minimum and maximum. This
-library's reference time includes copying each cluster into a new `String`;
-the fast segmenter's and UnicodeExtra's cover their slices.
+counted. The table shows the median and the minimum and maximum. The
+reference column ("This library") times `Segmentation.clustersOf` on the
+`List Char` of the text, not `graphemes`, because compiled calls to
+`graphemes` run the fast scanner. Its time includes copying each cluster into
+a new `String`. The fast column times `Segmentation.sliceGraphemes` and
+copies nothing; UnicodeExtra's column also counts its slices without copying
+them.
 
 **Pass mark.** After the table, the results file lists one line per input
 saying whether the fast segmenter's median is at most UnicodeExtra's maximum
@@ -281,31 +320,41 @@ the C that Lean generates for the timed calls of the reference segmenter and
 UnicodeExtra; it predates the fast column, which it does not cover. It quotes
 the C that shows both of those segmenting the text on every timed call, and this library
 copying each cluster into a new `String` on every call. That reading covers
-`leanprover/lean4:v4.35.0` only. Nobody read the C of the
-`leanprover/lean4:v4.36.0-rc2` build behind the Results table below. No
-check re-reads the C, so a later source or toolchain change needs a new
-reading.
+`leanprover/lean4:v4.35.0` only, the toolchain of the Results table below;
+nobody has read the C of the fast column. No check re-reads the C, so a later
+source or toolchain change needs a new reading.
 
-**Results.** The table below is copied unchanged from the `bench-results`
-artifact of the first green run of `.github/workflows/bench.yml` on `main`:
-[run 43705448890](https://github.com/autnmy/lean-unicode-graphemes/actions/runs/43705448890),
-started 2026-11-15T10:43:25Z on a push of commit
-`a2d350507c970ca4d346a2e7651380cd428acce4`. Both libraries built together
-on one toolchain, and the check found the same clusters on every input.
+**Results.** The table and pass-mark lines below are copied unchanged from
+the `bench-results` artifact of
+[run 43876245002](https://github.com/autnmy/lean-unicode-graphemes/actions/runs/43876245002)
+of `.github/workflows/bench.yml`, a manual dispatch on `main` at commit
+`f8c19c2b59845b8c41ffb1dcd1d9b81ebac6c766`, started 2026-11-16T13:29:28Z.
+It is the third of three green runs on `main` in a row after the fast column
+landed, and the run a maintainer chose for this table; each of the three met
+the pass mark on every input. All three segmenters built together on one
+toolchain, and the check found the same clusters on every input.
 
 - Machine: AMD EPYC 7763 64-Core Processor, 4 cores, Linux runnervmccnms
   7.0.0-1019-azure #20-Ubuntu SMP PREEMPT Mon Oct 19 22:41:16 UTC 2026
   x86_64 GNU/Linux
-- Toolchain: `leanprover/lean4:v4.36.0-rc2`
-- lean-unicode-graphemes commit: `a2d350507c970ca4d346a2e7651380cd428acce4`
+- Toolchain: `leanprover/lean4:v4.35.0`
+- lean-unicode-graphemes commit: `f8c19c2b59845b8c41ffb1dcd1d9b81ebac6c766`
 - UnicodeExtra commit: `44228db53c8104753bf02bff36279a65ea46dce4`
 
-| Input | Samples | Calls per sample | This library median (ns) | This library min-max (ns) | UnicodeExtra median (ns) | UnicodeExtra min-max (ns) | Baseline peak (KiB) | This library peak (KiB) | UnicodeExtra peak (KiB) |
-|---|---|---|---|---|---|---|---|---|---|
-| plain-ascii | 31 | 1000 | 65616 | 65440-67950 | 10900 | 10836-11354 | 12140 | 12108 | 12128 |
-| mixed-scripts | 31 | 1000 | 45273 | 45173-45554 | 13214 | 13036-13375 | 12348 | 12132 | 12200 |
-| emoji | 31 | 1000 | 22085 | 22027-22237 | 6927 | 6874-7037 | 12152 | 12320 | 12372 |
-| large-mixed | 7 | 1 | 2369743663 | 2362626317-2380430256 | 511984218 | 506820922-521901586 | 40820 | 781304 | 268128 |
+| Input | Samples | Calls per sample | This library median (ns) | This library min-max (ns) | UnicodeExtra median (ns) | UnicodeExtra min-max (ns) | Fast median (ns) | Fast min-max (ns) | Baseline peak (KiB) | This library peak (KiB) | UnicodeExtra peak (KiB) | Fast peak (KiB) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| plain-ascii | 31 | 1000 | 71790 | 71626-72861 | 12521 | 12377-13302 | 8995 | 8963-12977 | 14408 | 14312 | 14408 | 14400 |
+| mixed-scripts | 31 | 1000 | 49311 | 49138-49551 | 14010 | 13894-14591 | 7903 | 7875-7987 | 14332 | 14304 | 14324 | 14368 |
+| emoji | 31 | 1000 | 24665 | 24626-28273 | 7958 | 7905-8102 | 3961 | 3940-4054 | 14424 | 14400 | 14360 | 14424 |
+| large-mixed | 7 | 1 | 2631949456 | 2620302067-2646862048 | 609059851 | 601261525-613354678 | 380170658 | 373978809-391743584 | 43072 | 848628 | 268276 | 389156 |
+
+Pass mark:
+
+- plain-ascii: fast median 8995 ns, UnicodeExtra min-max 12377-13302 ns, fast median at most UnicodeExtra max: yes
+- mixed-scripts: fast median 7903 ns, UnicodeExtra min-max 13894-14591 ns, fast median at most UnicodeExtra max: yes
+- emoji: fast median 3961 ns, UnicodeExtra min-max 7905-8102 ns, fast median at most UnicodeExtra max: yes
+- large-mixed: fast median 380170658 ns, UnicodeExtra min-max 601261525-613354678 ns, fast median at most UnicodeExtra max: yes
+- Peak memory on large-mixed: fast 389156 KiB, UnicodeExtra 268276 KiB
 
 ## Contributing
 
