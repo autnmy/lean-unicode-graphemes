@@ -51,7 +51,8 @@ theorem slice_scanner_definitions_are_plain_with_no_compiled_substitute : True :
         ``Segmentation.charProps, ``Segmentation.asciiProps, ``Segmentation.scanClusters,
         ``Segmentation.clusterBounds, ``Segmentation.graphemesFast,
         ``Segmentation.boundariesFast, ``Segmentation.breaksBeforeFast,
-        ``Segmentation.asciiBreaksBefore, ``Segmentation.asciiState] do
+        ``Segmentation.asciiBreaksBefore, ``Segmentation.asciiState,
+        ``Segmentation.mapClusterBounds] do
       match env.find? name with
       | some (.defnInfo _) => pure ()
       | some _ => throwError m!"{name} is not a plain definition (a partial definition is opaque)"

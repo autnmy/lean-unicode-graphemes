@@ -7,6 +7,7 @@ import SegmentationDev.Test.SliceScannerIssueGuards
 import SegmentationDev.Test.SliceAsciiPathHandovers
 import SegmentationDev.Test.SliceAsciiRunSubSlice
 import SegmentationDev.Test.SliceScanClustersArrayLoop
+import SegmentationDev.Test.SliceScanEmitsSlices
 
 /-!
 # The scanner's ASCII path and array loop
@@ -15,7 +16,8 @@ The modules imported here check the ASCII branch of `Segmentation.scanClusters` 
 fills: the ASCII decision against the rules and against `breaksBeforeFast` for every state, the
 state it leaves, that it reads no property table, the issue's own guards ("\r\n", "a\r\nb", an
 ASCII run then a combining mark, the empty slice), the places where a run meets a non-ASCII code
-point or the end of a sub-slice, and that the scan and its agreement lemma speak of an `Array`.
+point or the end of a sub-slice, that the scan and its agreement lemma speak of an `Array`, and
+that `sliceGraphemes` has the scan push its slices instead of building cluster bounds first.
 Importing them here makes `lake test` build them. The long run that a loop growing the stack per
 cluster would fail is a compiled check in `SegmentationDev.Test`.
 -/
@@ -27,6 +29,7 @@ cluster would fail is a compiled check in `SegmentationDev.Test`.
 #assert_axioms Segmentation.asciiBreaksBefore Segmentation.asciiState
   Segmentation.breaksBeforeFast_asciiProps Segmentation.ScanState.push_asciiProps
   Segmentation.scanClusters Segmentation.scanClusters_step Segmentation.clusterBounds
+  Segmentation.scanClusters_map Segmentation.mapClusterBounds Segmentation.mapClusterBounds_eq_map
   Segmentation.sliceGraphemes_eq_map Segmentation.sliceBoundaries_eq_map
   Segmentation.scanClusters_agree Segmentation.sliceGraphemes_agree
   Segmentation.graphemes_eq_graphemesFast Segmentation.boundaries_eq_boundariesFast
