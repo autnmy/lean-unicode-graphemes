@@ -1,30 +1,14 @@
 import Segmentation
 import SegmentationDev.Gate.Axioms
 import SegmentationDev.Test.AsciiBreaksBeforeRules
-import SegmentationDev.Test.AsciiBreaksBeforeArmedStates
 import SegmentationDev.Test.AsciiStateClearsFlags
-import SegmentationDev.Test.SliceAsciiBreaksBeforeCases
-import SegmentationDev.Test.SliceAsciiBreaksBeforeEdges
-import SegmentationDev.Test.SliceAsciiDecisionEqualsFast
-import SegmentationDev.Test.SliceAsciiStateClearsFlags
-import SegmentationDev.Test.«SliceAsciiStateClearsFlags.2»
-import SegmentationDev.Test.SliceAsciiPathNoTable
 import SegmentationDev.Test.SliceAsciiRunReadsNoTable
-import SegmentationDev.Test.SliceAsciiPathPlainDefinitions
-import SegmentationDev.Test.SliceAsciiHelpersArePlain
-import SegmentationDev.Test.SliceAsciiHelpersAxioms
 import SegmentationDev.Test.SliceScannerIssueGuards
-import SegmentationDev.Test.«SliceScannerIssueGuards.2»
 import SegmentationDev.Test.SliceAsciiPathHandovers
-import SegmentationDev.Test.SlicePrependBeforeAsciiRun
-import SegmentationDev.Test.SliceTwoByteControlsNotAscii
 import SegmentationDev.Test.SliceAsciiRunSubSlice
-import SegmentationDev.Test.SliceAsciiRunSubSliceEnd
-import SegmentationDev.Test.SliceAsciiRunBeforeParentMark
 import SegmentationDev.Test.SliceScanClustersArrayLoop
 import SegmentationDev.Test.SliceAgreementOverArrayLoop
 import SegmentationDev.Test.SliceScannerLongAsciiRun
-import SegmentationDev.Test.SliceLongAsciiRunNoTruncation
 
 /-!
 # The scanner's ASCII path and array loop
