@@ -27,8 +27,13 @@ theorem reference_break_decision_never_reaches_breaksBeforeFast : True := by
         | some (.defnInfo info) =>
           for c in info.value.getUsedConstants do todo := todo.push c
         | _ => pure ()
-    unless seen.contains ``Segmentation.breakRows do
-      throwError "breaksBefore no longer decides through breakRows"
+    -- `breakRows` is one of the walk's roots, so `seen` cannot show that `breaksBefore` reads it;
+    -- read `breaksBefore`'s own body instead.
+    match env.find? ``Segmentation.breaksBefore with
+    | some (.defnInfo info) =>
+      unless info.value.getUsedConstants.contains ``Segmentation.breakRows do
+        throwError "breaksBefore no longer decides through breakRows"
+    | _ => throwError "Segmentation.breaksBefore is not a plain definition"
     let rowNames := Segmentation.breakRows
     let expected := ["GB3", "GB4", "GB5", "GB6", "GB7", "GB8", "GB9", "GB9a", "GB9b", "GB9c",
       "GB11", "GB12, GB13"]
