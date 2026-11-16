@@ -47,7 +47,7 @@ structure RunMeta where
   toolchain : String
   /-- Full commit id of this library. -/
   oursCommit : String
-  /-- Full commit id of UnicodeExtra that `lake update` resolved. -/
+  /-- Full commit id of UnicodeExtra that the copy in `vendor/UnicodeExtra` was taken from. -/
   theirsCommit : String
 
 /-- The measurements for one input. Times are nanoseconds per call; peaks are kibibytes. -/

@@ -5,7 +5,7 @@
 # fails. A failure in any other step is the benchmark's own code, a harness failure, and writes
 # no results file, because it says nothing about the libraries.
 #
-# Run it from `bench/` after `lake update`, with the BENCH_* variables `bench report` reads set.
+# Run it from `bench/`, with the BENCH_* variables `bench report` reads set.
 # $1: the results file to write when the libraries cannot build together.
 set -eu
 
