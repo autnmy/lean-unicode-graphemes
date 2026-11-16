@@ -51,6 +51,10 @@ import SegmentationDev.Test.FindForbiddenProse
 import SegmentationDev.Test.PropsTable
 import SegmentationDev.Test.SliceAgrees
 import SegmentationDev.Test.SliceStatements
+import SegmentationDev.Test.BreaksBeforeFast
+import SegmentationDev.Test.BreaksBeforeFastStatementPredicatesUnchanged
+import SegmentationDev.Test.SliceAgreementThroughBreaksBeforeFast
+import SegmentationDev.Test.ReferenceBreakDecisionUnchanged
 
 /-!
 # Test driver

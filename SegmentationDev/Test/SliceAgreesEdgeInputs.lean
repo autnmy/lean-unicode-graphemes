@@ -62,6 +62,8 @@ def sliceTestText (cps : List Nat) : String := String.ofList (cps.map Char.ofNat
 
 -- "The scanner reuses `ScanState`, `ScanState.start`, `ScanState.push` and `breaksBefore` from
 -- `Segmentation/Graphemes.lean` unchanged."
+-- The scanner reuses the state code as is, and decides breaks with `breaksBeforeFast`, which
+-- `breaksBeforeFast_eq_breaksBefore` proves equal to `breaksBefore`.
 -- If the ASCII path skips pushing its code points into the scan state, flags from before the run
 -- survive it: U+1F469 U+200D leaves the GB11 flag set, so "a" then U+1F469 would wrongly join; and
 -- an odd regional indicator before "a" would wrongly pair the next two indicators differently.
