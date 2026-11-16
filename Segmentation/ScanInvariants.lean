@@ -429,7 +429,9 @@ private theorem not_sot_nothing (p : Props) (ps : List Props) :
 only needs to know whether either applies; this merges them as `breakRows` does. -/
 private theorem not_and_not_and_iff {P Q R X : Prop} :
     (¬ (P ∧ R) ∧ ¬ (Q ∧ R) ∧ X) ↔ (¬ ((P ∨ Q) ∧ R) ∧ X) := by
-  by_cases hp : P <;> by_cases hq : Q <;> simp [hp, hq]
+  by_cases hp : P <;> by_cases hq : Q <;>
+    simp only [hp, hq, true_and, false_and, and_self_left, not_false_eq_true, or_self, or_false,
+      or_true]
 
 /-- The body of `IsBoundary`, over any list of rules and any meaning of "applies": some rule
 says ÷, applies, and no earlier rule applies. -/
@@ -438,7 +440,8 @@ private def FirstBreak (applies : Rule → Prop) (l : List Rule) : Prop :=
     ∀ (j : Nat) (r' : Rule), j < k → l[j]? = some r' → ¬ applies r'
 
 private theorem firstBreak_nil {applies : Rule → Prop} : FirstBreak applies [] ↔ False := by
-  simp [FirstBreak]
+  simp only [FirstBreak, List.length_nil, Nat.not_lt_zero, not_false_eq_true, getElem?_neg,
+    reduceCtorEq, false_implies, implies_true, and_true, false_and, exists_false]
 
 private theorem firstBreak_cons {applies : Rule → Prop} {r : Rule} {l : List Rule} :
     FirstBreak applies (r :: l) ↔
@@ -469,13 +472,15 @@ private theorem firstBreak_cons_brk {applies : Rule → Prop} {r : Rule} {l : Li
     (h : r.verdict = .brk) :
     FirstBreak applies (r :: l) ↔ applies r ∨ FirstBreak applies l := by
   rw [firstBreak_cons, h]
-  by_cases ha : applies r <;> simp [ha]
+  by_cases ha : applies r <;>
+    simp only [ha, and_self, and_true, not_true_eq_false, not_false_eq_true, true_and, false_and,
+      or_false, false_or, true_or]
 
 private theorem firstBreak_cons_noBrk {applies : Rule → Prop} {r : Rule} {l : List Rule}
     (h : r.verdict = .noBrk) :
     FirstBreak applies (r :: l) ↔ ¬ applies r ∧ FirstBreak applies l := by
   rw [firstBreak_cons, h]
-  simp
+  simp only [reduceCtorEq, and_false, false_or]
 
 /-- The decision of `breakRows` after `p :: ps`, before `n`, is the first-match reading of
 `rules` with `p :: ps` before the position and `n :: rest` after it. The rules are unfolded one
