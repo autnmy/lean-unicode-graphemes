@@ -14,7 +14,7 @@ theorem «the benchmark's reference column never calls Segmentation.graphemes» 
     let env ← getEnv
     let scanner : List Name :=
       [``Segmentation.graphemes, ``Segmentation.graphemesFast, ``Segmentation.boundariesFast,
-        ``Segmentation.sliceGraphemes]
+        ``Segmentation.sliceGraphemes, ``Segmentation.breaksBeforeFast]
     let mut seen : NameSet := {}
     let mut todo : Array Name := #[``Bench.oursClusters, ``Bench.oursClusterCount]
     let mut i := 0
