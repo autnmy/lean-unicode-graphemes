@@ -8,6 +8,7 @@ import SegmentationDev.Test.SliceAsciiPathHandovers
 import SegmentationDev.Test.SliceAsciiRunSubSlice
 import SegmentationDev.Test.SliceScanClustersArrayLoop
 import SegmentationDev.Test.SliceScanEmitsSlices
+import SegmentationDev.Test.SliceFastLookup
 
 /-!
 # The scanner's ASCII path and array loop
@@ -17,7 +18,8 @@ fills: the ASCII decision against the rules and against `breaksBeforeFast` for e
 state it leaves, that it reads no property table, the issue's own guards ("\r\n", "a\r\nb", an
 ASCII run then a combining mark, the empty slice), the places where a run meets a non-ASCII code
 point or the end of a sub-slice, that the scan and its agreement lemma speak of an `Array`, and
-that `sliceGraphemes` has the scan push its slices instead of building cluster bounds first.
+that `sliceGraphemes` has the scan push its slices instead of building cluster bounds first, and
+that the scan's block-indexed property lookup equals the whole-table one.
 Importing them here makes `lake test` build them. The long run that a loop growing the stack per
 cluster would fail is a compiled check in `SegmentationDev.Test`.
 -/

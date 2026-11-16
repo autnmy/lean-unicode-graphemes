@@ -222,4 +222,59 @@ theorem Range.lookup_eq_scan {α : Type} {default : α} {table : Array (Range α
   Range.lookup_search_eq_scan default h n (table.size + 1) 0 table.size
     (Nat.le_refl _) (by omega) (fun i hi hside => by omega)
 
+/--
+Whether the ranges `start` (included) to `stop` (excluded) of `table` are the only ones that
+can hold code point `n`: `stop` is within the table, the range just before `start` ends before
+`n`, and the range at `stop` starts after `n`. On a sorted table that rules out every range
+outside the window, so a search of the window alone finds `n`'s range.
+-/
+def Range.windowHolds {α : Type} (table : Array (Range α)) (n start stop : Nat) : Bool :=
+  decide (stop ≤ table.size) &&
+    (match start with
+      | 0 => true
+      | before + 1 => if h : before < table.size then decide (table[before].hi < n) else false) &&
+    (if h : stop < table.size then decide (n < table[stop].lo) else true)
+
+/-- On a sorted table, searching a window that passes `Range.windowHolds` gives the same value
+as `Range.lookup` searching the whole table. -/
+theorem Range.lookup_search_window_eq_lookup {α : Type} {default : α} {table : Array (Range α)}
+    (hsorted : Range.Sorted table) (n start stop : Nat)
+    (hwindow : Range.windowHolds table n start stop = true) :
+    Range.lookup.search default table n (table.size + 1) start stop =
+      Range.lookup default table n := by
+  have hpairs := Range.chainOK_hi_lt_lo table.toList hsorted
+  have hlohi := Range.chainOK_lo_le_hi table.toList hsorted
+  simp only [Array.getElem_toList, Array.length_toList] at hpairs hlohi
+  simp only [Range.windowHolds, Bool.and_eq_true, decide_eq_true_eq] at hwindow
+  obtain ⟨⟨hstop, hbefore⟩, hafter⟩ := hwindow
+  rw [Range.lookup_eq_scan hsorted]
+  apply Range.lookup_search_eq_scan default hsorted n _ start stop hstop (by omega)
+  intro i hi hside
+  rcases hside with hside | hside
+  · -- Every range before `start` ends no later than the one just before it, which ends before `n`.
+    cases start with
+    | zero => omega
+    | succ before =>
+      have hb : before < table.size := by
+        by_cases hb : before < table.size
+        · exact hb
+        · simp only [hb, ↓reduceDIte, Bool.false_eq_true] at hbefore
+      simp only [hb, ↓reduceDIte, decide_eq_true_eq] at hbefore
+      rcases Nat.lt_or_ge i before with hearlier | hsame
+      · have := hpairs i before hearlier hb
+        have := hlohi before hb
+        omega
+      · have : i = before := by omega
+        subst this
+        omega
+  · -- Every range from `stop` on starts no earlier than the one at `stop`, which starts after `n`.
+    have hs : stop < table.size := by omega
+    simp only [hs, ↓reduceDIte, decide_eq_true_eq] at hafter
+    rcases Nat.eq_or_lt_of_le hside with hsame | hlater
+    · subst hsame
+      omega
+    · have := hpairs stop i hlater hi
+      have := hlohi stop hs
+      omega
+
 end Segmentation.Tables

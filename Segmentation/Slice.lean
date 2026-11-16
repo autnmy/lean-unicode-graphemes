@@ -16,9 +16,10 @@ decision as `clustersOf.go` at each step. It is a tail-recursive loop: for each 
 pushes onto an `Array` whatever its caller builds from the cluster's bounds. `sliceGraphemes`
 has it push each cluster's slice, so it allocates no bounds object per cluster and turns that
 array into its list in one pass; `sliceBoundaries` builds its list from the array of bounds
-`clusterBounds`. A non-ASCII code point is looked up with one search in the combined table
-`Tables.propsLookup`, proved equal to `Tables.props`, decided by `breaksBeforeFast`, one `match`
-proved equal to `breaksBefore`, and read with `ScanState.push`. An ASCII code point needs none of
+`clusterBounds`. A non-ASCII code point is looked up with `nonAsciiProps`, which searches only
+the ranges of the combined table that can hold a code point of its block and is proved equal to
+`Tables.propsLookup`, decided by `breaksBeforeFast`, one `match` proved equal to
+`breaksBefore`, and read with `ScanState.push`. An ASCII code point needs none of
 that: `asciiBreaksBefore` decides it from the previous break class and the byte alone, which can
 only join it as the LF of CR LF or after a Prepend, and `asciiState` is the state after it. So in
 a run of ASCII text only a CR before LF, the first byte of the run after a Prepend, and the first
@@ -70,6 +71,59 @@ theorem charProps_eq_props (c : Char) : charProps c = Tables.props c := by
   · rename_i h
     rw [asciiProps_eq_props c.toNat h, Char.ofNat_toNat]
   · exact Tables.propsLookup_eq_props c
+
+/-- How many code points share one entry of `propsBlockStarts`. -/
+def propsBlockSize : Nat := 256
+
+/-- The index of the first range of `Tables.propsRanges`, from index `i` on, that ends at or
+after code point `lo`, reading at most `fuel` ranges. -/
+def firstPropsRangeEndingFrom (lo : Nat) : (fuel i : Nat) → Nat
+  | 0, i => i
+  | fuel + 1, i =>
+    if h : i < Tables.propsRanges.size then
+      if Tables.propsRanges[i].hi < lo then firstPropsRangeEndingFrom lo fuel (i + 1) else i
+    else i
+
+/-- For each block `b` of `propsBlockSize` code points, from block 0 to the block after the one
+holding the end of the last range, the index of the first range of `Tables.propsRanges` that ends
+at or after the block's first code point. Only that range and the ones up to the first range of
+block `b + 1` can hold a code point of block `b`, so `nonAsciiProps` searches those alone. It is
+a top-level constant, so compiled code builds it once, in one pass over the table. -/
+def propsBlockStarts : Array Nat :=
+  let lastHi := (Tables.propsRanges.back?.map (·.hi)).getD 0
+  (List.range (lastHi / propsBlockSize + 2)).foldl
+    (fun starts block =>
+      starts.push (firstPropsRangeEndingFrom (block * propsBlockSize) Tables.propsRanges.size
+        (starts.back?.getD 0)))
+    #[]
+
+/-- The properties of `c`, read with the same binary search as `Tables.propsLookup` but only over
+the few ranges `propsBlockStarts` gives for `c`'s block, so a search takes a few steps instead of
+one per halving of the whole table. The window is checked with `Tables.Range.windowHolds` before
+it is used, so the result never depends on how `propsBlockStarts` was built: a code point past
+the last block, or a window that fails the check, is looked up in the whole table. -/
+def nonAsciiProps (c : Char) : Props :=
+  let n := c.toNat
+  let block := n / propsBlockSize
+  if h : block + 1 < propsBlockStarts.size then
+    let start := propsBlockStarts[block]
+    let stop := min (propsBlockStarts[block + 1] + 1) Tables.propsRanges.size
+    if Tables.Range.windowHolds Tables.propsRanges n start stop then
+      Tables.Range.lookup.search Tables.propsDefault Tables.propsRanges n
+        (Tables.propsRanges.size + 1) start stop
+    else Tables.propsLookup c
+  else Tables.propsLookup c
+
+/-- `nonAsciiProps` gives the same properties as `Tables.propsLookup`, for every character. -/
+theorem nonAsciiProps_eq_propsLookup (c : Char) : nonAsciiProps c = Tables.propsLookup c := by
+  unfold nonAsciiProps
+  dsimp only
+  split
+  · split
+    · rename_i hwindow
+      exact Tables.Range.lookup_search_window_eq_lookup Tables.propsRanges_sorted _ _ _ hwindow
+    · rfl
+  · rfl
 
 /-- Whether there is a boundary between the text summarised by `s` and a next code point with
 properties `next`, decided by one `match` on the two break classes instead of a search through
@@ -174,7 +228,7 @@ so every recursive call is a tail call. `emit` lets a caller build its own value
 during the scan, such as the cluster's slice, without first allocating its `ClusterBounds`.
 
 An ASCII code point is decided by `asciiBreaksBefore` and read into `asciiState`, with no
-property lookup; any other code point is looked up once in `Tables.propsLookup` and decided by
+property lookup; any other code point is looked up once with `nonAsciiProps` and decided by
 `breaksBeforeFast`. `scanClusters_step` proves both branches are the step of `charProps`,
 `breaksBeforeFast` and `ScanState.push`. -/
 @[specialize]
@@ -194,7 +248,7 @@ def scanClusters {β : Type} (s : String.Slice) (emit : (start stop : s.Pos) →
       else
         scanClusters s emit start (pos.next atEnd) start_le_next (asciiState c.toNat) acc
     else
-      let props := Tables.propsLookup c
+      let props := nonAsciiProps c
       if breaksBeforeFast state props then
         scanClusters s emit pos (pos.next atEnd) pos_le_next (state.push props)
           (acc.push (emit start pos start_le_pos))
@@ -221,7 +275,7 @@ theorem scanClusters_step {β : Type} (s : String.Slice)
   unfold charProps
   by_cases ascii : (pos.get atEnd).toNat < 128
   · simp only [ascii, ↓reduceIte, breaksBeforeFast_asciiProps, ScanState.push_asciiProps]
-  · simp only [ascii, ↓reduceIte]
+  · simp only [ascii, ↓reduceIte, nonAsciiProps_eq_propsLookup]
 
 /-- Scanning with `emit` gives `emit` applied to each element of the scan that pushes cluster
 bounds, so every agreement proof about the bounds scan holds for any `emit`. -/
