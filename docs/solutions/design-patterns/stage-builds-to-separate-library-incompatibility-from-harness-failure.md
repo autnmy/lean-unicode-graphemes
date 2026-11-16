@@ -34,7 +34,7 @@ The benchmark must report, as a fact, when this library and UnicodeExtra cannot 
 1. `bench-build-failure`, the reporter. It imports neither library, so it still builds when one of them fails.
 2. `+Segmentation`, then `+UnicodeExtra`.
 3. `+Bench.Together`, a module that holds only the two imports.
-4. `Bench`, `bench`, `bench-tests`: the harness.
+4. `Bench`, `bench`, `bench-tests`, `BenchChecks`: the harness. `BenchChecks` builds every bench test module, including those that import `Main` and so are not imported by the test driver.
 
 A failure in stages 2 or 3 writes the "cannot build together" results file and exits non-zero. A failure in stages 1 or 4 is a harness failure: it exits non-zero and writes nothing.
 

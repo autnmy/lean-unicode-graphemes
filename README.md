@@ -192,7 +192,9 @@ lake test    # build and run the test suite
 The `bench/` directory holds a separate Lake package that times this
 library's reference segmenter, `Segmentation.clustersOf` with each cluster
 copied into a `String` by `String.ofList`, against UnicodeExtra's
-`Unicode.graphemeClusters` on the same inputs. It is a package of its own so
+`Unicode.graphemeClusters` on the same inputs. It also times the library's
+fast scanner, `Segmentation.sliceGraphemes` on `String.Slice`, with each
+cluster slice copied into a `String` for the comparison. It is a package of its own so
 that the library keeps no dependencies. It depends on this library and on
 UnicodeExtra by path, so it builds with no network. Its toolchain, in
 `bench/lean-toolchain`, is `leanprover/lean4:v4.35.0`, the library's own.
@@ -225,9 +227,15 @@ In `bench/`, the job runs:
 elan toolchain install "$(cat lean-toolchain)"   # then checks `lean --version` names it
 sh build.sh results.md       # build this library, UnicodeExtra, then the benchmark
 lake test                    # the input, comparison and report tests
-lake exe bench check         # both libraries must return the same clusters
+lake exe bench check         # reference, fast and UnicodeExtra clusters must be equal
 lake exe bench report results.md
 ```
+
+Before the plain `check`, the job runs `check --break-ours` and
+`check --break-fast`. Each drops the last cluster of one list, and the job
+fails unless `check` then exits with status 1 and prints the difference, so
+the comparison is shown to catch a difference in either of this library's
+segmenters.
 
 If this library, UnicodeExtra, or a module that only imports
 both fails to build, `results.md` says which one failed and why, and the job
@@ -238,26 +246,35 @@ failure, which says nothing about the two libraries.
 `mixed-scripts` (Latin with combining marks, CJK, Hangul syllables and jamo,
 Indic conjuncts); `emoji` (ZWJ sequences, skin-tone modifiers, flags); and
 `large-mixed`, at least 10,000,000 bytes of UTF-8 mixing the other three.
-Before anything is timed, `lake exe bench check` compares the two libraries'
-clusters on every input and fails with the first difference.
+Before anything is timed, `lake exe bench check` compares the clusters of the
+reference segmenter, the fast segmenter and UnicodeExtra on every input and
+fails with the first difference.
 
 **Timing.** Times are nanoseconds per call, from `IO.monoNanosNow`. Each
 small input gets 31 samples of 1000 calls each; `large-mixed` gets 7 samples
 of one call each. Each input first gets 2 warm-up samples that are not
 counted. The table shows the median and the minimum and maximum. This
-library's time includes copying each cluster into a new `String`;
-UnicodeExtra's covers its slices.
+library's reference time includes copying each cluster into a new `String`;
+the fast segmenter's and UnicodeExtra's cover their slices.
+
+**Pass mark.** After the table, the results file lists one line per input
+saying whether the fast segmenter's median is at most UnicodeExtra's maximum
+sample in the same run, and then both peaks on `large-mixed`. The mark is
+reported, not enforced: `bench report` exits 0 either way, so a green run does
+not mean the mark was met. Read the lines in `results.md`.
 
 **Memory.** Each input and library runs in a process of its own. The table
 shows that process's peak resident memory (`VmHWM` in `/proc/self/status`).
 Each peak includes building the input. A baseline process that only builds
 the input is shown beside them, and nothing is subtracted.
 
-**What is tested.** The input generator, the comparison and the table's
-format have tests. The timing and memory values are measured, not tested.
+**What is tested.** The input generator, the comparison, the command-line
+parsing, the pass-mark rule and the table's format have tests. The timing and
+memory values are measured, not tested.
 [`bench/COMPILED-CODE.md`](bench/COMPILED-CODE.md) records a reading of
-the C that Lean generates for the timed calls. It quotes the C that shows
-both libraries segmenting the text on every timed call, and this library
+the C that Lean generates for the timed calls of the reference segmenter and
+UnicodeExtra; it predates the fast column, which it does not cover. It quotes
+the C that shows both of those segmenting the text on every timed call, and this library
 copying each cluster into a new `String` on every call. That reading covers
 `leanprover/lean4:v4.35.0` only. Nobody read the C of the
 `leanprover/lean4:v4.36.0-rc2` build behind the Results table below. No

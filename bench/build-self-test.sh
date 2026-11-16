@@ -49,7 +49,7 @@ expect "" 0 no
 for target in +Segmentation +UnicodeExtra +Bench.Together; do
   expect "$target" nonzero yes
 done
-for target in bench-build-failure Bench bench bench-tests; do
+for target in bench-build-failure Bench bench bench-tests BenchChecks; do
   expect "$target" nonzero no
 done
 

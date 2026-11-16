@@ -27,7 +27,7 @@ An input-only process provides useful context, but its peak is not a quantity th
 
 ## Solution
 
-Keep the input-only baseline and each library in separate processes. Report all three measured peaks and state that each includes input generation.
+Keep the input-only baseline and each segmenter in separate processes. Report every measured peak (the baseline, this library's reference, UnicodeExtra and this library's fast segmenter) and state that each includes input generation.
 
 Two processes can reach their peaks at different stages. Input generation can set both peaks even when segmentation later allocates memory. Subtracting those peaks can then report zero despite those allocations.
 

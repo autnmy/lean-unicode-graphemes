@@ -1,7 +1,7 @@
 name: Benchmark
 
-# Measures this library against UnicodeExtra (bench/). It runs on pushes to main, on manual
-# dispatch, and on pull requests that change the benchmark, this workflow, the library, its
+# Measures this library's reference and fast segmenters against UnicodeExtra (bench/). It runs
+# on pushes to main, on manual dispatch, and on pull requests that change the benchmark, this workflow, the library, its
 # lakefile or its toolchain, so a broken benchmark is seen before it lands. The benchmark builds the library by
 # path on its own toolchain (bench/lean-toolchain), so a library change can break it even when
 # the library's own checks pass. It is a workflow of its own, so it never delays the checks
@@ -107,10 +107,30 @@ jobs:
             echo "The broken comparison did not print the first difference." >&2
             exit 1
           fi
-      # Both libraries must return the same clusters on every input before either is timed.
-      - name: Compare both libraries' clusters on every input
+      # The same self-test for the fast slice segmenter: it drops one of the fast clusters only.
+      - name: Check that a fast-cluster difference fails the comparison
+        run: |
+          set +e
+          output=$(lake exe bench check --break-fast 2>&1)
+          status=$?
+          set -e
+          printf '%s\n' "$output"
+          if [ "$status" -ne 1 ]; then
+            echo "Expected exit status 1 from a broken comparison; got $status." >&2
+            exit 1
+          fi
+          if ! printf '%s\n' "$output" | grep -q "clusters differ on input"; then
+            echo "The broken comparison did not print the first difference." >&2
+            exit 1
+          fi
+      # The reference segmenter, the fast segmenter and UnicodeExtra must return the same
+      # clusters on every input before any of them is timed.
+      - name: Compare the three segmenters' clusters on every input
         run: lake exe bench check
-      - name: Time both libraries and record their peak memory
+      # The report lists whether the fast median is at most UnicodeExtra's maximum sample on
+      # each input. A missed pass mark is reported, not enforced, so this step passing does not
+      # mean the mark was met: read the "Pass mark" lines in results.md.
+      - name: Time the three segmenters and record their peak memory
         run: lake exe bench report results.md
       # Uploads the results table, or the "cannot build together" result when a library failed
       # to build. It is skipped when no results file was written.
