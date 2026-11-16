@@ -12,11 +12,14 @@ import Segmentation.Rules
 text: the clusters are slices of the input, and the cuts are positions in it.
 
 The scan `scanClusters` steps through the slice one code point at a time and makes the same
-decision as `clustersOf.go` at each step. It is a tail-recursive loop: each closed cluster's
-bounds are pushed onto an `Array`, and `sliceGraphemes` and `sliceBoundaries` build their list
-once from that array. A non-ASCII code point is looked up with one search in the combined table
-`Tables.propsLookup`, proved equal to `Tables.props`, decided by `breaksBeforeFast`, one `match`
-proved equal to `breaksBefore`, and read with `ScanState.push`. An ASCII code point needs none of
+decision as `clustersOf.go` at each step. It is a tail-recursive loop: for each closed cluster it
+pushes onto an `Array` whatever its caller builds from the cluster's bounds. `sliceGraphemes`
+has it push each cluster's slice, so it allocates no bounds object per cluster and turns that
+array into its list in one pass; `sliceBoundaries` builds its list from the array of bounds
+`clusterBounds`. A non-ASCII code point is looked up with `nonAsciiProps`, which searches only
+the ranges of the combined table that can hold a code point of its block and is proved equal to
+`Tables.propsLookup`, decided by `breaksBeforeFast`, one `match` proved equal to
+`breaksBefore`, and read with `ScanState.push`. An ASCII code point needs none of
 that: `asciiBreaksBefore` decides it from the previous break class and the byte alone, which can
 only join it as the LF of CR LF or after a Prepend, and `asciiState` is the state after it. So in
 a run of ASCII text only a CR before LF, the first byte of the run after a Prepend, and the first
@@ -68,6 +71,94 @@ theorem charProps_eq_props (c : Char) : charProps c = Tables.props c := by
   · rename_i h
     rw [asciiProps_eq_props c.toNat h, Char.ofNat_toNat]
   · exact Tables.propsLookup_eq_props c
+
+/-- How many code points share one entry of `propsBlockStarts`. -/
+def propsBlockSize : Nat := 256
+
+/-- The index of the first range of `Tables.propsRanges`, from index `i` on, that ends at or
+after code point `lo`, reading at most `fuel` ranges. -/
+def firstPropsRangeEndingFrom (lo : Nat) : (fuel i : Nat) → Nat
+  | 0, i => i
+  | fuel + 1, i =>
+    if h : i < Tables.propsRanges.size then
+      if Tables.propsRanges[i].hi < lo then firstPropsRangeEndingFrom lo fuel (i + 1) else i
+    else i
+
+/-- For each block `b` of `propsBlockSize` code points, from block 0 to the block after the one
+holding the end of the last range, the index of the first range of `Tables.propsRanges` that ends
+at or after the block's first code point. Only that range and the ones up to the first range of
+block `b + 1` can hold a code point of block `b`, so `nonAsciiProps` searches those alone. It is
+a top-level constant, so compiled code builds it once, in one pass over the table. -/
+def propsBlockStarts : Array Nat :=
+  let lastHi := (Tables.propsRanges.back?.map (·.hi)).getD 0
+  (List.range (lastHi / propsBlockSize + 2)).foldl
+    (fun starts block =>
+      starts.push (firstPropsRangeEndingFrom (block * propsBlockSize) Tables.propsRanges.size
+        (starts.back?.getD 0)))
+    #[]
+
+/-- The ranges of `Tables.propsRanges` that code point `n` is searched in: from the index
+`propsBlockStarts` gives for `n`'s block, included, to one past the index it gives for the next
+block, excluded. `none` when `n` is past the last block, or when the window fails
+`Tables.Range.windowHolds`, so a window it returns always holds `n`'s range if any range does. -/
+@[inline]
+def propsBlockWindow (n : Nat) : Option (Nat × Nat) :=
+  let block := n / propsBlockSize
+  if h : block + 1 < propsBlockStarts.size then
+    let start := propsBlockStarts[block]
+    let stop := min (propsBlockStarts[block + 1] + 1) Tables.propsRanges.size
+    if Tables.Range.windowHolds Tables.propsRanges n start stop then some (start, stop) else none
+  else none
+
+/-- Every window `propsBlockWindow` returns passes `Tables.Range.windowHolds`. -/
+theorem propsBlockWindow_windowHolds {n start stop : Nat}
+    (h : propsBlockWindow n = some (start, stop)) :
+    Tables.Range.windowHolds Tables.propsRanges n start stop = true := by
+  unfold propsBlockWindow at h
+  dsimp only at h
+  split at h
+  · split at h
+    · rename_i hwindow
+      simp only [Option.some.injEq, Prod.mk.injEq] at h
+      obtain ⟨rfl, rfl⟩ := h
+      exact hwindow
+    · cases h
+  · cases h
+
+/-- The properties of `c`, read with the same binary search as `Tables.propsLookup` but only over
+`window`, the ranges `propsBlockWindow` gives for `c`; with no window, the whole table. Taking the
+window as an argument lets the proof case on it without reducing `propsBlockWindow c.toNat`:
+casing on that term directly exceeds the kernel's recursion depth. -/
+@[inline]
+def searchPropsWindow (c : Char) : Option (Nat × Nat) → Props
+  | some (start, stop) =>
+    Tables.Range.lookup.search Tables.propsDefault Tables.propsRanges c.toNat
+      (Tables.propsRanges.size + 1) start stop
+  | none => Tables.propsLookup c
+
+/-- `searchPropsWindow` gives `Tables.propsLookup c` for any window that passes
+`Tables.Range.windowHolds`. -/
+theorem searchPropsWindow_eq_propsLookup (c : Char) (window : Option (Nat × Nat))
+    (hwindow : ∀ start stop, window = some (start, stop) →
+      Tables.Range.windowHolds Tables.propsRanges c.toNat start stop = true) :
+    searchPropsWindow c window = Tables.propsLookup c := by
+  match window with
+  | some (start, stop) =>
+    rw [searchPropsWindow, Tables.propsLookup]
+    exact Tables.Range.lookup_search_window_eq_lookup Tables.propsRanges_sorted c.toNat start stop
+      (hwindow start stop rfl)
+  | none => rfl
+
+/-- The properties of `c`, searched for only in the window `propsBlockWindow` gives for `c`, so a
+search takes a few steps instead of one per halving of the whole table. A code point with no
+window is looked up in the whole table, so the result never depends on how `propsBlockStarts` was
+built. -/
+def nonAsciiProps (c : Char) : Props :=
+  searchPropsWindow c (propsBlockWindow c.toNat)
+
+/-- `nonAsciiProps` gives the same properties as `Tables.propsLookup`, for every character. -/
+theorem nonAsciiProps_eq_propsLookup (c : Char) : nonAsciiProps c = Tables.propsLookup c :=
+  searchPropsWindow_eq_propsLookup c _ fun _ _ => propsBlockWindow_windowHolds
 
 /-- Whether there is a boundary between the text summarised by `s` and a next code point with
 properties `next`, decided by one `match` on the two break classes instead of a search through
@@ -164,18 +255,22 @@ structure ClusterBounds (s : String.Slice) where
   /-- A cluster never ends before it starts. -/
   start_le_stop : start ≤ stop
 
-/-- `acc` followed by the clusters of `s` from the open cluster that starts at `start` onwards,
-when the code points from `start` up to `pos` are read and `state` summarises the text read so
-far. This is `clustersOf.go` on positions: the open cluster is the bytes from `start` to `pos`,
-and each closed cluster is pushed onto `acc`, so every recursive call is a tail call.
+/-- `acc` followed by `emit` applied to the bounds of each cluster of `s` from the open cluster
+that starts at `start` onwards, when the code points from `start` up to `pos` are read and
+`state` summarises the text read so far. This is `clustersOf.go` on positions: the open cluster
+is the bytes from `start` to `pos`, and each closed cluster's `emit` value is pushed onto `acc`,
+so every recursive call is a tail call. `emit` lets a caller build its own value per cluster
+during the scan, such as the cluster's slice, without first allocating its `ClusterBounds`.
 
 An ASCII code point is decided by `asciiBreaksBefore` and read into `asciiState`, with no
-property lookup; any other code point is looked up once in `Tables.propsLookup` and decided by
+property lookup; any other code point is looked up once with `nonAsciiProps` and decided by
 `breaksBeforeFast`. `scanClusters_step` proves both branches are the step of `charProps`,
 `breaksBeforeFast` and `ScanState.push`. -/
-def scanClusters (s : String.Slice) (start pos : s.Pos) (start_le_pos : start ≤ pos)
-    (state : ScanState) (acc : Array (ClusterBounds s)) : Array (ClusterBounds s) :=
-  if atEnd : pos = s.endPos then acc.push ⟨start, pos, start_le_pos⟩
+@[specialize]
+def scanClusters {β : Type} (s : String.Slice) (emit : (start stop : s.Pos) → start ≤ stop → β)
+    (start pos : s.Pos) (start_le_pos : start ≤ pos) (state : ScanState) (acc : Array β) :
+    Array β :=
+  if atEnd : pos = s.endPos then acc.push (emit start pos start_le_pos)
   else
     let c := pos.get atEnd
     have pos_le_next : pos ≤ pos.next atEnd := Std.le_of_lt String.Slice.Pos.lt_next
@@ -183,52 +278,89 @@ def scanClusters (s : String.Slice) (start pos : s.Pos) (start_le_pos : start �
       String.Slice.Pos.le_trans start_le_pos pos_le_next
     if c.toNat < 128 then
       if asciiBreaksBefore state.prev.gcb c.toNat then
-        scanClusters s pos (pos.next atEnd) pos_le_next (asciiState c.toNat)
-          (acc.push ⟨start, pos, start_le_pos⟩)
+        scanClusters s emit pos (pos.next atEnd) pos_le_next (asciiState c.toNat)
+          (acc.push (emit start pos start_le_pos))
       else
-        scanClusters s start (pos.next atEnd) start_le_next (asciiState c.toNat) acc
+        scanClusters s emit start (pos.next atEnd) start_le_next (asciiState c.toNat) acc
     else
-      let props := Tables.propsLookup c
+      let props := nonAsciiProps c
       if breaksBeforeFast state props then
-        scanClusters s pos (pos.next atEnd) pos_le_next (state.push props)
-          (acc.push ⟨start, pos, start_le_pos⟩)
+        scanClusters s emit pos (pos.next atEnd) pos_le_next (state.push props)
+          (acc.push (emit start pos start_le_pos))
       else
-        scanClusters s start (pos.next atEnd) start_le_next (state.push props) acc
+        scanClusters s emit start (pos.next atEnd) start_le_next (state.push props) acc
 termination_by pos
 decreasing_by all_goals exact String.Slice.Pos.lt_next
 
 /-- One step of `scanClusters` before the end of the slice is the step of `clustersOf.go`: look up
 the next code point with `charProps`, decide with `breaksBeforeFast`, and read it with
 `ScanState.push`. -/
-theorem scanClusters_step (s : String.Slice) (start pos : s.Pos) (start_le_pos : start ≤ pos)
-    (state : ScanState) (acc : Array (ClusterBounds s)) (atEnd : pos ≠ s.endPos) :
-    scanClusters s start pos start_le_pos state acc =
+theorem scanClusters_step {β : Type} (s : String.Slice)
+    (emit : (start stop : s.Pos) → start ≤ stop → β) (start pos : s.Pos)
+    (start_le_pos : start ≤ pos) (state : ScanState) (acc : Array β) (atEnd : pos ≠ s.endPos) :
+    scanClusters s emit start pos start_le_pos state acc =
       if breaksBeforeFast state (charProps (pos.get atEnd)) then
-        scanClusters s pos (pos.next atEnd) (Std.le_of_lt String.Slice.Pos.lt_next)
-          (state.push (charProps (pos.get atEnd))) (acc.push ⟨start, pos, start_le_pos⟩)
+        scanClusters s emit pos (pos.next atEnd) (Std.le_of_lt String.Slice.Pos.lt_next)
+          (state.push (charProps (pos.get atEnd))) (acc.push (emit start pos start_le_pos))
       else
-        scanClusters s start (pos.next atEnd)
+        scanClusters s emit start (pos.next atEnd)
           (String.Slice.Pos.le_trans start_le_pos (Std.le_of_lt String.Slice.Pos.lt_next))
           (state.push (charProps (pos.get atEnd))) acc := by
   rw [scanClusters, dite_eq_right atEnd]
   unfold charProps
   by_cases ascii : (pos.get atEnd).toNat < 128
   · simp only [ascii, ↓reduceIte, breaksBeforeFast_asciiProps, ScanState.push_asciiProps]
-  · simp only [ascii, ↓reduceIte]
+  · simp only [ascii, ↓reduceIte, nonAsciiProps_eq_propsLookup]
 
-/-- The bounds of the extended grapheme clusters of `s`, in order; empty for an empty slice. -/
-def clusterBounds (s : String.Slice) : Array (ClusterBounds s) :=
+/-- Scanning with `emit` gives `emit` applied to each element of the scan that pushes cluster
+bounds, so every agreement proof about the bounds scan holds for any `emit`. -/
+theorem scanClusters_map {β : Type} (s : String.Slice)
+    (emit : (start stop : s.Pos) → start ≤ stop → β) (start pos : s.Pos)
+    (start_le_pos : start ≤ pos) (state : ScanState) (acc : Array (ClusterBounds s)) :
+    scanClusters s emit start pos start_le_pos state
+        (acc.map fun b => emit b.start b.stop b.start_le_stop) =
+      (scanClusters s ClusterBounds.mk start pos start_le_pos state acc).map
+        fun b => emit b.start b.stop b.start_le_stop := by
+  by_cases atEnd : pos = s.endPos
+  · rw [scanClusters, dite_eq_left atEnd, scanClusters, dite_eq_left atEnd, Array.map_push]
+  · rw [scanClusters_step s emit start pos start_le_pos state _ atEnd,
+      scanClusters_step s ClusterBounds.mk start pos start_le_pos state acc atEnd]
+    split
+    · rw [← scanClusters_map s emit pos (pos.next atEnd), Array.map_push]
+    · rw [scanClusters_map s emit start (pos.next atEnd)]
+termination_by pos
+decreasing_by all_goals exact String.Slice.Pos.lt_next
+
+/-- `emit` applied to the bounds of each extended grapheme cluster of `s`, in order, built in one
+scan; empty for an empty slice. -/
+@[specialize]
+def mapClusterBounds {β : Type} (s : String.Slice)
+    (emit : (start stop : s.Pos) → start ≤ stop → β) : Array β :=
   if empty : s.startPos = s.endPos then #[]
   else
-    scanClusters s s.startPos (s.startPos.next empty)
+    scanClusters s emit s.startPos (s.startPos.next empty)
       (Std.le_of_lt String.Slice.Pos.lt_next)
       (ScanState.start (charProps (s.startPos.get empty))) #[]
 
+/-- The bounds of the extended grapheme clusters of `s`, in order; empty for an empty slice. -/
+def clusterBounds (s : String.Slice) : Array (ClusterBounds s) :=
+  mapClusterBounds s ClusterBounds.mk
+
+/-- `mapClusterBounds` is `emit` applied to each element of `clusterBounds`. -/
+theorem mapClusterBounds_eq_map {β : Type} (s : String.Slice)
+    (emit : (start stop : s.Pos) → start ≤ stop → β) :
+    mapClusterBounds s emit =
+      (clusterBounds s).map fun b => emit b.start b.stop b.start_le_stop := by
+  unfold clusterBounds mapClusterBounds
+  split
+  · rw [Array.map_empty]
+  · rw [← scanClusters_map, Array.map_empty]
+
 /-- The extended grapheme clusters of `s`, by UAX #29 revision 49 and Unicode 18.0.0, as slices
-of `s`: no text is copied. `Segmentation.graphemes` gives the same clusters as strings. The list
-is built once, straight from the array of cluster bounds. -/
+of `s`: no text is copied. `Segmentation.graphemes` gives the same clusters as strings. The scan
+pushes each cluster's slice as it closes, and the list is built from that array in one pass. -/
 def sliceGraphemes (s : String.Slice) : List String.Slice :=
-  (clusterBounds s).foldr (fun b rest => s.slice b.start b.stop b.start_le_stop :: rest) []
+  (mapClusterBounds s fun start stop start_le_stop => s.slice start stop start_le_stop).toList
 
 /-- The boundaries between the extended grapheme clusters of `s`, as positions in `s`, both ends
 included; `[s.startPos]` for an empty slice. A position counts bytes from the start of `s`, not
@@ -240,7 +372,7 @@ def sliceBoundaries (s : String.Slice) : List s.Pos :=
 theorem sliceGraphemes_eq_map (s : String.Slice) :
     sliceGraphemes s =
       (clusterBounds s).toList.map fun b => s.slice b.start b.stop b.start_le_stop := by
-  rw [sliceGraphemes, ← Array.foldr_toList, List.map_eq_foldr]
+  rw [sliceGraphemes, mapClusterBounds_eq_map, Array.toList_map]
 
 /-- `sliceBoundaries` is the slice's start followed by each cluster's end. -/
 theorem sliceBoundaries_eq_map (s : String.Slice) :
@@ -261,7 +393,8 @@ theorem scanClusters_agree (s : String.Slice) :
       start.Splits (String.ofList read) (String.ofList (cluster ++ rest)) →
       pos.Splits (String.ofList (read ++ cluster)) (String.ofList rest) →
       ∃ out : List (ClusterBounds s),
-        (scanClusters s start pos start_le_pos state acc).toList = acc.toList ++ out ∧
+        (scanClusters s ClusterBounds.mk start pos start_le_pos state acc).toList =
+          acc.toList ++ out ∧
         out.map (fun b => (s.slice b.start b.stop b.start_le_stop).copy) =
           (clustersOf.go charProps state cluster.reverse rest).map String.ofList ∧
         (String.ofList read).utf8ByteSize :: out.map (·.stop.offset.byteIdx) =
@@ -301,7 +434,7 @@ theorem scanClusters_agree (s : String.Slice) :
       exact h
     have hoff : pos.offset.byteIdx = (String.ofList (read ++ cluster)).utf8ByteSize := by
       rw [hpos.offset_eq_rawEndPos, String.byteIdx_rawEndPos]
-    rw [scanClusters_step s start pos start_le_pos state acc atEnd]
+    rw [scanClusters_step s ClusterBounds.mk start pos start_le_pos state acc atEnd]
     simp only [hget, breaksBeforeFast_eq_breaksBefore]
     unfold clustersOf.go
     by_cases hb : breaksBefore state (charProps c) = true
@@ -348,7 +481,7 @@ theorem sliceGraphemes_agree_clustersOf (s : String.Slice) :
         ((clustersOf Tables.props s.copy.toList).map
           (fun g => (String.ofList g).utf8ByteSize)).scanl (· + ·) 0 := by
   rw [← funext charProps_eq_props, sliceGraphemes_eq_map, sliceBoundaries_eq_map]
-  unfold clusterBounds
+  unfold clusterBounds mapClusterBounds
   split
   · rename_i empty
     have : s.copy = "" := (s.splits_startPos.eq_endPos_iff).mp empty

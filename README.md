@@ -231,6 +231,11 @@ lake exe bench check         # reference, fast and UnicodeExtra clusters must be
 lake exe bench report results.md
 ```
 
+`bench report` stops with an error, before timing anything, unless `BENCH_MACHINE`, `BENCH_TOOLCHAIN`,
+`BENCH_OURS_COMMIT` and `BENCH_THEIRS_COMMIT` are set, because the results file
+records them. The workflow sets all four; to run the report locally, export
+them first with the machine, toolchain and commits you are measuring.
+
 Before the plain `check`, the job runs `check --break-ours` and
 `check --break-fast`. Each drops the last cluster of one list, and the job
 fails unless `check` then exits with status 1 and prints the difference, so

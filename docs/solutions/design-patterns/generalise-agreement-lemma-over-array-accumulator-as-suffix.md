@@ -46,6 +46,8 @@ The claims that the old lemma made about the returned list now apply to `out`.
 
 Make the consumers build their list once, with `Array.foldr`. Then prove one bridge lemma for each consumer, such as `sliceGraphemes_eq_map`, that turns the fold back into `toList.map`. Use `Array.foldr_toList` and `List.map_eq_foldr` for that rewrite. The theorems that depend on these consumers then prove with their statements unchanged.
 
+`sliceBoundaries` still works this way. `sliceGraphemes` no longer does, since PR #101. `scanClusters` now takes an `emit` argument and accumulates an `Array β`, and `sliceGraphemes` has it push each cluster's slice directly, then calls `toList`. Its bridge lemma `sliceGraphemes_eq_map` keeps its statement and is proved from `mapClusterBounds_eq_map`, which rests on `scanClusters_map`: the scan with any `emit` equals the bounds scan mapped by `emit`. `scanClusters_agree` is still stated over the `ClusterBounds` scan.
+
 ## Why it matters
 
 A tail loop is what makes long inputs safe. Without one, a long input can overflow the stack in compiled code. The suffix form keeps the old proof structure: you change the rewrites at each case, not the shape of the induction. The headline statements also stay unchanged, so a file whose bytes are pinned by a checksum, like `Segmentation/Statements.lean`, never has to change.
