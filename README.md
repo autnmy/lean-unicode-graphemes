@@ -190,7 +190,8 @@ lake test    # build and run the test suite
 ## Benchmark against UnicodeExtra
 
 The `bench/` directory holds a separate Lake package that times this
-library's `Segmentation.graphemes` against UnicodeExtra's
+library's reference segmenter, `Segmentation.clustersOf` with each cluster
+copied into a `String` by `String.ofList`, against UnicodeExtra's
 `Unicode.graphemeClusters` on the same inputs. It is a package of its own so
 that the library keeps no dependencies. It depends on this library and on
 UnicodeExtra by path, so it builds with no network. Its toolchain, in
@@ -254,6 +255,14 @@ the input is shown beside them, and nothing is subtracted.
 
 **What is tested.** The input generator, the comparison and the table's
 format have tests. The timing and memory values are measured, not tested.
+[`bench/COMPILED-CODE.md`](bench/COMPILED-CODE.md) records a reading of
+the C that Lean generates for the timed calls. It quotes the C that shows
+both libraries segmenting the text on every timed call, and this library
+copying each cluster into a new `String` on every call. That reading covers
+`leanprover/lean4:v4.35.0` only. Nobody read the C of the
+`leanprover/lean4:v4.36.0-rc2` build behind the Results table below. No
+check re-reads the C, so a later source or toolchain change needs a new
+reading.
 
 **Results.** The table below is copied unchanged from the `bench-results`
 artifact of the first green run of `.github/workflows/bench.yml` on `main`:
