@@ -38,7 +38,7 @@ on:
   workflow_dispatch:
 ```
 
-Use `pull_request`, not `pull_request_target`. With `pull_request`, code from a fork runs with the workflow's read-only token and without secrets. That matters here because the job compiles code fetched from another repository. Keep the workflow in its own file, and do not refer to it from `ci.yml`. Pull requests that touch neither path then skip it, and the main checks never wait for it.
+Use `pull_request`, not `pull_request_target`. With `pull_request`, code from a fork runs with the workflow's read-only token and without secrets. That matters here because the job compiles third-party code (since PR #85, the copies in `bench/vendor/`; before that, code fetched from another repository). Keep the workflow in its own file, and do not refer to it from `ci.yml`. Pull requests that touch neither path then skip it, and the main checks never wait for it.
 
 Branch protection decides whether a check is required, and that setting lives outside the repository. A trigger cannot make a check optional. Say in the pull request that the check is meant to stay optional.
 

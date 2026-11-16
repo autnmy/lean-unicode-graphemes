@@ -23,9 +23,11 @@ applies_when:
 
 ## Context
 
-The Benchmark workflow measures the `bench/` package. That package does not commit `bench/lake-manifest.json`, the file that locks dependency versions. Instead, `lake update` writes the file fresh on every run. The workflow used `leanprover/lean-action` v1.6.2 with `lake-package-directory: bench`, `build: false` and `test: false`. The goal was for the action to install the toolchain and nothing more.
+The Benchmark workflow measures the `bench/` package. When this was written, that package did not commit `bench/lake-manifest.json`, the file that locks dependency versions. Instead, `lake update` wrote the file fresh on every run. The workflow used `leanprover/lean-action` v1.6.2 with `lake-package-directory: bench`, `build: false` and `test: false`. The goal was for the action to install the toolchain and nothing more.
 
 Even with those settings, the action still runs its configure step. That step exits with `No lake-manifest.json found. Run lake update to generate manifest`. It exits before any later step can run `lake update`, so every run failed during setup. Neither library was measured.
+
+Current state: since PR #85, `bench/` requires UnicodeExtra and UnicodeBasic by path from `bench/vendor/`, commits `bench/lake-manifest.json`, runs no `lake update`, and uses the library's own toolchain, `leanprover/lean4:v4.35.0`. The workflow still points `lean-action` at the root and keeps the toolchain install and version check below. The rejected option and the v4.36.0-rc2 toolchain below are history.
 
 ## Solution
 

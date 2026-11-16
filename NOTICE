@@ -3,6 +3,14 @@ Copyright the lean-unicode-graphemes contributors.
 
 Licensed under the Apache License, Version 2.0. See the LICENSE file.
 
+The benchmark in bench/ includes, in bench/vendor/, copies of two
+third-party projects by François G. Dorais: UnicodeExtra
+(https://github.com/fgdorais/lean4-unicode-extra) and UnicodeBasic
+(https://github.com/fgdorais/lean4-unicode-basic). Both are licensed under
+the Apache License, Version 2.0; each copy carries its own LICENSE file.
+UnicodeBasic's Unicode data is covered by the Unicode License v3,
+reproduced below.
+
 This project uses data from the Unicode Character Database (UCD),
 Unicode 18.0.0, published by Unicode, Inc. at https://www.unicode.org/ucd/.
 That data, and every table generated from it in this project, is covered

@@ -192,10 +192,20 @@ lake test    # build and run the test suite
 The `bench/` directory holds a separate Lake package that times this
 library's `Segmentation.graphemes` against UnicodeExtra's
 `Unicode.graphemeClusters` on the same inputs. It is a package of its own so
-that the library keeps no dependencies. It depends on this library by path
-and on UnicodeExtra by git at commit `44228db53c81`. It uses its own
-toolchain, `leanprover/lean4:v4.36.0-rc2` (in `bench/lean-toolchain`),
-because UnicodeExtra at that commit needs it.
+that the library keeps no dependencies. It depends on this library and on
+UnicodeExtra by path, so it builds with no network. Its toolchain, in
+`bench/lean-toolchain`, is `leanprover/lean4:v4.35.0`, the library's own.
+
+The benchmark compares against UnicodeExtra. It uses a copy of
+UnicodeExtra's source at commit 44228db, with its dependency UnicodeBasic at
+7dcace6, kept in bench/vendor/ (both Apache-2.0; each copy carries its
+LICENSE). The copies are pinned: they are re-copied by hand to compare
+against a newer UnicodeExtra. They build on this library's Lean, 4.35.0,
+although upstream targets v4.36.0-rc2. The only changes to the copies are
+their lean-toolchain lines and UnicodeExtra finding UnicodeBasic by path;
+their Lean code is unchanged. UnicodeBasic uses `extern` and `unsafe` for
+its C tables; the copies are third-party code, outside the library and
+outside its forbidden-word scan.
 
 **Where it runs.** The workflow `.github/workflows/bench.yml` runs on every
 push to `main`, on manual dispatch, and on pull requests that change
@@ -212,15 +222,13 @@ In `bench/`, the job runs:
 
 ```sh
 elan toolchain install "$(cat lean-toolchain)"   # then checks `lean --version` names it
-lake update                  # fetch UnicodeExtra; the log prints the full commit id
 sh build.sh results.md       # build this library, UnicodeExtra, then the benchmark
 lake test                    # the input, comparison and report tests
 lake exe bench check         # both libraries must return the same clusters
 lake exe bench report results.md
 ```
 
-The job fails unless the commit `lake update` resolved starts with
-`44228db53c81`. If this library, UnicodeExtra, or a module that only imports
+If this library, UnicodeExtra, or a module that only imports
 both fails to build, `results.md` says which one failed and why, and the job
 fails. A failure in the benchmark's own code is reported as a harness
 failure, which says nothing about the two libraries.

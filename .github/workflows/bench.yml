@@ -20,7 +20,8 @@ on:
       - 'lakefile.toml'
   workflow_dispatch:
 
-# The job compiles and runs code fetched from another repository, so its token can only read.
+# The job compiles and runs third-party code (the copies in bench/vendor/), so its token can only
+# read.
 # Uploading an artifact needs no further permission.
 permissions:
   contents: read
@@ -36,8 +37,7 @@ jobs:
       LC_ALL: C
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # Installs elan. The action runs on the root package because its configure step fails
-      # without a lake-manifest.json, and bench/ has none until `lake update` writes it below.
+      # Installs elan. The action runs on the root package, not on bench/.
       # The build is staged by bench/build.sh below, so the action builds and tests nothing.
       - uses: leanprover/lean-action@24581d74d674803a25a81b10b059c5c0cdd344c6 # v1.6.2
         with:
@@ -62,28 +62,17 @@ jobs:
               exit 1
               ;;
           esac
-      # bench/lake-manifest.json is not committed: this resolves UnicodeExtra's pinned commit
-      # afresh on every run.
-      - name: Fetch UnicodeExtra
-        run: lake update
-      # Prints the full commit id `lake update` resolved and fails unless it is the pinned one.
-      # The lakefile names the full id; this check ties it to the `44228db53c81` prefix the README
-      # cites. It also sets the run metadata the results file reports.
-      - name: Check the resolved UnicodeExtra commit and record the run metadata
+      # Every dependency is a path in this checkout and bench/lake-manifest.json is committed, so
+      # nothing is fetched. The results file reports the run metadata set here.
+      - name: Record the run metadata
         run: |
           set -eu
-          # A path package (this library) has no `url`, so a missing one reads as "".
-          rev=$(jq -r '.packages[] | select((.url // "") | test("lean4-unicode-extra")) | .rev' lake-manifest.json)
-          echo "UnicodeExtra resolved to commit: $rev"
-          # Exactly one 40-digit id: no match or two matches fail instead of checking nothing.
-          if [ "$(printf '%s\n' "$rev" | grep -cxE '44228db53c81[0-9a-f]{28}' || true)" -ne 1 ] \
-            || [ "$(printf '%s\n' "$rev" | wc -l)" -ne 1 ]; then
-            echo "Expected one 40-digit commit id starting with 44228db53c81; got: $rev" >&2
-            exit 1
-          fi
+          # The UnicodeExtra commit that bench/vendor/UnicodeExtra was copied from. The copy is
+          # re-made by hand, so this changes only when it is.
+          theirs_commit=44228db53c8104753bf02bff36279a65ea46dce4
           cpu=$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | sed 's/^ *//')
           {
-            echo "BENCH_THEIRS_COMMIT=$rev"
+            echo "BENCH_THEIRS_COMMIT=$theirs_commit"
             echo "BENCH_OURS_COMMIT=$GITHUB_SHA"
             echo "BENCH_TOOLCHAIN=$(cat lean-toolchain)"
             echo "BENCH_MACHINE=$cpu, $(nproc) cores, $(uname -a)"

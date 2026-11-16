@@ -32,6 +32,8 @@ The cause is how Lake gets a pinned commit. It runs `git fetch` against the remo
 
 Cloning the dependency in advance does not fix this. Lake skips the fetch and uses a commit that is already present only when `rev` is a full SHA-1 id.
 
+This is history for the benchmark: since PR #85, `bench/lakefile.toml` requires a copy of UnicodeExtra by path from `bench/vendor/`, CI runs no `lake update`, and the prefix check on the resolved commit is gone. The rule still applies to any git require with a `rev`.
+
 ## Solution
 
 Write every commit pin in a lakefile `[[require]]` as the full 40-digit id:
