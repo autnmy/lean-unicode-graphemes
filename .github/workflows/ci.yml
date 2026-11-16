@@ -45,6 +45,13 @@ jobs:
           auto-config: false
           build: false
           test: false
+      # lean-action may restore `.lake` from an earlier run's cache. Lake does not compile a module
+      # again when its restored output is up to date, so the timed GraphemeBreakTest.txt step below
+      # would reuse an old proof and time nothing. Deleting every build output here, before the
+      # first build, does not depend on the action's cache settings or on which caches GitHub still
+      # holds, so every module is compiled in this run.
+      - name: Remove build outputs restored from earlier runs
+        run: rm -rf .lake/build
       # Every build runs with `--wfail`, so a compiler warning fails CI. The order matters: the
       # timed GraphemeBreakTest.txt step must compile its two modules itself, before the build of
       # the development libraries, whose SegmentationChecks library also holds those modules. If
@@ -58,16 +65,26 @@ jobs:
       # and fails if that proof depends on an axiom outside the three standard ones. The test
       # driver does not import this module or its tests, so this step is the only place CI checks
       # them, and the time limit bounds the whole check: a proof that needs 10 minutes or more
-      # fails. Only the Segmentation library is built before this step, so the limit also covers
-      # compiling the modules these two import that are not in it, such as SegmentationDev.TableGen,
+      # fails. Restored outputs were deleted above, and only this run's Segmentation library build
+      # exists when this step starts, so the limit also covers compiling the modules these two
+      # import that are not in it, such as SegmentationDev.TableGen,
       # SegmentationDev.Test.GraphemeBreakTestFile, SegmentationDev.Test.GraphemeBreakTestData and
-      # SegmentationDev.Gate.Axioms. The tests also run the decided check over all 853 cases, against a segmenter that
-      # never joins, to show it can fail.
+      # SegmentationDev.Gate.Axioms. The step first fails if the theorem is already built, by a
+      # cache or by an earlier step, because the limit would then time nothing. The tests also run
+      # the decided check over all 853 cases, against a segmenter that never joins, to show it can
+      # fail.
       - name: Check the GraphemeBreakTest.txt theorem within 10 minutes
         timeout-minutes: 10
         env:
           LC_ALL: C
-        run: lake build --wfail SegmentationDev.Test.GraphemeBreakTestTheorem SegmentationDev.Test.GraphemeBreakTestTheoremTests
+        run: |
+          set -eu
+          prebuilt=.lake/build/lib/lean/SegmentationDev/Test/GraphemeBreakTestTheorem.olean
+          if [ -e "$prebuilt" ]; then
+            echo "$prebuilt exists before the timed build, so the 10-minute limit would not time the proof." >&2
+            exit 1
+          fi
+          lake build --wfail SegmentationDev.Test.GraphemeBreakTestTheorem SegmentationDev.Test.GraphemeBreakTestTheoremTests
       # Plain `lake build` builds only the Segmentation library. This builds the development
       # libraries and all three executables, so the tests, the generator and the scanner are also
       # compiled with warnings as errors before any of them runs.
