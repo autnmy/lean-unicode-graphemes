@@ -19,9 +19,9 @@ once from that array. A non-ASCII code point is looked up with one search in the
 proved equal to `breaksBefore`, and read with `ScanState.push`. An ASCII code point needs none of
 that: `asciiBreaksBefore` decides it from the previous break class and the byte alone, which can
 only join it as the LF of CR LF or after a Prepend, and `asciiState` is the state after it. So in
-a run of ASCII text only a CR before LF, and the first non-ASCII code point after the run, are
-decided by more than the one byte. `scanClusters_step` proves both branches equal to the step of
-`clustersOf.go`.
+a run of ASCII text only a CR before LF, the first byte of the run after a Prepend, and the first
+non-ASCII code point after the run are decided by more than the one byte. `scanClusters_step`
+proves both branches equal to the step of `clustersOf.go`.
 
 The recursion runs on the position in the slice, which moves forward by one code point each
 step, so it ends on every input without a step budget.

@@ -84,13 +84,18 @@ def checks : List Check := [
     passed := Segmentation.unicodeVersion == "18.0.0" },
   { name := "UAX #29 revision is 49",
     passed := Segmentation.uax29Revision == 49 },
-  -- Runs compiled: a scan that recursed once per cluster would need a million stack frames here.
+  -- Runs compiled: a scan that recursed once per cluster would need a million stack frames here,
+  -- and one with a step budget would drop the clusters past it. U+0301 is 2 bytes, so the last
+  -- cut is at byte 1000002.
   { name := "a million ASCII letters then U+0301 give a million clusters, the mark on the last",
     passed :=
-      let clusters := Segmentation.sliceGraphemes
-        (String.ofList (List.replicate 1000000 'a' ++ ['\u0301'])).toSlice
-      clusters.length == 1000000 &&
-        clusters.getLast?.map String.Slice.copy == some "a\u0301" }
+      let s := (String.ofList (List.replicate 1000000 'a' ++ ['\u0301'])).toSlice
+      let clusters := Segmentation.sliceGraphemes s
+      (Segmentation.clusterBounds s).size == 1000000 &&
+        clusters.length == 1000000 &&
+        clusters.getLast?.map String.Slice.copy == some "a\u0301" &&
+        (Segmentation.sliceBoundaries s).getLast?.map (fun p => p.offset.byteIdx) ==
+          some 1000002 }
 ]
 
 end SegmentationDev.Test
